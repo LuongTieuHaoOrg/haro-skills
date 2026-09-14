@@ -28,9 +28,14 @@ Workflow:
 
 Manage the `.haro-docs/config/agents.yaml` configuration:
 
-1. When the file is missing, create it from the skill's `features/agents.yaml` and show its contents.
-2. Otherwise list agents as `id | role | enabled | default?`.
-3. Offer operations (Mode: single; picker when available, otherwise numbered list): `add agent | set role/prompt | enable / disable | set default_reviewer | reset from template (confirm first)`.
+1. When the file is missing or holds zero enabled entries, run the shared setup flow in `shared/agent-setup.md` first (it lists presets from `features/agents.yaml`).
+2. Otherwise list as `id | invoke | type/command | role | enabled | default?` (file/model per id via `.haro-docs/agents/index.yaml`).
+3. Offer operations (Mode: single; picker when available, otherwise numbered list): `add from template | add custom (blank) | attach existing | tune model | enable / disable | set default_reviewer | export to IDE | reset from template (confirm first)`.
+   - add from template: pick a preset from the registry → name it (lowercase-hyphen, unique) → invoke (preset default) → copy the template file into `.haro-docs/agents/` when missing → write index + registry entries on confirm.
+   - add custom (blank): name it → create `.haro-docs/agents/<name>.md` from `features/agents/_blank.md` for the user to fill → write entries on confirm.
+   - attach existing: pick a source — Task runtime type (catalog: sub_reviewer, sub_qc, sub_sec, sub_ba, sub_e2e, sub_uiux, sub_data, sub_arch, explore), or `@command` (typed, or picked from `.claude/agents/*.md` / `.agents/**` when found), or an existing project file → name it → confirm.
+   - tune model: edits only the `model:` line in the project copy frontmatter; confirm before writing.
+   - export to IDE: copies `.haro-docs/agents/<id>.md` to `.claude/agents/` (Claude Code) or `.agents/`; confirm the target first; never writes outside on its own.
 4. After any write, re-render the list and remind that `/haro-docs review` will offer these agents for selection.
 
 ### 11.3 Branch: conventions — Set Project-Specific Conventions

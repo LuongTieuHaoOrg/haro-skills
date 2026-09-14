@@ -35,10 +35,11 @@ Initialize the documentation structure for a new project.
    - Priority deliverables (multiple): which of BRD/PRD/SAD/... first, or `(all)`
 
    Unanswered items use the stated defaults. The conventions file is written at init step 5 with status RELEASED.
+3c. **Agent setup (quick)** — run the shared flow in `shared/agent-setup.md`: present presets in chat, multi-pick roles, name each, pick the default, write on confirm. Skipping writes nothing — no `config/agents.yaml` is created, and the setup returns automatically the next time a command needs agents.
 4. **Confirm the outline** — present the folder tree + specific file list (including the decided conventions); wait for user approval. When the project already holds docs outside the canonical tree, include a placement table `old path → new path` in this step and wait for per-row confirmation.
 5. **Initialize** — after approval:
    - Create `.haro-docs/config/project.yaml` and `.haro-docs/config/schema.yaml` (from the skill's `features/` directory) with `version: 1`, including the chosen `language.response` and `language.documentation`
-   - Create `.haro-docs/config/agents.yaml` from `features/agents.yaml`
+   - Agents: when step 3c completed setup, `config/agents.yaml` already exists — leave it. When skipped, create nothing: the setup in `shared/agent-setup.md` returns automatically the next time a command needs agents.
    - Create `.haro-docs/config/status.yaml` from `features/status.yaml` with every planned file listed as `UPDATING`
    - Create `.haro-docs/knowledge/index.yaml` from `features/knowledge.yaml` with empty `entries: []`
    - Create `.haro-docs/reviews/index.yaml` from `features/reviews.yaml` with empty `entries: []`

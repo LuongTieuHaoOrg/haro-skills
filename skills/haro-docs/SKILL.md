@@ -25,8 +25,11 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 ├── config/
 │   ├── project.yaml     # Project profile: type, audience, doc-root, language settings, version
 │   ├── schema.yaml      # Approved folder tree + aggregation matrix (version lives in project.yaml)
-│   ├── agents.yaml      # Review subagent ("đệ tử") configuration — see commands/review.md (§10)
+│   ├── agents.yaml      # Reviewer registry (entries point at agents/ files) — setup flow: shared/agent-setup.md
 │   └── status.yaml      # Single source of doc status: UPDATING | RELEASED (see commands/generate.md (§6))
+├── agents/              # Project agent copies, tuned by user — created on setup (see shared/agent-setup.md)
+│   ├── index.yaml       # Lookup: id | file | model | enabled | template | invoke
+│   └── <id>.md
 ├── knowledge/           # Project knowledge memory — selective RAG (see commands/knowledge.md (§4))
 │   ├── index.yaml       # Lookup source: file | domain | summary | tags | updated — read this, not the payloads
 │   ├── business-*.md
@@ -103,7 +106,7 @@ When the user runs `/haro-docs` with no arguments, or with arguments that do not
    - Check knowledge: if `.haro-docs/knowledge/index.yaml` exists, show `Knowledge: N files` and the first 5 entries; otherwise show `Knowledge: (empty)`.
    - Check reviews: if `.haro-docs/reviews/index.yaml` exists, show `Reviews: N (latest verdict)`; otherwise show `Reviews: (none)`.
    - Check elicitation: if `.haro-docs/elicitation/index.yaml` exists, show `Elicitation: N open`; otherwise show `Elicitation: (none)`.
-   - Check agents config: if `.haro-docs/config/agents.yaml` exists, show `Agents: <ids> (default: <id>)`; otherwise show `Agents: (default inline critic)`.
+   - Check agents: if `.haro-docs/config/agents.yaml` exists with ≥1 enabled entry, show `Agents: <ids> (default: <id>)`; otherwise show `Agents: (not set up — offered on first use)`.
    - Scan the repo lightly: README (business domain, key features), top-level source tree + tech stack signals (package.json / requirements / go.mod / pom.xml / Cargo.toml...), code scale estimate, docs files lying outside doc-root (if any).
    - Synthesize a **Project Note**: 5–8 lines on current state — initialized?, doc-root, docs coverage (% RELEASED), biggest gaps (top-3 empty folders/files), tech stack, knowledge depth.
    - Synthesize an **Agent take** (apart from the neutral picker in step 4): 2–3 lines of the agent's own view — biggest risk, most worrying gap, proposed move + one-line reason. Step-4 recommendations derive from it.

@@ -84,8 +84,11 @@ File YAML là nguồn duy nhất cho mọi tra cứu của agent; file Markdown 
 ├── config/
 │   ├── project.yaml     # Hồ sơ dự án: loại, audience, doc-root, ngôn ngữ, version
 │   ├── schema.yaml      # Cây thư mục đã duyệt + ma trận tổng hợp (version nằm ở project.yaml)
-│   ├── agents.yaml      # Cấu hình subagent review ("đệ tử") — xem Mục 10
+│   ├── agents.yaml      # Registry reviewer (entry trỏ file agents/) — flow setup: xem Phụ lục 12
 │   └── status.yaml      # Nguồn duy nhất trạng thái docs: UPDATING | RELEASED
+├── agents/              # Bản copy agent của project, user tinh chỉnh — tạo khi setup (xem Phụ lục 12)
+│   ├── index.yaml       # Tra cứu: id | file | model | enabled | template | invoke
+│   └── <id>.md
 ├── knowledge/           # Bộ nhớ kiến thức - RAG chọn lọc (xem Mục 4)
 │   ├── index.yaml       # Nguồn tra duy nhất: file | domain | tags | summary
 │   ├── business-*.md
@@ -154,8 +157,8 @@ chọn thao tác:
      `Reviews: N (verdict gần nhất)`; nếu không, hiện `Reviews: (none)`.
    - Kiểm tra elicitation: nếu `.haro-docs/elicitation/index.yaml` tồn tại, hiện
      `Elicitation: N file đang mở`; nếu không, hiện `Elicitation: (none)`.
-   - Kiểm tra agents: nếu `.haro-docs/config/agents.yaml` tồn tại, hiện
-     `Agents: <ids> (default: <id>)`; nếu không, hiện `Agents: (default inline critic)`.
+   - Kiểm tra agents: nếu `.haro-docs/config/agents.yaml` tồn tại và có ≥1 entry enabled, hiện
+     `Agents: <ids> (default: <id>)`; nếu không, hiện `Agents: (chưa thiết lập — hỏi khi cần dùng)`.
    - Quét nhẹ repo: README (domain, tính năng chính), cây source top-level + tín hiệu
      tech stack (package.json / requirements / go.mod / pom.xml / Cargo.toml...),
      ước lượng quy mô code, file docs nằm ngoài doc-root (nếu có).
@@ -332,6 +335,10 @@ Khởi tạo cấu trúc tài liệu cho một dự án mới.
 
    Mục nào bỏ trống thì dùng default đã ghi rõ. File conventions được ghi ở bước 5
    với trạng thái RELEASED.
+3c. **Thiết lập agent (nhanh)** — chạy flow dùng chung ở Phụ lục 12: hiện bảng preset
+   trong chat, tick chọn role (multiple), đặt tên từng con, chọn default, confirm rồi ghi.
+   Bỏ qua thì không ghi gì — không tạo `config/agents.yaml`, và flow setup sẽ hiện lại khi
+   lệnh nào đó cần agent.
 4. **Xác nhận dàn ý** — trình bày cây thư mục + danh sách file cụ thể (đã gồm quy ước
    vừa chốt), chờ user duyệt. Nếu dự án đã có tài liệu nằm ngoài cây chuẩn, kèm luôn
    bảng đặt vị trí `old path → new path` trong bước này, chờ confirm từng dòng.
@@ -339,7 +346,8 @@ Khởi tạo cấu trúc tài liệu cho một dự án mới.
    - Tạo `.haro-docs/config/project.yaml` và `.haro-docs/config/schema.yaml`
      (từ template trong thư mục `features/` của skill) với `version: 1`,
      bao gồm cả `language.response` và `language.documentation` đã chọn
-   - Tạo `.haro-docs/config/agents.yaml` từ `features/agents.yaml`
+   - Agent: nếu bước 3c đã setup xong, `config/agents.yaml` có sẵn — giữ nguyên. Nếu đã bỏ
+     qua, không tạo gì: flow setup ở Phụ lục 12 sẽ hiện lại khi lệnh nào đó cần agent.
    - Tạo `.haro-docs/config/status.yaml` từ `features/status.yaml`, liệt kê mọi file
      theo dàn ý với trạng thái `UPDATING`
    - Tạo `.haro-docs/knowledge/index.yaml` từ `features/knowledge.yaml`
@@ -649,10 +657,10 @@ QUY TRÌNH:
    verdict trên căn cứ chốt). Nếu đích là đường dẫn docs: đọc file đó +
    file lân cận cùng folder + glossary. Nếu là text tự do: quét nhẹ repo + doc-root tìm
    bằng chứng liên quan. Nêu rõ `sources: ...` để reviewer trích dẫn được.
-2. **Chốt reviewer từ `.haro-docs/config/agents.yaml`:**
-   - Thiếu file: dùng 1 `critic` inline với prompt mặc định từ `features/agents.yaml`
-     (chế độ single-critic).
-   - Có file: hiện agents đang enabled (`id | role`), cho user multi-select (picker nếu
+2. **Đảm bảo agent rồi chốt reviewer:** khi `.haro-docs/config/agents.yaml` thiếu hoặc
+   không có entry enabled nào, chạy flow setup dùng chung ở Phụ lục 12 trước (bỏ qua =
+   dừng review: báo `No reviewers configured` rồi kết thúc). Rồi mới chốt reviewer:
+   - Hiện agents đang enabled (`id | invoke | role`), cho user multi-select (picker nếu
      có, không thì list đánh số). Mode: multiple. Pre-select `default_reviewer`. Mặc định là **1 critic**;
      chỉ chạy multi-agent khi user chọn 2+ agents hoặc chủ đề cần cả research + phản biện.
    - Cờ `--no-agents` ép chạy single inline critic, bỏ qua config.
@@ -660,7 +668,11 @@ QUY TRÌNH:
      tuần tự từng reviewer trong context hiện tại, gắn nhãn `Reviewer <id> (inline
      fallback)`, rồi tổng hợp. Không fail chỉ vì thiếu subagent.
 3. **Điều phối reviewer** — mỗi reviewer nhận: nội dung chủ đề/file, tóm tắt context, và
-   `role + prompt` riêng từ `.haro-docs/config/agents.yaml`. Bắt buộc trả về cấu trúc:
+   persona của nó: bản copy project (`.haro-docs/agents/<file>`, tìm qua `.haro-docs/agents/index.yaml`)
+   khi có, không thì `role + prompt` trong entry `config/agents.yaml`. Rẽ theo `invoke`: `task` →
+   Task tool với `subagent_type: <type>`; `command` → nhờ runtime chạy `<command>` với cùng payload
+   (runtime không hỗ trợ thì fallback inline + ghi chú trong synthesis); `inline` → chạy trong context.
+   Bắt buộc trả về cấu trúc:
    - `findings:` list (nhận định → bằng chứng `file:line` hoặc `knowledge/<file>`)
    - `counter-arguments:` góc nhìn đối lập mạnh nhất
    - `verdict:` agree | conditionally-agree | disagree + lý do
@@ -717,10 +729,22 @@ QUY TRÌNH:
 
 Quản lý cấu hình `.haro-docs/config/agents.yaml`:
 
-1. Thiếu file thì tạo từ `features/agents.yaml` của skill rồi hiện nội dung.
-2. Có file thì liệt kê `id | role | enabled | default?`.
-3. Cho chọn thao tác (Mode: single; picker nếu có, không thì list số): `thêm agent | đặt role/prompt |
-   bật / tắt | đặt default_reviewer | reset từ template (confirm trước)`.
+1. Thiếu file hoặc không có entry enabled nào thì chạy flow setup dùng chung ở Phụ lục 12
+   trước (nó list preset từ `features/agents.yaml`).
+2. Có rồi thì liệt kê `id | invoke | type/command | role | enabled | default?` (file/model
+   từng id tra qua `.haro-docs/agents/index.yaml`).
+3. Cho chọn thao tác (Mode: single; picker nếu có, không thì list số): `thêm từ mẫu | thêm custom (trắng) |
+   gắn sẵn có | chỉnh model | bật / tắt | đặt default_reviewer | export sang IDE | reset từ template (confirm trước)`.
+   - thêm từ mẫu: chọn preset trong registry → đặt tên (lowercase-hyphen, duy nhất) → invoke
+     (default theo preset) → copy file mẫu vào `.haro-docs/agents/` khi thiếu → confirm rồi ghi index + registry.
+   - thêm custom (trắng): đặt tên → tạo `.haro-docs/agents/<tên>.md` từ `features/agents/_blank.md`
+     để user tự điền → confirm rồi ghi.
+   - gắn sẵn có: chọn nguồn — Task runtime type (catalog: sub_reviewer, sub_qc, sub_sec, sub_ba,
+     sub_e2e, sub_uiux, sub_data, sub_arch, explore), hoặc `@command` (gõ tay, hoặc pick từ
+     `.claude/agents/*.md` / `.agents/**` khi tìm thấy), hoặc file project có sẵn → đặt tên → confirm.
+   - chỉnh model: chỉ sửa dòng `model:` trong frontmatter bản copy project; confirm trước khi ghi.
+   - export sang IDE: copy `.haro-docs/agents/<id>.md` sang `.claude/agents/` (Claude Code) hoặc
+     `.agents/`; confirm đích trước; không tự ghi ra ngoài.
 4. Sau khi ghi, render lại list và nhắc `/haro-docs review` sẽ offer các agents này để chọn.
 
 ### 11.3 NHÁNH: conventions - ĐẶT QUY ƯỚC ĐẶC THÙ
@@ -742,6 +766,26 @@ Quản lý cấu hình `.haro-docs/config/agents.yaml`:
 1. Hiện `language.response` + `language.documentation` từ `.haro-docs/config/project.yaml`
    (kèm định nghĩa `vi` vs `vi-en` ở Mục 9).
 2. Cho đặt với option `en | vi | vi-en` tùy mục; confirm trước khi ghi vào `project.yaml`.
+
+================================================================================
+12. PHỤ LỤC: FLOW SETUP AGENT DÙNG CHUNG (init 3c / review / config agents)
+================================================================================
+
+Chạy khi agent chưa thiết lập: thiếu `.haro-docs/config/agents.yaml` hoặc không có entry
+enabled nào. Nội dung đầy đủ ở `shared/agent-setup.md` — tóm tắt cho người đọc:
+
+1. Hiện bảng preset trong chat trước (tên | lăng kính | chạy bằng gì | gợi ý on/off):
+   critic, researcher (gợi ý on); po, pm, ba, arch, sec, qc, e2e, reviewer, docs, data,
+   lead, expert (gợi ý off); custom (trắng).
+2. Picker multiple: tick role cần dùng. Không chọn gì (hoặc `dừng`) = bỏ qua: không ghi
+   file nào, flow sẽ hiện lại khi lệnh khác cần agent.
+3. Đặt tên từng con (mặc định = id mẫu; lowercase-hyphen, duy nhất; trùng thì hỏi lại).
+4. Invoke theo default preset (task dùng `type` = stem file, khỏi gõ; command hỏi `@name`).
+5. Chọn default_reviewer (single).
+6. Confirm bảng `tên | mẫu | invoke | default?` (`proceed / edit`) rồi ghi: copy file mẫu vào
+   `.haro-docs/agents/` (chỉ file còn thiếu, không ghi đè file user đã sửa), ghi
+   `.haro-docs/agents/index.yaml` + `.haro-docs/config/agents.yaml`. Báo kết quả rồi về
+   luồng gọi.
 
 ================================================================================
 HẾT — Bản chính thức để agent thực thi là SKILL.md

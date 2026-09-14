@@ -1,0 +1,17 @@
+# .haro-docs/agents/index.yaml
+# Lookup of project agents — created on agent setup (init onboarding or first use),
+# written by /haro-docs config agents on add/remove/tune.
+# Agents read this file (small) to resolve reviewer ids to files and models.
+# Never hand-write this file. Every agent file has exactly one entry;
+# removing the file removes its entry.
+
+version: 1
+updated_at: ""                # YYYY-MM-DD
+
+entries:
+  # - id: "ba"
+  #   file: "sub_ba.md"        # project copy in .haro-docs/agents/
+  #   model: ""                # from file frontmatter; empty = runtime default
+  #   enabled: true
+  #   template: "agents/sub_ba.md"  # source template in skill features/, "" = custom
+  #   invoke: "task"           # inline | task | command
