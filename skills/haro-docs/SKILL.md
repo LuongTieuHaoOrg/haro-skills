@@ -69,7 +69,8 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 | `/haro-docs knowledge --index` | Rebuild the knowledge index from payload frontmatter + compact | `commands/knowledge.md` | `/haro-docs knowledge --index` |
 | `/haro-docs knowledge --clean` | List stale/irrelevant knowledge, confirm per row, then remove | `commands/knowledge.md` | `/haro-docs knowledge --clean` |
 | `/haro-docs knowledge --delete [<uid>]` | Remove one ingested fact by UID (or picker) | `commands/knowledge.md` | `/haro-docs knowledge --delete kb-0007` |
-| `/haro-docs config [agents\|conventions\|language]` | Manage config via hub picker | `commands/config.md` | `/haro-docs config` |
+| `/haro-docs meeting` | Open multi-agent collaborative discussion room | `commands/meeting.md` | `/haro-docs meeting` |
+| `/haro-docs meeting <topic>` | Discuss specific topic in collaborative meeting | `commands/meeting.md` | `/haro-docs meeting Evaluate microservices` |
 
 ## Writing rules (summary — full text in `shared/writing-rules.md`)
 

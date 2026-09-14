@@ -1,0 +1,16 @@
+# skills/haro-docs/templates/meeting.yaml
+version: 1
+meeting_id: ""             # MT-YYYYMMDD-HHmmss-<slug>
+created_at: ""             # YYYY-MM-DD HH:mm:ss
+topic: ""                  # Meeting topic / problem statement
+goal: ""                   # Target objective to achieve
+lead_agent: ""             # Selected Lead / MC agent
+participants: []           # List of participating agents
+
+rules:
+  - "Stick strictly to professional analysis, arguments, and practical examples."
+  - "Do NOT paste raw source code blocks or irrelevant verbose text."
+  - "Maintain logical rigor and ground statements in evidence."
+
+rounds: []                 # List of rounds with summaries and transcripts
+conclusion: ""             # Final agreed resolution / action items
