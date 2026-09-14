@@ -1,4 +1,4 @@
-# Agent setup (shared flow)
+# Agents setup (shared flow)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the shared agent-setup flow, called by `/haro-docs init` (§5.2 step 3c), `/haro-docs review` (lazy gate), and `/haro-docs config agents`. Do not act, answer, edit, or call tools from memory: read every step below first. The reference always wins over memory.
 > Called only when agents are NOT set up: `.haro-docs/config/agents.yaml` missing or holding zero enabled entries.
 

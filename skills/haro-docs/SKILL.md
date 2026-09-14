@@ -11,7 +11,7 @@ description: Manage project documentation structure using the Atomic Content Blo
 
 - **Standardization:** every project has an identical documentation structure.
 - **Atomicity:** each block is an independent object — easy to track and version.
-- **Flexibility:** output documents are just different "Views" over the same blocks (see `shared/doc-structure.md`).
+- **Flexibility:** output documents are just different "Views" over the same blocks (see `shared/docs-structure.md`).
 - **Knowledge memory:** project facts live as small domain-scoped files under `.haro-docs/knowledge/` and are loaded selectively like RAG — no vector DB (see `commands/knowledge.md`).
 - **Two states:** every doc file is `UPDATING` (in progress, reference-only) or `RELEASED` (final, must-follow). Status lives only in `.haro-docs/config/status.yaml` — doc files carry no status themselves.
 
@@ -25,9 +25,9 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 ├── config/
 │   ├── project.yaml     # Project profile: type, audience, doc-root, language settings, version
 │   ├── schema.yaml      # Approved folder tree + aggregation matrix (version lives in project.yaml)
-│   ├── agents.yaml      # Reviewer registry (entries point at agents/ files) — setup flow: shared/agent-setup.md
+│   ├── agents.yaml      # Reviewer registry (entries point at agents/ files) — setup flow: shared/agents-setup.md
 │   └── status.yaml      # Single source of doc status: UPDATING | RELEASED (see commands/generate.md (§6))
-├── agents/              # Project agent copies, tuned by user — created on setup (see shared/agent-setup.md)
+├── agents/              # Project agent copies, tuned by user — created on setup (see shared/agents-setup.md)
 │   ├── index.yaml       # Lookup: id | file | model | enabled | template | invoke
 │   └── <id>.md
 ├── knowledge/           # Project knowledge memory — selective RAG (see commands/knowledge.md (§4))
@@ -102,7 +102,7 @@ When the user runs `/haro-docs` with no arguments, or with arguments that do not
 
 1. **Deep scan (read-only)** —
    - If `.haro-docs/config/project.yaml` and `.haro-docs/config/schema.yaml` exist: read `docroot`, `language.*`, `version`; list the actual folder tree under doc-root (for each of `00-common` → `99-assets` show exists/missing, file count, and UPDATING/RELEASED breakdown from `.haro-docs/config/status.yaml`; paths missing from the map count as UPDATING).
-   - If not initialized: show `Not initialized` and display the standard tree from shared/doc-structure.md (§8) as preview.
+   - If not initialized: show `Not initialized` and display the standard tree from shared/docs-structure.md (§8) as preview.
    - Check knowledge: if `.haro-docs/knowledge/index.yaml` exists, show `Knowledge: N files` and the first 5 entries; otherwise show `Knowledge: (empty)`.
    - Check reviews: if `.haro-docs/reviews/index.yaml` exists, show `Reviews: N (latest verdict)`; otherwise show `Reviews: (none)`.
    - Check elicitation: if `.haro-docs/elicitation/index.yaml` exists, show `Elicitation: N open`; otherwise show `Elicitation: (none)`.
@@ -124,7 +124,7 @@ When the user runs `/haro-docs` with no arguments, or with arguments that do not
    | `/haro-docs knowledge --clean` | Remove stale/irrelevant knowledge | `/haro-docs knowledge --clean` |
    | `/haro-docs config [agents\|conventions\|language]` | Manage skill config via hub picker (subagents, conventions, language) | `/haro-docs config` |
 
-3. **Show Aggregation Matrix (compact)** — BRD/PRD/SAD/FSD source folders from shared/doc-structure.md (§7).
+3. **Show Aggregation Matrix (compact)** — BRD/PRD/SAD/FSD source folders from shared/docs-structure.md (§7).
 4. **Action picker (popup)** — after the dashboard, always ask the user what to do next (use the agent's question/picker tool when available, otherwise a numbered list). Pre-suggest **2–3 smart recommendations** based on the scan, e.g.:
    - Not initialized → recommend `init`.
    - `01-overview` / `02-business` empty → recommend `generate <that file>`.

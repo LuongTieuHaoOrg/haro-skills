@@ -772,7 +772,7 @@ Quản lý cấu hình `.haro-docs/config/agents.yaml`:
 ================================================================================
 
 Chạy khi agent chưa thiết lập: thiếu `.haro-docs/config/agents.yaml` hoặc không có entry
-enabled nào. Nội dung đầy đủ ở `shared/agent-setup.md` — tóm tắt cho người đọc:
+enabled nào. Nội dung đầy đủ ở `shared/agents-setup.md` — tóm tắt cho người đọc:
 
 1. Hiện bảng preset trong chat trước (tên | lăng kính | chạy bằng gì | gợi ý on/off):
    critic, researcher (gợi ý on); po, pm, ba, arch, sec, qc, e2e, reviewer, docs, data,

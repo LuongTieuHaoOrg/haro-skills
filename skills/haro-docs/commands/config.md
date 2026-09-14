@@ -28,7 +28,7 @@ Workflow:
 
 Manage the `.haro-docs/config/agents.yaml` configuration:
 
-1. When the file is missing or holds zero enabled entries, run the shared setup flow in `shared/agent-setup.md` first (it lists presets from `templates/agents.yaml`).
+1. When the file is missing or holds zero enabled entries, run the shared setup flow in `shared/agents-setup.md` first (it lists presets from `templates/agents.yaml`).
 2. Otherwise list as `id | invoke | type/command | role | enabled | default?` (file/model per id via `.haro-docs/agents/index.yaml`).
 3. Offer operations (Mode: single; picker when available, otherwise numbered list): `add from template | add custom (blank) | attach existing | tune model | enable / disable | set default_reviewer | export to IDE | reset from template (confirm first)`.
    - add from template: pick a preset from the registry (`templates/agents.yaml`) → name it (lowercase-hyphen, unique) → invoke (preset default) → copy the template file into `.haro-docs/agents/` when missing → write index + registry entries on confirm.
