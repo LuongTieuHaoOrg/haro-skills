@@ -14,7 +14,7 @@ description: Quản lý và tạo cấu trúc tài liệu dự án theo mô hìn
 Content Blocks. Kích hoạt khi user muốn khởi tạo cấu trúc tài liệu cho dự án mới,
 tổ chức tài liệu đang tồn tại, tổng hợp tài liệu hoàn chỉnh (BRD, PRD,
 SAD, FSD...), review phản biện một vấn đề/file qua subagent, hoặc quản lý bộ nhớ
-kiến thức project qua remember/knowledge. Gõ /haro-docs không tham số để quét
+kiến thức project qua knowledge (ingest, index, clean, delete). Gõ /haro-docs không tham số để quét
 dự án và chọn thao tác tiếp theo.
 
 ================================================================================
@@ -54,7 +54,7 @@ Vì không có vector search, knowledge được tổ chức để truy xuất q
   `file | domain | tags | summary | updated | facts | state`. Agent chỉ đọc
   `index.yaml` (nhỏ) để quyết định file nào cần load cho task hiện tại, rồi chỉ
   load những file đó. Không load toàn bộ `knowledge/` mặc định. Không bao giờ
-  ghi `index.yaml` bằng tay — file này do `remember` và `--reindex` sinh ra từ
+  ghi `index.yaml` bằng tay — file này do `--ingest` và `--index` sinh ra từ
   frontmatter.
 - Dùng `index.yaml` trước mọi lượt `init`, `generate` cần context:
   đọc `index.yaml`, chọn entry có domain/tags khớp task (vd business cho BRD,
@@ -92,7 +92,7 @@ File YAML là nguồn duy nhất cho mọi tra cứu của agent; file Markdown 
 └── reviews/             # báo cáo (RR-*.md + index.yaml)
 
 > QUAN TRỌNG: `config/project.yaml` ghi rõ **doc-root** — vị trí lưu tài liệu do
-> user chọn khi chạy `init`. Mọi lệnh (generate, remember, knowledge) phải
+> user chọn khi chạy `init`. Mọi lệnh (generate, knowledge) phải
 > đọc config này trước khi thao tác. Tuyệt đối không suy đoán doc-root.
 
 > THỨ TỰ ĐỌC CHUẨN (mọi lệnh): `config/project.yaml` → `config/schema.yaml`
@@ -109,7 +109,7 @@ File YAML là nguồn duy nhất cho mọi tra cứu của agent; file Markdown 
 QUY TẮC TRÌNH BÀY — CHAT TRƯỚC, PICKER SAU (mọi lệnh)
 ================================================================================
 
-1. Mọi nội dung (nhận định, outline A/B, preview remember, synthesis review,
+1. Mọi nội dung (nhận định, outline A/B, preview ingest, synthesis review,
    dashboard) render **đầy đủ trong chat trước**.
 2. Picker chỉ chứa **option lựa chọn** — nhãn ngắn (≤1 dòng, trỏ "xem chi tiết ở trên").
    Không bao giờ nén nội dung vào option để tiết kiệm context.
@@ -155,28 +155,29 @@ chọn thao tác:
     | `/haro-docs generate` | Xây file tiếp theo (hỏi đáp dẫn dắt, được bỏ qua/để sau) | `/haro-docs generate` |
     | `/haro-docs generate <file>` | Tập trung vào file chỉ định | `/haro-docs generate 02-business/01-value-prop.md` |
     | `/haro-docs review <chủ đề\|file>` | Review phản biện vấn đề/file qua subagent | `/haro-docs review Có nên dùng microservices?` |
-    | `/haro-docs remember <text tự do>` | Ghi kiến thức (phân tích -> confirm -> lưu) | `/haro-docs remember STID là công ty` |
-    | `/haro-docs knowledge` | Mở hub picker (list / remember / reindex / clean) | `/haro-docs knowledge` |
-    | `/haro-docs knowledge --reindex` | Sinh index + compact file nhỏ | `/haro-docs knowledge --reindex` |
+    | `/haro-docs knowledge` | Mở hub picker (list / ingest / index / clean / delete) | `/haro-docs knowledge` |
+    | `/haro-docs knowledge --ingest [<nội dung>]` | Nạp nội dung mới (gợi ý từ discussion, hoặc trực tiếp) | `/haro-docs knowledge --ingest STID là công ty` |
+    | `/haro-docs knowledge --index` | Sinh index + compact file nhỏ | `/haro-docs knowledge --index` |
     | `/haro-docs knowledge --clean` | Xóa knowledge cũ/không liên quan | `/haro-docs knowledge --clean` |
+    | `/haro-docs knowledge --delete [<uid>]` | Xóa 1 fact đã ingest theo UID (hoặc picker) | `/haro-docs knowledge --delete kb-0007` |
     | `/haro-docs config [agents\|conventions\|language]` | Hub cấu hình: subagent review, quy ước, ngôn ngữ | `/haro-docs config` |
 
 3. **Hiện Aggregation Matrix rút gọn** - BRD/PRD/SAD/FSD từ Mục 7.
 4. **Popup chọn thao tác** — sau dashboard luôn hỏi user làm gì tiếp (dùng question/picker
    nếu có, không thì list đánh số). Đề xuất sẵn **2-3 gợi ý thông minh** theo hiện trạng, vd:
    - Vd: chưa init → `init`; `01-overview`/`02-business` trống → `generate <file đó>`;
-     nhiều `RELEASED` mà chưa review → `review <chủ đề>`; knowledge trống → `remember <facts>`.
+     nhiều `RELEASED` mà chưa review → `review <chủ đề>`; knowledge trống → `knowledge --ingest <facts>`.
    User được chọn gợi ý hoặc gọi lệnh khác. KHÔNG tự chạy side-effect khi chưa qua
    confirm của lệnh đó. Mode: gợi ý file được chọn nhiều (thành hàng đợi theo thứ tự),
    các lựa chọn khác là single. Nhãn gợi ý giữ lý do 1 dòng; chi tiết nằm ở chat theo
    Quy tắc trình bày.
 5. **Không tạo file, không ghi file.** Nếu token đầu không khớp (vd `/haro-docs foo`), prefix
-   `Unknown command 'foo'. Valid: init, generate, review, remember, knowledge, knowledge --reindex, knowledge --clean, config.`
+   `Unknown command 'foo'. Valid: init, generate, review, knowledge, knowledge --ingest, knowledge --index, knowledge --clean, knowledge --delete, config.`
    và gợi ý gần đúng. Alias `help`, `--help`, `-h` cũng hiện dashboard. So khớp
    case-insensitive.
 
 ================================================================================
-4. LỆNH `/haro-docs remember / knowledge` - BỘ NHỚ KIẾN THỨC (RAG CHỌN LỌC)
+4. LỆNH `/haro-docs knowledge` - BỘ NHỚ KIẾN THỨC (RAG CHỌN LỌC)
 ================================================================================
 
 File kiến thức là fact chuẩn mà agent phải nhớ và tuân theo. Lưu thành file topic
@@ -185,7 +186,7 @@ theo domain để load chọn lọc mà không cần đọc toàn bộ.
 ### Lưu trữ
 
 .haro-docs/knowledge/
-├── index.yaml           # nguồn tra duy nhất — do remember/--reindex sinh, không ghi tay
+├── index.yaml           # nguồn tra duy nhất — do --ingest/--index sinh, không ghi tay
 ├── business-*.md        # file topic có frontmatter (domain/tags/summary/updated)
 ├── technical-*.md
 ├── team-*.md
@@ -233,35 +234,38 @@ knowledge.
 `/haro-docs knowledge` không subcommand thì mở picker (Mode: single; picker tool nếu có,
 không thì list đánh số) — cùng pattern hub với `/haro-docs config`:
 
-1. `Xem danh sách (list)` — liệt kê knowledge (read-only, xem bảng dưới)
-2. `Ghi fact mới (remember)` — trước hết hỏi `Nhập fact cần ghi:`, rồi chạy luồng `remember`
-   dưới đây với text đã nhập
-3. `Sinh index + gọn (--reindex)` — sinh index + compact
-4. `Dọn bộ nhớ cũ (--clean)` — dọn stale (confirm từng dòng)
+1. `Xem danh sách (list)` — xem toàn bộ fact trong kho kèm UID (read-only, xem bảng dưới)
+2. `Nạp nội dung (ingest)` — gọi trần thì gợi ý fact ứng viên từ discussion đang có + nhập tay;
+   gọi kèm nội dung thì chạy thẳng flow dưới đây
+3. `Dựng index (index)` — sinh index + compact file nhỏ
+4. `Dọn bộ nhớ cũ (clean)` — dọn stale (confirm từng dòng)
+5. `Xóa fact (delete)` — xóa 1 fact đã ingest theo UID; gọi trần thì mở picker fact (single)
 
-Gọi kèm flag (`knowledge --reindex`, `knowledge --clean`, `knowledge <text>`) thì bỏ
-qua picker, chạy thẳng nhánh đó. Xong nhánh thì hỏi `về hub / dừng`.
+Gọi kèm flag/nội dung (`knowledge --ingest [<nội dung>]`, `--index`, `--clean`, `--delete [<uid>]`)
+thì bỏ qua picker, chạy thẳng nhánh đó. Xong nhánh thì hỏi `về hub / dừng`.
 
 ### Subcommands
 
 | Subcommand | Hành vi |
 |------------|---------|
-| `remember <text tự do>` | **Phân tích -> confirm -> lưu.** Parse text, tách fact riêng, viết lại mỗi fact thành câu chuẩn (văn current-state Mục 9), tìm file topic khớp cho mỗi fact (hoặc đặt tên file topic mới khi chưa có chủ đề khớp). So với
+| `knowledge --ingest [<nội dung>]` | **Phân tích -> confirm -> lưu.** Gọi trần (gián tiếp): quét discussion hiện tại tìm fact project chưa có trong entry `active`, đề xuất 2-3 ứng viên + option nhập tay; chốt/chọn rồi chạy tiếp như trực tiếp. Gọi kèm nội dung (trực tiếp): parse text, tách fact riêng, viết lại mỗi fact thành câu chuẩn (văn current-state Mục 9), tìm file topic khớp cho mỗi fact (hoặc đặt tên file topic mới khi chưa có chủ đề khớp). So với
 entry `active` hiện có trước; mâu thuẫn thì thêm khối `Mâu thuẫn: cũ A ↔ mới B` vào preview,
-chỉ lưu khi confirm rõ từng mâu thuẫn (giữ-cả-hai / thay-thế / bỏ-mới). Rồi hiện preview bảng `file \| nội dung chuẩn` + entry index mới. Hỏi `Confirm? (yes / edit <sửa>)`. Chỉ khi `yes` (hoặc sau `edit` và yes lại) mới ghi file topic và ghi entry mới vào `index.yaml`. Deduplicate trước: fact đã tồn tại thì báo, không ghi trùng. `knowledge <text>` là alias của lệnh này. |
-| `knowledge` (= `list`, hub option 1) | **Liệt kê** (không tham số). Đọc `index.yaml` và render bảng + số file. Read-only. |
-| `knowledge --reindex` | **Sinh index + compact.** Đọc frontmatter mọi `knowledge/*.md`, ghi `index.yaml` mới từ đó, rồi compact: gộp file topic cùng domain nhỏ hơn ~10 dòng, dedup câu trùng. Báo `trước N file → sau M file`. Không cần confirm; chỉ báo kết quả. |
+chỉ lưu khi confirm rõ từng mâu thuẫn (giữ-cả-hai / thay-thế / bỏ-mới). Rồi hiện preview bảng `file \| nội dung chuẩn` + entry index mới. Hỏi `Confirm? (yes / edit <sửa>)`. Chỉ khi `yes` (hoặc sau `edit` và yes lại) mới ghi file topic và ghi entry mới vào `index.yaml`. Mỗi fact mới cấp UID tiếp theo (`kb-NNNN` = max+1), ghi dạng block `<!-- <uid> -->` + câu fact; set `fact_ids` (+`facts` count; tăng cả hai khi append). Deduplicate trước: fact đã tồn tại thì báo kèm UID, không ghi trùng. |
+| `knowledge` (= `list`, hub option 1) | **Liệt kê** (không tham số). Đọc `index.yaml` và render từng file: file \| domain \| fact dạng `uid: summary 1 dòng` \| updated, cộng số file. Read-only. |
+| `knowledge --index` | **Sinh index + compact.** Đọc frontmatter mọi `knowledge/*.md`, ghi `index.yaml` mới từ đó, rồi compact: gộp file topic cùng domain nhỏ hơn ~10 dòng, dedup câu trùng. UID đi theo block của nó; đếm lại `facts`/`fact_ids`. Báo `trước N file → sau M file`. Không cần confirm; chỉ báo kết quả. |
 | `knowledge --clean` | **Xóa bộ nhớ cũ/không liên quan.** Quét `index.yaml` tìm ứng viên: `state: stale`, `updated` quá 90 ngày (hoặc `--older-than <Nd>`), summary không còn tham chiếu trong code/docs. Hiện bảng `file \| lý do \| keep/delete` và confirm **từng dòng**. Chỉ dòng confirm `delete` mới bị xóa; sau đó ghi `index.yaml` mới. Không bao giờ xóa khi chưa confirm từng dòng. |
+| `knowledge --delete [<uid>]` | **Xóa 1 fact đã ingest.** Có UID: tìm fact, hiện fact + file, confirm 1 lần rồi xóa block khỏi file; cập nhật `fact_ids`/`facts`/`updated`; file rỗng thì xóa file + entry; báo kết quả. Gọi trần: mở picker fact (single) thay vì hỏi UID. Không bao giờ xóa khi chưa confirm. |
 
-Unknown subcommand cho nhóm này -> `Unknown command 'X'. Valid: remember <text>, knowledge, knowledge --reindex, knowledge --clean.` rồi hiện bảng. `help`/`--help`/`-h` cũng hiện.
+Unknown subcommand cho nhóm này -> `Unknown command 'X'. Valid: knowledge, knowledge --ingest, knowledge --index, knowledge --clean, knowledge --delete.` rồi hiện bảng. `help`/`--help`/`-h` cũng hiện.
 
 ### Ví dụ
 
 ```
-/haro-docs remember STID là công ty tôi, tôi là PM, member gồm Hảo (tôi), Vu (Backend) và Dai (Frontend)
+/haro-docs knowledge --ingest STID là công ty tôi, tôi là PM, member gồm Hảo (tôi), Vu (Backend) và Dai (Frontend)
 /haro-docs knowledge
-/haro-docs knowledge --reindex
+/haro-docs knowledge --index
 /haro-docs knowledge --clean
+/haro-docs knowledge --delete kb-0007
 ```
 
 ================================================================================
@@ -277,7 +281,7 @@ Khởi tạo cấu trúc tài liệu cho một dự án mới.
    schema.yaml, số file knowledge, config agents).
 2. **Nếu `.haro-docs/` đã tồn tại** — báo `Already initialized` kèm profile hiện tại
    (doc-root, ngôn ngữ, số file docs, knowledge N files) và dừng. Chỉ sang các lệnh
-   `generate`, `remember`, `review`.
+   `generate`, `knowledge --ingest`, `review`.
 
 ### 5.2 QUY TRÌNH CHUẨN
 
@@ -349,7 +353,7 @@ gợi ý cụ thể** theo trạng thái mới, vd:
 
 - `generate 01-overview/01-problem-statement.md — mục đích nền tảng còn trống`
 - `config conventions — tinh chỉnh quy ước nếu bước 3b đã dùng default`
-- `remember <fact từ scan> — giữ stack/team facts`
+- `knowledge --ingest <fact từ scan> — giữ stack/team facts`
 
 Dùng question/picker nếu có, không thì list đánh số. Mode: single (một thao tác tiếp theo).
 Chờ user chọn; KHÔNG tự chạy `generate` khi chưa confirm.
@@ -683,7 +687,7 @@ QUY TRÌNH:
    frontmatter (`topic, verdict, reviewers, date, sources`) + synthesis + tóm tắt từng
    reviewer. Không ghi khi chưa hỏi.
 6. **Popup tiếp theo** — sau synthesis luôn đề xuất follow-up (Mode: single; picker nếu có): vd
-   `generate <file liên quan>`, `remember <fact mới lộ ra>`, `review lại với thêm bằng
+   `generate <file liên quan>`, `knowledge --ingest <fact mới lộ ra>`, `review lại với thêm bằng
    chứng`, `dừng`. Chờ pick; KHÔNG tự chạy.
 
 VÍ DỤ:

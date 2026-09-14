@@ -9,7 +9,7 @@ Initialize the documentation structure for a new project.
 ### 5.1 Check current state
 
 1. **Scan first** — same deep scan as commands/dashboard.md (§3): README, source tree + tech stack, existing docs (inside and outside doc-root), `.haro-docs/config/` state (`project.yaml`, `schema.yaml`, knowledge file count, agents config).
-2. **When `.haro-docs/` already exists** — report `Already initialized` with the current profile (doc-root, languages, docs file count, knowledge N files) and stop. Point to the next commands (`generate`, `remember`, `review`).
+2. **When `.haro-docs/` already exists** — report `Already initialized` with the current profile (doc-root, languages, docs file count, knowledge N files) and stop. Point to the next commands (`generate`, `knowledge --ingest`, `review`).
 
 ### 5.2 Required workflow
 
@@ -54,7 +54,7 @@ When init completes, always show a next-step picker with **2–3 concrete smart 
 
 - `generate 01-overview/01-problem-statement.md — foundational purpose is still empty`
 - `config conventions — refine project-specific conventions when step 3b used defaults`
-- `remember <seed fact from scan> — preserve stack/team facts`
+- `knowledge --ingest <seed fact from scan> — preserve stack/team facts`
 
 Use the agent's question/picker tool when available, otherwise a numbered list. Mode: single (one next action). Wait for the user's pick; do NOT auto-run `generate` without confirmation.
 

@@ -1,6 +1,6 @@
 ---
 name: haro-docs
-description: Manage project documentation structure using the Atomic Content Blocks model. Use when the user wants to initialize a documentation structure for a new project, organize existing documentation, aggregate complete documents (BRD, PRD, SAD, FSD...) from existing content blocks, critically review a problem/file via subagent reviewers, or manage project knowledge memory via remember/knowledge. Run /haro-docs with no args to scan the project and pick the next action. Before acting on any command, read its commands/*.md file fully — never act from memory.
+description: Manage project documentation structure using the Atomic Content Blocks model. Use when the user wants to initialize a documentation structure for a new project, organize existing documentation, aggregate complete documents (BRD, PRD, SAD, FSD...) from existing content blocks, critically review a problem/file via subagent reviewers, or manage project knowledge memory via knowledge (ingest, index, clean). Run /haro-docs with no args to scan the project and pick the next action. Before acting on any command, read its commands/*.md file fully — never act from memory.
 ---
 
 # Haro Docs — Documentation Structure Skill
@@ -33,7 +33,7 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 └── reviews/             # reports (RR-*.md + index.yaml)
 ```
 
-> **Important:** `config/project.yaml` records the **doc-root** — the documentation location chosen by the user during `init`. Every command (`generate`, `remember`, `knowledge`) reads this config first. Never guess the doc-root.
+> **Important:** `config/project.yaml` records the **doc-root** — the documentation location chosen by the user during `init`. Every command (`generate`, `knowledge`) reads this config first. Never guess the doc-root.
 
 > **Read order (every command):** `config/project.yaml` → `config/schema.yaml` → `config/status.yaml` → `knowledge/index.yaml` (read this first, not the payloads) → selectively load only the matching payload files. Knowledge counts as ground truth over scanned defaults. Agents resolve via `config/agents.yaml` + `agents/index.yaml` when review/config needs them. See the command's workflow file for details.
 
@@ -49,7 +49,7 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 
 ## Presentation rule — chat first, picker second (all commands)
 
-1. Render every content (assessment, outlines A/B, remember preview, review synthesis, dashboard) **fully in chat text first**.
+1. Render every content (assessment, outlines A/B, ingest preview, review synthesis, dashboard) **fully in chat text first**.
 2. Pickers hold **choice options only** — short labels (≤1 line each, pointing "see details above"). Never compress content into options to save context.
 3. Order is mandatory: chat message(s) first, **then** invoke the picker tool — never merged.
 4. Every option uses natural communication language (`language.response`): a plain name plus its consequence in one line. Internal tokens (`UPDATING/RELEASED`, `unsure/defer/skip`, `save/skip`, `keep/remove`, `yes/no`) appear only in parentheses, never as bare labels.
@@ -64,10 +64,11 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 | `/haro-docs generate` | Build next doc (guided Q&A) | `commands/generate.md` + `shared/writing-rules.md` when writing | `/haro-docs generate` |
 | `/haro-docs generate <file>` | Focus on a specific file | `commands/generate.md` + `shared/writing-rules.md` when writing | `/haro-docs generate 02-business/01-value-prop.md` |
 | `/haro-docs review <topic\|file>` | Critically review a problem/file via subagent reviewer(s) | `commands/review.md` | `/haro-docs review Should we use microservices?` |
-| `/haro-docs remember <free text>` | Record knowledge (analyze → confirm → save) | `commands/knowledge.md` | `/haro-docs remember STID is my company` |
-| `/haro-docs knowledge` | Open hub picker (list / remember / reindex / clean) | `commands/knowledge.md` | `/haro-docs knowledge` |
-| `/haro-docs knowledge --reindex` | Rebuild the knowledge index from payload frontmatter + compact | `commands/knowledge.md` | `/haro-docs knowledge --reindex` |
+| `/haro-docs knowledge` | Open hub picker (list / ingest / index / clean / delete) | `commands/knowledge.md` | `/haro-docs knowledge` |
+| `/haro-docs knowledge --ingest [<text>]` | Take new content in (propose from discussion, or direct) | `commands/knowledge.md` | `/haro-docs knowledge --ingest STID is my company` |
+| `/haro-docs knowledge --index` | Rebuild the knowledge index from payload frontmatter + compact | `commands/knowledge.md` | `/haro-docs knowledge --index` |
 | `/haro-docs knowledge --clean` | List stale/irrelevant knowledge, confirm per row, then remove | `commands/knowledge.md` | `/haro-docs knowledge --clean` |
+| `/haro-docs knowledge --delete [<uid>]` | Remove one ingested fact by UID (or picker) | `commands/knowledge.md` | `/haro-docs knowledge --delete kb-0007` |
 | `/haro-docs config [agents\|conventions\|language]` | Manage config via hub picker | `commands/config.md` | `/haro-docs config` |
 
 ## Writing rules (summary — full text in `shared/writing-rules.md`)

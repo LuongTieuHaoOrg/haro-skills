@@ -37,7 +37,7 @@ Objectively research, analyze and evaluate a problem, idea, or doc file using cr
    - `Risks & alternatives:` short list
    Reply in `language.response`. Be objective: report disagreements honestly instead of hiding them.
 5. **Save report (ask first)** — Mode: single. Ask with options `Save report (save) — writes to reviews/ + index` / `Skip (skip)`. On `save`, write `.haro-docs/reviews/RR-YYYYMMDD-HHmmss-<slug>.md` with frontmatter (`topic, verdict, reviewers, date, sources`) + the synthesis + per-reviewer summaries, then append one entry (`id | topic | verdict | reviewers | date | sources`) to `.haro-docs/reviews/index.yaml`. Never write without asking.
-6. **Next-step popup** — after the synthesis, always propose follow-ups (Mode: single; picker when available): e.g. `generate <related file>`, `remember <new fact surfaced>`, `review again with more evidence`, `stop`. Wait for the pick; do NOT auto-run.
+6. **Next-step popup** — after the synthesis, always propose follow-ups (Mode: single; picker when available): e.g. `generate <related file>`, `knowledge --ingest <new fact surfaced>`, `review again with more evidence`, `stop`. Wait for the pick; do NOT auto-run.
 
 ### Examples
 

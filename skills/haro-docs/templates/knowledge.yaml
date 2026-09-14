@@ -1,6 +1,6 @@
 # .haro-docs/knowledge/index.yaml
 # Single source of knowledge lookup — created by /haro-docs init,
-# written by /haro-docs remember and /haro-docs knowledge --reindex / --clean.
+# written by /haro-docs knowledge --ingest, --index and --clean.
 # Agents read this file (small) to decide which knowledge files to load.
 # Never hand-write this file: it is produced from the frontmatter of knowledge/*.md.
 
@@ -13,5 +13,6 @@ entries:
   #   tags: [team, pm]         # lowercase keywords for matching
   #   summary: "One-line fact summary"
   #   updated: ""              # YYYY-MM-DD
-  #   facts: 0                 # number of facts in the file
+  #   facts: 0                 # number of facts in the file (= len of fact_ids)
+  #   fact_ids: []             # per-fact UIDs (kb-NNNN), assigned at ingest; each fact stored as <!-- <uid> --> + sentence
   #   state: active            # active | stale (marked by --clean)
