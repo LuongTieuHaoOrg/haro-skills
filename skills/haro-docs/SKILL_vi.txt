@@ -93,7 +93,7 @@ File YAML là nguồn duy nhất cho mọi tra cứu của agent; file Markdown 
 │   ├── team-*.md
 │   └── common-*.md
 ├── elicitation/         # Q&A tạm cho generate (xem Mục 6)
-│   ├── index.yaml       # Tra cứu: target | file | role | updated
+│   ├── index.yaml       # Tra cứu: target | file | updated | open_gaps
 │   └── <sanitized-path>.md
 └── reviews/             # Báo cáo review (xem Mục 10)
     ├── index.yaml       # Tra cứu: id | topic | verdict | reviewers | date
@@ -151,7 +151,7 @@ chọn thao tác:
     | Lệnh | Khi nào dùng | Ví dụ |
     |------|-------------|-------|
     | `/haro-docs init <mô tả>` | Khởi tạo cấu trúc 12 folder | `/haro-docs init E-commerce Next.js + PostgreSQL` |
-    | `/haro-docs generate` | Xây file tiếp theo theo thứ tự (hỏi theo role) | `/haro-docs generate` |
+    | `/haro-docs generate` | Xây file tiếp theo (hỏi đáp dẫn dắt, được bỏ qua/để sau) | `/haro-docs generate` |
     | `/haro-docs generate <file>` | Tập trung vào file chỉ định | `/haro-docs generate 02-business/01-value-prop.md` |
     | `/haro-docs review <chủ đề\|file>` | Review phản biện vấn đề/file qua subagent | `/haro-docs review Có nên dùng microservices?` |
     | `/haro-docs remember <text tự do>` | Ghi kiến thức (phân tích -> confirm -> lưu) | `/haro-docs remember STID là công ty` |
@@ -348,7 +348,7 @@ VÍ DỤ:
 Không có mô tả: vẫn quét dự án hiện tại trước, rồi hỏi từ bước 2.
 
 ================================================================================
-6. LỆNH `/haro-docs generate` / `generate <file>` - XÂY DOCS THEO THỨ TỰ (HỎI THEO ROLE)
+6. LỆNH `/haro-docs generate` / `generate <file>` - XÂY DOCS (HỎI ĐÁP DẪN DẮT)
 ================================================================================
 
 Xây tài liệu linh hoạt dựa trên thực trạng + vai trò bạn. Hai chế độ:
@@ -373,9 +373,11 @@ file xếp theo prefix số. Thứ tự này là tham chiếu để hiểu tiề
 ### Lưu elicitation
 
 Q&A tạm lưu tại `.haro-docs/elicitation/<sanitized-path>.md` (vd
-`02-business-01-value-prop.md`) với frontmatter (`target`, `role`, `updated`) để đỡ
-context. Chỉ đọc khi cần trong `generate`. Sau khi xong file chính, hỏi user giữ hay
-xóa file elicitation.
+`02-business-01-value-prop.md`) với frontmatter (`target`, `updated`, `gaps`) để đỡ
+context. Chỉ đọc khi cần trong `generate` — tìm file qua `.haro-docs/elicitation/index.yaml`
+(mỗi file một entry: `target | file | updated | open_gaps`). Tạo file elicitation thì ghi
+entry; xóa file thì xóa entry. Không bao giờ ghi index bằng tay. Sau khi xong file chính,
+hỏi user giữ hay xóa file elicitation.
 
 ### Trạng thái
 
@@ -397,10 +399,7 @@ vắng trong map tính là `UPDATING`:
    `architecture` cho SAD, `team` cho người), chỉ load file khớp. Đọc
    `.haro-docs/config/status.yaml`: file `RELEASED` trong phạm vi là ràng buộc cứng
    (xung đột thì dừng và hỏi), file `UPDATING` chỉ là bối cảnh.
-2. **Hỏi bạn là ai & đề xuất file theo thực trạng:**
-   - Hỏi trước: `Bạn là ai trong dự án này? Vai trò gì? (customer / sales / BA / dev / PM)
-     — bạn nắm gì nhất?` Lưu vào `knowledge/team-role.md` khi chưa có (lần sau chỉ
-     xác nhận `Vẫn là <role>?`), và vào `elicitation/<target>.md`.
+2. **Đề xuất file theo thực trạng:**
     - Quét thực trạng từ `status.yaml`: file nào còn `UPDATING`, file nào
       `RELEASED`, `change-requests/CR-*.md` nào có. Dùng order chuẩn làm tham chiếu để hiểu
       tiền đề (vd `01-overview` và `02-business` là tiền đề cho `04-architecture`).
@@ -416,15 +415,20 @@ vắng trong map tính là `UPDATING`:
      còn trống; 2. 02-business/01-value-prop.md — business cần trước architecture`).
      Để bạn chọn. Bạn cũng có thể chỉ định file khác.
    - Khi đã chọn/chốt đích, đọc file lân cận cùng folder + glossary lấy context.
-3. **Hỏi chi tiết linh hoạt theo role+thực trạng:**
-   - Sinh **~5 câu hỏi** dựa trên `role + domain file + thực trạng` (vd
-     `02-business/*` với customer -> market/pain/SLA/metrics; `04-architecture/*`
-     với customer -> chỉ hỏi flow/business rule, với dev mới hỏi endpoint/schema/
-     NFR/diagram). **Không hỏi khách hàng về code.**
-   - Append Q&A vào elicitation file. Phân tích field nào của file đích
-     (theo schema) còn thiếu → hỏi tiếp 3-5 câu bổ sung, append, lặp đến khi đủ.
+3. **Hỏi đáp dẫn dắt, được bỏ qua/để sau:**
+   - Sinh **~5 câu hỏi** từ `domain file + thực trạng` (vd `02-business/*` ->
+     market/pain/SLA/metrics; `04-architecture/*` -> flow/business rule/endpoint/schema/
+     NFR/diagram). Diễn đạt mỗi câu bằng lời lẽ thường, ai cũng đánh giá được.
+   - Mỗi câu chấp nhận bốn kiểu đáp: câu trả lời, `unsure` (chưa rõ), `defer` (để sau),
+     hoặc `skip` (bỏ qua) — không ai bị ép đoán mò. Ghi từng câu kèm trạng thái
+     (`answered | unsure | deferred | skipped`) vào mục `gaps:` của elicitation file.
+     Câu `chưa rõ` thì gắn cờ, không bao giờ coi là căn cứ. Append Q&A vào elicitation file.
+   - Phân tích field nào của file đích (theo schema) còn thiếu → hỏi tiếp 3-5 câu bổ sung,
+     append, lặp đến khi đủ. Hỏi lại các câu `để sau` một lần vào cuối; câu nào vẫn để sau
+     thì giữ làm gap mở.
 4. **Đề xuất outline** — liệt kê section cho file đích, ghi chú nguồn
-   (block/folder và file knowledge nào). Chờ duyệt.
+   (block/folder và file knowledge nào). Đánh dấu section phụ thuộc câu `chưa rõ`/`bỏ qua`
+   là `[CHƯA XÁC NHẬN]` và liệt kê gap mở. Chờ duyệt.
 5. **Viết** — tạo file đích trong folder chuẩn (kebab-case + prefix số,
    Mục 9) bằng văn current-state first-version (Mục 9). Tuân thủ Phần B của
    `00-common/01-conventions.md` (diagram tool, API format, tone, thuật ngữ khóa);
@@ -440,10 +444,11 @@ vắng trong map tính là `UPDATING`:
    - Reference ngoài mới → append vào `00-common/02-references.md`.
    Không cần confirm; chỉ ghi chú `Auto 00-common: +2 terms, +1 abbreviation.`
    trong reply. Deduplicate trước khi append.
-7. **Dọn elicitation** — hỏi `Giữ file elicitation để tra cứu hay xóa? (keep / remove)`.
+7. **Dọn elicitation** — hỏi `Giữ file elicitation để tra cứu hay xóa? (keep / remove)`. Khi `remove`, xóa file và entry của nó trong `elicitation/index.yaml`.
 8. **Confirm & đánh trạng thái** — hỏi `Đánh trạng thái file là? (UPDATING / RELEASED)`.
-   Khi `RELEASED`, ghi trạng thái mới vào `.haro-docs/config/status.yaml`. File `RELEASED`
-   thành căn cứ cho các lượt `generate` sau.
+   Chỉ chọn `RELEASED` khi không còn gap chặn; còn gap thì giữ `UPDATING`, gap nằm lại
+   elicitation file để lượt sau xử lý. Ghi trạng thái mới vào `.haro-docs/config/status.yaml`.
+   File `RELEASED` thành căn cứ cho các lượt `generate` sau.
 9. **Popup lệnh tiếp theo** — sau khi đánh trạng thái luôn hỏi làm gì tiếp (picker nếu
    có, không thì list đánh số). Đề xuất 2-3 ứng viên cụ thể theo thực trạng mới (tiền đề
    + gap), mỗi cái kèm lý do 1 dòng, cộng thêm `review <file vừa xong>` và `dừng`. Chờ
@@ -612,7 +617,7 @@ QUY TRÌNH:
      tuần tự từng reviewer trong context hiện tại, gắn nhãn `Reviewer <id> (inline
      fallback)`, rồi tổng hợp. Không fail chỉ vì thiếu subagent.
 3. **Điều phối reviewer** — mỗi reviewer nhận: nội dung chủ đề/file, tóm tắt context, và
-   `role + prompt` riêng từ `agents.yaml`. Bắt buộc trả về cấu trúc:
+   `role + prompt` riêng từ `.haro-docs/config/agents.yaml`. Bắt buộc trả về cấu trúc:
    - `findings:` list (nhận định → bằng chứng `file:line` hoặc `knowledge/<file>`)
    - `counter-arguments:` góc nhìn đối lập mạnh nhất
    - `verdict:` agree | conditionally-agree | disagree + lý do

@@ -34,7 +34,7 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 │   ├── team-*.md
 │   └── common-*.md
 ├── elicitation/         # Interim Q&A for generate (see commands/generate.md (§6))
-│   ├── index.yaml       # Lookup: target | file | role | updated — one entry per Q&A file
+│   ├── index.yaml       # Lookup: target | file | updated | open_gaps — one entry per Q&A file
 │   └── <sanitized-path>.md
 └── reviews/             # Saved review reports (see commands/review.md (§10))
     ├── index.yaml       # Lookup: id | topic | verdict | reviewers | date — appended on every save
@@ -67,7 +67,7 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 |---------|-------------|-----------------------------------|
 | `/haro-docs` (no args) | Scan project, show dashboard, pick next action | — (runs from §3 below) |
 | `/haro-docs init <description>` | Initialize the documentation structure for a new project | `commands/init.md` |
-| `/haro-docs generate` | Build next doc (role-adaptive Q&A) | `commands/generate.md` + `shared/authoring.md` when writing |
+| `/haro-docs generate` | Build next doc (guided Q&A) | `commands/generate.md` + `shared/authoring.md` when writing |
 | `/haro-docs generate <file>` | Focus on a specific file | `commands/generate.md` + `shared/authoring.md` when writing |
 | `/haro-docs review <topic\|file>` | Critically review a problem/file via subagent reviewer(s) | `commands/review.md` |
 | `/haro-docs remember <free text>` | Record knowledge (analyze → confirm → save) | `commands/knowledge.md` |
@@ -101,7 +101,7 @@ When the user runs `/haro-docs` with no arguments, or with arguments that do not
    | Command | When to use | Example |
    |---------|-------------|---------|
    | `/haro-docs init <description>` | Initialize structure (12 folders) | `/haro-docs init E-commerce Next.js + PostgreSQL` |
-   | `/haro-docs generate` | Build next doc in order (role-adaptive Q&A) | `/haro-docs generate` |
+   | `/haro-docs generate` | Build next doc in order (guided Q&A) | `/haro-docs generate` |
    | `/haro-docs generate <file>` | Focus on a specific file | `/haro-docs generate 02-business/01-value-prop.md` |
    | `/haro-docs review <topic\|file>` | Critically review a problem/file via subagent reviewer(s) | `/haro-docs review Should we use microservices?` |
    | `/haro-docs remember <free text>` | Record knowledge (analyze → confirm → save) | `/haro-docs remember STID is my company` |

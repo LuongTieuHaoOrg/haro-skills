@@ -23,7 +23,7 @@ Objectively research, analyze and evaluate a problem, idea, or doc file using cr
    - When the file exists: show enabled agents (`id | role`) and let the user multi-select (picker tool when available, otherwise numbered list). Pre-select `default_reviewer`. Default mode is **single critic**; multi-agent runs only when the user selects 2+ agents or the topic explicitly needs research + critique.
    - `--no-agents` flag forces single inline critic, ignoring the config.
    - When the runtime has no subagent mechanism (no Task tool): **inline fallback** — run each selected reviewer sequentially in the current context, clearly labeled `Reviewer <id> (inline fallback)`, then synthesize. Never fail just because subagents are unavailable.
-3. **Dispatch reviewers** — each reviewer receives: the topic/file content, the loaded context summary, and its own `role + prompt` from `agents.yaml`. Require a structured return:
+3. **Dispatch reviewers** — each reviewer receives: the topic/file content, the loaded context summary, and its own `role + prompt` from `.haro-docs/config/agents.yaml`. Require a structured return:
    - `findings:` bullet list (claim → evidence `file:line` or `knowledge/<file>`)
    - `counter-arguments:` strongest opposing views
    - `verdict:` agree | conditionally-agree | disagree + reasons

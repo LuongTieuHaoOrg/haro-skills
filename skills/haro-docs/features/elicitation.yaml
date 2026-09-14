@@ -11,5 +11,5 @@ updated_at: ""                # YYYY-MM-DD
 entries:
   # - target: "02-business/01-value-prop.md"
   #   file: "02-business-01-value-prop.md"
-  #   role: "dev"              # who answered: customer | sales | BA | dev | PM
   #   updated: ""              # YYYY-MM-DD
+  #   open_gaps: 0             # unresolved deferred/unsure questions
