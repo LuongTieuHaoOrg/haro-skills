@@ -18,7 +18,7 @@ Central hub for skill configuration. Three branches; doc-root lives only in `.ha
 Workflow:
 
 1. Read state: `agents.yaml` (exists? N enabled, default?), Part B of `00-common/01-conventions.md` (6-row table or `missing`), `language.response/documentation` from `.haro-docs/config/project.yaml`.
-2. Show picker (picker tool when available, otherwise numbered list), each row with a one-line status:
+2. Show picker (Mode: single; picker tool when available, otherwise numbered list), each row with a one-line status:
    - `1. agents — reviewer subagents (N enabled, default: <id>)`
    - `2. conventions — project-specific conventions (diagram, API format, tone, approver...)`
    - `3. language — reply + documentation language`
@@ -30,7 +30,7 @@ Manage the `.haro-docs/config/agents.yaml` configuration:
 
 1. When the file is missing, create it from the skill's `features/agents.yaml` and show its contents.
 2. Otherwise list agents as `id | role | enabled | default?`.
-3. Offer operations (picker when available, otherwise numbered list): `add agent | set role/prompt | enable / disable | set default_reviewer | reset from template (confirm first)`.
+3. Offer operations (Mode: single; picker when available, otherwise numbered list): `add agent | set role/prompt | enable / disable | set default_reviewer | reset from template (confirm first)`.
 4. After any write, re-render the list and remind that `/haro-docs review` will offer these agents for selection.
 
 ### 11.3 Branch: conventions — Set Project-Specific Conventions
@@ -38,7 +38,7 @@ Manage the `.haro-docs/config/agents.yaml` configuration:
 Set Part B of `00-common/01-conventions.md` (Part A is fixed by the skill):
 
 1. Show current Part B as table `item | value`; show Part A as 6 bullet titles only (full text on request).
-2. Offer per-item values (picker when available, otherwise numbered list): diagram tool | API spec format | tone & depth | RELEASED approver | locked terms | priority deliverables. Each item offers scan-based defaults.
+2. Offer per-item values (Mode: single; picker when available, otherwise numbered list): diagram tool | API spec format | tone & depth | RELEASED approver | locked terms | priority deliverables. Each item offers scan-based defaults.
 3. `reset` writes Part A fresh from `features/conventions.md` and **keeps Part B**. Confirm before any write.
 4. After writing, suggest `review` for any RELEASED files the new conventions touch — only suggest the `review` command; `config` never writes to doc files.
 

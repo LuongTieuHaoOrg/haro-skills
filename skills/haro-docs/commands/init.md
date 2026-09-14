@@ -14,24 +14,25 @@ Initialize the documentation structure for a new project.
 ### 5.2 Required workflow
 
 1. **Scan the project** — read README, source code (tree structure, main technologies), and any existing docs to synthesize context: business domain, key features, code scale, technical constraints.
+1b. **Agent analysis** — present `Situation (3–5 lines from scan) → Assessment (risks, which docs to prioritize, anything suspicious in the stack) → My proposal (which deliverables first + why)` **in chat first**, then proceed to clarifying questions. Drop questions the analysis already answered.
 2. **Proactively ask clarifying questions** — ask the user, offering suggestions based on scan results:
-   - Product/solution goals
-   - Documentation audience (engineers, managers, customers...)
-   - Scope and technical depth
-   - Security/compliance requirements (if any)
-   - Required output document types (BRD, PRD, SAD...)
+   - Product/solution goals (free-text)
+   - Documentation audience (multiple: engineers / managers / customers / ...)
+   - Scope (free-text) and technical depth (single: high-level | balanced | deep-dive)
+   - Security/compliance requirements (multiple + free-text, e.g. GDPR, ISO 27001, ...)
+   - Required output document types (multiple: BRD / PRD / SAD / ...)
    - **Reply language** — the language the agent uses in conversation: `en` or `vi`
    - **Documentation language** — the language of doc content: `en`, `vi`, or `vi-en` (definitions in shared/authoring.md (§9))
-3. **Ask for the doc-root** — the user chooses:
+3. **Ask for the doc-root** — the user chooses (single):
    - `docs/` (traditional documentation folder), or
    - `.haro-docs/docs/` (contained within the skill workspace)
 3b. **Decide conventions (compact, 4–6 questions)** — Part A (fixed by skill: file naming, SSOT, status lifecycle, language ref, images, auto-file rule) is seeded from `features/conventions.md` without asking; show it as read-only preview. Ask only Part B (project-specific), offering scan-based defaults:
-   - Diagram tool: `mermaid | plantuml | drawio` (+ image fallback)
-   - API spec format: `openapi-yaml | md-table | both`
-   - Tone & depth: `high-level | balanced | deep-dive` (sync with `audience.technical_depth`)
-   - RELEASED approver: single name/role, or per-domain approvers
-   - Locked terms: product/brand terms with fixed spelling, or `(none)`
-   - Priority deliverables: which of BRD/PRD/SAD/... first, or `(all)`
+   - Diagram tool (single): `mermaid | plantuml | drawio` (+ image fallback)
+   - API spec format (single): `openapi-yaml | md-table | both`
+   - Tone & depth (single): `high-level | balanced | deep-dive` (sync with `audience.technical_depth`)
+   - RELEASED approver (free-text): single name/role, or per-domain approvers
+   - Locked terms (free-text): product/brand terms with fixed spelling, or `(none)`
+   - Priority deliverables (multiple): which of BRD/PRD/SAD/... first, or `(all)`
 
    Unanswered items use the stated defaults. The conventions file is written at init step 5 with status RELEASED.
 4. **Confirm the outline** — present the folder tree + specific file list (including the decided conventions); wait for user approval. When the project already holds docs outside the canonical tree, include a placement table `old path → new path` in this step and wait for per-row confirmation.
@@ -54,7 +55,7 @@ When init completes, always show a next-step picker with **2–3 concrete smart 
 - `config conventions — refine project-specific conventions when step 3b used defaults`
 - `remember <seed fact from scan> — preserve stack/team facts`
 
-Use the agent's question/picker tool when available, otherwise a numbered list. Wait for the user's pick; do NOT auto-run `generate` without confirmation.
+Use the agent's question/picker tool when available, otherwise a numbered list. Mode: single (one next action). Wait for the user's pick; do NOT auto-run `generate` without confirmation.
 
 ### Examples
 

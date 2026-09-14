@@ -20,7 +20,7 @@ Objectively research, analyze and evaluate a problem, idea, or doc file using cr
 1. **Parse target + load context (selective RAG)** — read `knowledge/index.yaml` (if exists), load only entries with `state: active` whose domain/tags match the topic. Read `.haro-docs/reviews/index.yaml` (if exists) to skip topics already reviewed and to cite past reports. Read `.haro-docs/config/status.yaml`: a `RELEASED` target counts as evidence-grade ground; an `UPDATING` target counts as context-only (findings on it are framed as draft feedback, never as verdicts over final ground). When the target is a doc path: read that file + nearby files in the same folder + glossary. When it is free text: lightly scan repo + doc-root for related evidence. State what was loaded (`sources: ...`) so reviewers can cite it.
 2. **Resolve reviewers from `.haro-docs/config/agents.yaml`:**
    - When the file is missing: use a single inline `critic` with the default prompt from `features/agents.yaml` (single-critic mode).
-   - When the file exists: show enabled agents (`id | role`) and let the user multi-select (picker tool when available, otherwise numbered list). Pre-select `default_reviewer`. Default mode is **single critic**; multi-agent runs only when the user selects 2+ agents or the topic explicitly needs research + critique.
+   - When the file exists: show enabled agents (`id | role`) and let the user multi-select (picker tool when available, otherwise numbered list). Mode: multiple. Pre-select `default_reviewer`. Default mode is **single critic**; multi-agent runs only when the user selects 2+ agents or the topic explicitly needs research + critique.
    - `--no-agents` flag forces single inline critic, ignoring the config.
    - When the runtime has no subagent mechanism (no Task tool): **inline fallback** — run each selected reviewer sequentially in the current context, clearly labeled `Reviewer <id> (inline fallback)`, then synthesize. Never fail just because subagents are unavailable.
 3. **Dispatch reviewers** — each reviewer receives: the topic/file content, the loaded context summary, and its own `role + prompt` from `.haro-docs/config/agents.yaml`. Require a structured return:
@@ -37,8 +37,8 @@ Objectively research, analyze and evaluate a problem, idea, or doc file using cr
    - `Overall verdict:` agree | conditionally-agree | disagree + 3–5 line rationale
    - `Risks & alternatives:` short list
    Reply in `language.response`. Be objective: report disagreements honestly instead of hiding them.
-5. **Save report (ask first)** — ask `Save review report to .haro-docs/reviews/? (save / skip)`. On `save`, write `.haro-docs/reviews/RR-YYYYMMDD-HHmmss-<slug>.md` with frontmatter (`topic, verdict, reviewers, date, sources`) + the synthesis + per-reviewer summaries, then append one entry (`id | topic | verdict | reviewers | date | sources`) to `.haro-docs/reviews/index.yaml`. Never write without asking.
-6. **Next-step popup** — after the synthesis, always propose follow-ups (picker when available): e.g. `generate <related file>`, `remember <new fact surfaced>`, `review again with more evidence`, `stop`. Wait for the pick; do NOT auto-run.
+5. **Save report (ask first)** — Mode: single. Ask with options `Save report (save) — writes to reviews/ + index` / `Skip (skip)`. On `save`, write `.haro-docs/reviews/RR-YYYYMMDD-HHmmss-<slug>.md` with frontmatter (`topic, verdict, reviewers, date, sources`) + the synthesis + per-reviewer summaries, then append one entry (`id | topic | verdict | reviewers | date | sources`) to `.haro-docs/reviews/index.yaml`. Never write without asking.
+6. **Next-step popup** — after the synthesis, always propose follow-ups (Mode: single; picker when available): e.g. `generate <related file>`, `remember <new fact surfaced>`, `review again with more evidence`, `stop`. Wait for the pick; do NOT auto-run.
 
 ### Examples
 

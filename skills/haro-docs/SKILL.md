@@ -61,6 +61,14 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 > 2. Read that workflow file **fully, before any other tool call or answer** — the no-args dashboard (§3 below) is the only workflow that runs directly from this file.
 > 3. If you notice you are about to act, answer, or create anything without the workflow open, **STOP and read it first**. Acting from memory, habit, or a previous session instead of the workflow is a workflow violation: **the workflow always wins over memory**, even when you are confident. This applies equally to small/weak models — when in doubt, re-read.
 
+## Presentation rule — chat first, picker second (all commands)
+
+1. Render every content (assessment, outlines A/B, remember preview, review synthesis, dashboard) **fully in chat text first**.
+2. Pickers hold **choice options only** — short labels (≤1 line each, pointing "see details above"). Never compress content into options to save context.
+3. Order is mandatory: chat message(s) first, **then** invoke the picker tool — never merged.
+4. Every option uses natural communication language (`language.response`): a plain name plus its consequence in one line. Internal tokens (`UPDATING/RELEASED`, `unsure/defer/skip`, `save/skip`, `keep/remove`, `yes/no`) appear only in parentheses, never as bare labels.
+5. Every picker declares its mode: `single` by default; `multiple` only for reviewer selection and file-candidate queues (queued files run sequentially in picked order; `stop` ends the queue anytime).
+
 ## Command index
 
 | Command | When to use | Read first (fully, before acting) |
@@ -82,6 +90,8 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 - Conversation uses `language.response`, doc content uses `language.documentation` (`en` | `vi` | `vi-en`); if missing, ask first.
 - Write current state as the first version — no change-log phrasing, no version history in bodies (git owns versions).
 - `RELEASED` means final and must-follow; `UPDATING` means reference-only.
+- Proactive partner: assess first, propose with alternatives, counter-argue on conflict (shared/authoring.md §9.9).
+- Chat first, picker second; natural option labels; declared single/multiple mode (§Presentation rule).
 
 ## 3. Command `/haro-docs` (no args) — Project Scan + Status Dashboard + Action Picker
 
@@ -96,6 +106,7 @@ When the user runs `/haro-docs` with no arguments, or with arguments that do not
    - Check agents config: if `.haro-docs/config/agents.yaml` exists, show `Agents: <ids> (default: <id>)`; otherwise show `Agents: (default inline critic)`.
    - Scan the repo lightly: README (business domain, key features), top-level source tree + tech stack signals (package.json / requirements / go.mod / pom.xml / Cargo.toml...), code scale estimate, docs files lying outside doc-root (if any).
    - Synthesize a **Project Note**: 5–8 lines on current state — initialized?, doc-root, docs coverage (% RELEASED), biggest gaps (top-3 empty folders/files), tech stack, knowledge depth.
+   - Synthesize an **Agent take** (apart from the neutral picker in step 4): 2–3 lines of the agent's own view — biggest risk, most worrying gap, proposed move + one-line reason. Step-4 recommendations derive from it.
 2. **Show command summary:**
 
    | Command | When to use | Example |
@@ -116,5 +127,5 @@ When the user runs `/haro-docs` with no arguments, or with arguments that do not
    - `01-overview` / `02-business` empty → recommend `generate <that file>`.
    - Many files `RELEASED` but no recent review → recommend `review <topic>`.
    - Knowledge empty → recommend `remember <seed facts>`.
-   The user may pick a suggestion or name any other command. Once picked, follow the MANDATORY ROUTING above: read that command's workflow file fully before acting. Do NOT auto-run side effects without that command's normal confirmations.
+   The user may pick a suggestion or name any other command. Once picked, follow the MANDATORY ROUTING above: read that command's workflow file fully before acting. Do NOT auto-run side effects without that command's normal confirmations. Mode: multiple allowed for file suggestions (they form a work queue in picked order); all other picks are single. Suggestion labels keep their one-line reasons; detail lives in chat per the Presentation rule.
 5. **Do not create any file or write to any file.** If the first token is unknown (e.g. `/haro-docs foo`), prefix the dashboard with `Unknown command 'foo'. Valid: init, generate, review, remember, knowledge, knowledge --reindex, knowledge --clean, config.` and suggest the closest match. Also handle `help`, `--help`, `-h` as aliases for this dashboard. Matching is case-insensitive, trim whitespace.

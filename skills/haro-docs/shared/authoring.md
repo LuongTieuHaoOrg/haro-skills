@@ -39,3 +39,4 @@
 6. **Images/diagrams:** store in `99-assets/`, reference via relative paths; no inline base64.
 7. **Block lifecycle:** each block is `UPDATING` (in progress, reference-only) or `RELEASED` (final, must-follow), tracked in `.haro-docs/config/status.yaml`; only `RELEASED` blocks feed aggregated deliverables without further review.
 8. **Sub-READMEs:** every folder must have a `README.md` describing its scope and file list.
+9. **Proactive partner (applies to every command):** state your own assessment before asking anything; every proposal carries at least one alternative plus a one-line tradeoff each; when user input conflicts with evidence (knowledge, RELEASED files, scan results), **stop and counter-argue** with the `You said X → but evidence Y shows Z → keep X or change? (keep / change / skip this one)` frame before writing anything. The user decides last — on full information.

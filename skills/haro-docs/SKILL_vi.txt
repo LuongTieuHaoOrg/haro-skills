@@ -120,6 +120,21 @@ File YAML là nguồn duy nhất cho mọi tra cứu của agent; file Markdown 
 > (nguồn duy nhất — file docs không gắn trạng thái). Xem Mục 6.
 
 ================================================================================
+QUY TẮC TRÌNH BÀY — CHAT TRƯỚC, PICKER SAU (mọi lệnh)
+================================================================================
+
+1. Mọi nội dung (nhận định, outline A/B, preview remember, synthesis review,
+   dashboard) render **đầy đủ trong chat trước**.
+2. Picker chỉ chứa **option lựa chọn** — nhãn ngắn (≤1 dòng, trỏ "xem chi tiết ở trên").
+   Không bao giờ nén nội dung vào option để tiết kiệm context.
+3. Thứ tự bắt buộc: message chat trước, **rồi mới** gọi picker — không gộp chung.
+4. Mọi option dùng ngôn ngữ giao tiếp (`language.response`): tên gọi thường + hậu quả
+   1 dòng. Token nội bộ (`UPDATING/RELEASED`, `unsure/defer/skip`, `save/skip`,
+   `keep/remove`, `yes/no`) chỉ đứng trong ngoặc, không bao giờ làm nhãn trần.
+5. Mọi picker khai báo mode: `single` mặc định; `multiple` chỉ cho chọn reviewer và
+   hàng đợi file (chạy lần lượt theo thứ tự đã chọn; `dừng` kết thúc bất cứ lúc nào).
+
+================================================================================
 3. LỆNH `/haro-docs` (không tham số) - QUÉT DỰ ÁN + DASHBOARD + CHỌN THAO TÁC
 ================================================================================
 
@@ -146,6 +161,9 @@ chọn thao tác:
      ước lượng quy mô code, file docs nằm ngoài doc-root (nếu có).
    - Tổng hợp **Project Note**: 5-8 dòng hiện trạng — đã init?, doc-root, coverage
      docs (% RELEASED), gap lớn nhất (top-3 folder/file trống), tech stack, độ sâu knowledge.
+   - Tổng hợp **Nhận định của agent** (tách khỏi picker trung tính ở mục 4): 2-3 dòng
+     góc nhìn riêng — rủi ro lớn nhất, gap đáng lo nhất, nước đi đề xuất + lý do 1 dòng.
+     Gợi ý ở mục 4 suy từ nhận định này.
 2. **Tóm tắt lệnh:**
 
     | Lệnh | Khi nào dùng | Ví dụ |
@@ -168,7 +186,9 @@ chọn thao tác:
    - Nhiều file `RELEASED` nhưng chưa review → gợi ý `review <chủ đề>`.
    - Knowledge trống → gợi ý `remember <facts>`.
    User được chọn gợi ý hoặc gọi lệnh khác. KHÔNG tự chạy side-effect khi chưa qua
-   confirm của lệnh đó.
+   confirm của lệnh đó. Mode: gợi ý file được chọn nhiều (thành hàng đợi theo thứ tự),
+   các lựa chọn khác là single. Nhãn gợi ý giữ lý do 1 dòng; chi tiết nằm ở chat theo
+   Quy tắc trình bày.
 5. **Không tạo file, không ghi file.** Nếu token đầu không khớp (vd `/haro-docs foo`), prefix
    `Unknown command 'foo'. Valid: init, generate, review, remember, knowledge, knowledge --reindex, knowledge --clean, config.`
    và gợi ý gần đúng. Alias `help`, `--help`, `-h` cũng hiện dashboard. So khớp
@@ -229,14 +249,14 @@ knowledge.
 
 ### Hub (không subcommand)
 
-`/haro-docs knowledge` không subcommand thì mở picker (picker tool nếu có, không thì
-list đánh số) — cùng pattern hub với `/haro-docs config`:
+`/haro-docs knowledge` không subcommand thì mở picker (Mode: single; picker tool nếu có,
+không thì list đánh số) — cùng pattern hub với `/haro-docs config`:
 
-1. `list` — liệt kê knowledge (read-only, xem bảng dưới)
-2. `remember (mới)` — trước hết hỏi `Nhập fact cần ghi:`, rồi chạy luồng `remember`
+1. `Xem danh sách (list)` — liệt kê knowledge (read-only, xem bảng dưới)
+2. `Ghi fact mới (remember)` — trước hết hỏi `Nhập fact cần ghi:`, rồi chạy luồng `remember`
    dưới đây với text đã nhập
-3. `--reindex` — sinh index + compact
-4. `--clean` — dọn stale (confirm từng dòng)
+3. `Sinh index + gọn (--reindex)` — sinh index + compact
+4. `Dọn bộ nhớ cũ (--clean)` — dọn stale (confirm từng dòng)
 
 Gọi kèm flag (`knowledge --reindex`, `knowledge --clean`, `knowledge <text>`) thì bỏ
 qua picker, chạy thẳng nhánh đó. Xong nhánh thì hỏi `về hub / dừng`.
@@ -245,7 +265,9 @@ qua picker, chạy thẳng nhánh đó. Xong nhánh thì hỏi `về hub / dừn
 
 | Subcommand | Hành vi |
 |------------|---------|
-| `remember <text tự do>` | **Phân tích -> confirm -> lưu.** Parse text, tách fact riêng, viết lại mỗi fact thành câu chuẩn (văn current-state Mục 9), tìm file topic khớp cho mỗi fact (hoặc đặt tên file topic mới khi chưa có chủ đề khớp), hiện preview bảng `file \| nội dung chuẩn` + entry index mới. Hỏi `Confirm? (yes / edit <sửa>)`. Chỉ khi `yes` (hoặc sau `edit` và yes lại) mới ghi file topic và ghi entry mới vào `index.yaml`. Deduplicate trước: fact đã tồn tại thì báo, không ghi trùng. `knowledge <text>` là alias của lệnh này. |
+| `remember <text tự do>` | **Phân tích -> confirm -> lưu.** Parse text, tách fact riêng, viết lại mỗi fact thành câu chuẩn (văn current-state Mục 9), tìm file topic khớp cho mỗi fact (hoặc đặt tên file topic mới khi chưa có chủ đề khớp). So với
+entry `active` hiện có trước; mâu thuẫn thì thêm khối `Mâu thuẫn: cũ A ↔ mới B` vào preview,
+chỉ lưu khi confirm rõ từng mâu thuẫn (giữ-cả-hai / thay-thế / bỏ-mới). Rồi hiện preview bảng `file \| nội dung chuẩn` + entry index mới. Hỏi `Confirm? (yes / edit <sửa>)`. Chỉ khi `yes` (hoặc sau `edit` và yes lại) mới ghi file topic và ghi entry mới vào `index.yaml`. Deduplicate trước: fact đã tồn tại thì báo, không ghi trùng. `knowledge <text>` là alias của lệnh này. |
 | `knowledge` (= `list`, hub option 1) | **Liệt kê** (không tham số). Đọc `index.yaml` và render bảng + số file. Read-only. |
 | `knowledge --reindex` | **Sinh index + compact.** Đọc frontmatter mọi `knowledge/*.md`, ghi `index.yaml` mới từ đó, rồi compact: gộp file topic cùng domain nhỏ hơn ~10 dòng, dedup câu trùng. Báo `trước N file → sau M file`. Không cần confirm; chỉ báo kết quả. |
 | `knowledge --clean` | **Xóa bộ nhớ cũ/không liên quan.** Quét `index.yaml` tìm ứng viên: `state: stale`, `updated` quá 90 ngày (hoặc `--older-than <Nd>`), summary không còn tham chiếu trong code/docs. Hiện bảng `file \| lý do \| keep/delete` và confirm **từng dòng**. Chỉ dòng confirm `delete` mới bị xóa; sau đó ghi `index.yaml` mới. Không bao giờ xóa khi chưa confirm từng dòng. |
@@ -281,28 +303,32 @@ Khởi tạo cấu trúc tài liệu cho một dự án mới.
 1. **Quét dự án** — đọc README, mã nguồn (cấu trúc cây, công nghệ chính), tài
    liệu hiện có (nếu có) để tổng hợp bối cảnh: domain nghiệp vụ, tính năng chính,
    quy mô code, ràng buộc kỹ thuật.
+1b. **Phân tích của agent** — trình bày `Tình hình (3-5 dòng từ scan) → Nhận định
+   (rủi ro, docs nào ưu tiên, stack có gì đáng ngờ) → Đề xuất của tôi (deliverable nào
+   trước + vì sao)` **trong chat trước**, rồi mới sang câu hỏi làm rõ. Bỏ các câu hỏi
+   mà phân tích đã trả lời được.
 2. **Hỏi chủ động để làm rõ** — đặt câu hỏi cho user kèm gợi ý dựa trên kết quả quét:
-   - Mục tiêu sản phẩm/giải pháp
-   - Đối tượng tài liệu (kỹ sư, quản lý, khách hàng...)
-   - Phạm vi và độ sâu kỹ thuật
-   - Yêu cầu bảo mật/tuân thủ đặc thù (nếu có)
-   - Các loại tài liệu đầu ra cần có (BRD, PRD, SAD...)
+   - Mục tiêu sản phẩm/giải pháp (free-text)
+   - Đối tượng tài liệu (multiple: kỹ sư / quản lý / khách hàng / ...)
+   - Phạm vi (free-text) và độ sâu kỹ thuật (single: high-level | balanced | deep-dive)
+   - Yêu cầu bảo mật/tuân thủ đặc thù (multiple + free-text, vd GDPR, ISO 27001, ...)
+   - Các loại tài liệu đầu ra cần có (multiple: BRD / PRD / SAD / ...)
    - **Ngôn ngữ trả lời** — ngôn ngữ agent dùng khi hội thoại: `en` hoặc `vi`
      - **Ngôn ngữ tài liệu** — ngôn ngữ nội dung tài liệu: `en`, `vi`, hoặc
        `vi-en` (định nghĩa tại Mục 9)
-3. **Hỏi vị trí lưu tài liệu (doc-root)** — user chọn:
+3. **Hỏi vị trí lưu tài liệu (doc-root)** — user chọn (single):
    - `docs/` (thư mục tài liệu truyền thống), hoặc
    - `.haro-docs/docs/` (gói gọn trong workspace của skill)
 3b. **Chốt quy ước (gọn 4-6 câu)** — Phần A (cố định do skill áp: naming file, SSOT,
    vòng đời status, ngôn ngữ, images, quy tắc file auto) được seed từ
    `features/conventions.md`, không hỏi; chỉ hiện preview read-only. Chỉ hỏi Phần B
    (đặc thù dự án) kèm default suy từ scan:
-   - Diagram tool: `mermaid | plantuml | drawio` (+ fallback image)
-   - API spec format: `openapi-yaml | md-table | both`
-   - Tone & độ sâu: `high-level | balanced | deep-dive` (sync `audience.technical_depth`)
-   - Người duyệt RELEASED: một tên/role, hoặc duyệt theo domain
-   - Thuật ngữ khóa: tên sản phẩm/thương hiệu giữ nguyên cách viết, hoặc `(none)`
-   - Deliverable ưu tiên: BRD/PRD/SAD/... nào trước, hoặc `(all)`
+   - Diagram tool (single): `mermaid | plantuml | drawio` (+ fallback image)
+   - API spec format (single): `openapi-yaml | md-table | both`
+   - Tone & độ sâu (single): `high-level | balanced | deep-dive` (sync `audience.technical_depth`)
+   - Người duyệt RELEASED (free-text): một tên/role, hoặc duyệt theo domain
+   - Thuật ngữ khóa (free-text): tên sản phẩm/thương hiệu giữ nguyên cách viết, hoặc `(none)`
+   - Deliverable ưu tiên (multiple): BRD/PRD/SAD/... nào trước, hoặc `(all)`
 
    Mục nào bỏ trống thì dùng default đã ghi rõ. File conventions được ghi ở bước 5
    với trạng thái RELEASED.
@@ -338,8 +364,8 @@ gợi ý cụ thể** theo trạng thái mới, vd:
 - `config conventions — tinh chỉnh quy ước nếu bước 3b đã dùng default`
 - `remember <fact từ scan> — giữ stack/team facts`
 
-Dùng question/picker nếu có, không thì list đánh số. Chờ user chọn; KHÔNG tự chạy
-`generate` khi chưa confirm.
+Dùng question/picker nếu có, không thì list đánh số. Mode: single (một thao tác tiếp theo).
+Chờ user chọn; KHÔNG tự chạy `generate` khi chưa confirm.
 
 VÍ DỤ:
 /haro-docs init Dự án e-commerce bằng Next.js + PostgreSQL, đội 3 dev
@@ -399,6 +425,10 @@ vắng trong map tính là `UPDATING`:
    `architecture` cho SAD, `team` cho người), chỉ load file khớp. Đọc
    `.haro-docs/config/status.yaml`: file `RELEASED` trong phạm vi là ràng buộc cứng
    (xung đột thì dừng và hỏi), file `UPDATING` chỉ là bối cảnh.
+1b. **Nhận định mở màn của agent** — từ RAG + status, trình bày 3-5 dòng trong chat
+   (`Tình hình → Nhận định → Góc tiếp cận tôi đề xuất`) **trước** khi đề xuất file/câu hỏi.
+   Khi file đích phụ thuộc tiền đề chưa xong, nói thẳng vì sao nên quay về tiền đề thay vì
+   hỏi xuông.
 2. **Đề xuất file theo thực trạng:**
     - Quét thực trạng từ `status.yaml`: file nào còn `UPDATING`, file nào
       `RELEASED`, `change-requests/CR-*.md` nào có. Dùng order chuẩn làm tham chiếu để hiểu
@@ -413,7 +443,8 @@ vắng trong map tính là `UPDATING`:
    - Nếu không có `<file>`: đề xuất **2-3 ứng viên** cho file tiếp theo, mỗi cái
      kèm lý do 1 dòng (vd `1. 01-overview/01-problem-statement.md — mục đích nền tảng
      còn trống; 2. 02-business/01-value-prop.md — business cần trước architecture`).
-     Để bạn chọn. Bạn cũng có thể chỉ định file khác.
+     Mode: multiple — các file được chọn thành hàng đợi, chạy full flow từng file theo thứ tự
+     đã chọn; `dừng` kết thúc hàng đợi; chọn 1 file thì hành vi như thường. Để bạn chọn.
    - Khi đã chọn/chốt đích, đọc file lân cận cùng folder + glossary lấy context.
 3. **Hỏi đáp dẫn dắt, được bỏ qua/để sau:**
    - Sinh **~5 câu hỏi** từ `domain file + thực trạng` (vd `02-business/*` ->
@@ -426,9 +457,16 @@ vắng trong map tính là `UPDATING`:
    - Phân tích field nào của file đích (theo schema) còn thiếu → hỏi tiếp 3-5 câu bổ sung,
      append, lặp đến khi đủ. Hỏi lại các câu `để sau` một lần vào cuối; câu nào vẫn để sau
      thì giữ làm gap mở.
-4. **Đề xuất outline** — liệt kê section cho file đích, ghi chú nguồn
-   (block/folder và file knowledge nào). Đánh dấu section phụ thuộc câu `chưa rõ`/`bỏ qua`
-   là `[CHƯA XÁC NHẬN]` và liệt kê gap mở. Chờ duyệt.
+   - **Phản biện bắt buộc** — khi câu trả lời mâu thuẫn knowledge / file RELEASED / bằng chứng
+     quét, dừng và dùng đúng khung: `Bạn nói X → nhưng bằng chứng Y cho thấy Z → giữ X hay
+     đổi? (giữ / đổi / bỏ qua câu này)`. Không bao giờ ghi lặng lẽ đáp mâu thuẫn. Đáp giữ lại
+     mà mâu thuẫn thì ghi cờ `contested` trong elicitation, không lan vào doc chính.
+4. **Đề xuất outline kèm đối sánh** — render full outline **trong chat trước**, rồi mới pick.
+   Trình bày `Phương án A khuyến nghị (cấu trúc section + vì sao hợp) → Phương án B thay thế
+   (cấu trúc khác + tradeoff 1 dòng mỗi bên)` → gap mở. Đánh dấu section phụ thuộc câu
+   `chưa rõ`/`bỏ qua` là `[CHƯA XÁC NHẬN]` và liệt kê gap mở. Mode: single — picker chỉ có
+   `Chọn A (khuyến nghị) / Chọn B (thay thế) / Sửa outline`, mỗi option ≤1 dòng (chi tiết đã
+   nằm ở chat).
 5. **Viết** — tạo file đích trong folder chuẩn (kebab-case + prefix số,
    Mục 9) bằng văn current-state first-version (Mục 9). Tuân thủ Phần B của
    `00-common/01-conventions.md` (diagram tool, API format, tone, thuật ngữ khóa);
@@ -444,9 +482,8 @@ vắng trong map tính là `UPDATING`:
    - Reference ngoài mới → append vào `00-common/02-references.md`.
    Không cần confirm; chỉ ghi chú `Auto 00-common: +2 terms, +1 abbreviation.`
    trong reply. Deduplicate trước khi append.
-7. **Dọn elicitation** — hỏi `Giữ file elicitation để tra cứu hay xóa? (keep / remove)`. Khi `remove`, xóa file và entry của nó trong `elicitation/index.yaml`.
-8. **Confirm & đánh trạng thái** — hỏi `Đánh trạng thái file là? (UPDATING / RELEASED)`.
-   Chỉ chọn `RELEASED` khi không còn gap chặn; còn gap thì giữ `UPDATING`, gap nằm lại
+7. **Dọn elicitation** — Mode: single. Hỏi với option `Giữ để tra cứu (keep)` / `Xóa file + entry index (remove)`. Khi `remove`, xóa file và entry của nó trong `elicitation/index.yaml`.
+8. **Confirm & đánh trạng thái** — Mode: single. Hỏi với option `Chốt file (RELEASED) — file thành căn cứ cho các file sau` / `Để đang làm (UPDATING) — gap ở lại lượt sau`. Chỉ chọn `RELEASED` khi không còn gap chặn; còn gap thì giữ `UPDATING`, gap nằm lại
    elicitation file để lượt sau xử lý. Ghi trạng thái mới vào `.haro-docs/config/status.yaml`.
    File `RELEASED` thành căn cứ cho các lượt `generate` sau.
 9. **Popup lệnh tiếp theo** — sau khi đánh trạng thái luôn hỏi làm gì tiếp (picker nếu
@@ -581,6 +618,12 @@ Folder chưa cần dùng có thể giữ nguyên `README.md` và ghi chú ngắn
    `RELEASED` (đã chốt, phải chuẩn), quản lý tại `.haro-docs/config/status.yaml`;
    chỉ block `RELEASED` được đem vào tài liệu tổng hợp.
 8. **README con:** mọi thư mục phải có `README.md` mô tả phạm vi và danh sách file.
+9. **Cộng sự chủ động (áp mọi lệnh):** trình bày nhận định của mình trước khi hỏi;
+mọi đề xuất kèm ít nhất một phương án thay thế + tradeoff 1 dòng mỗi bên; khi input
+của user mâu thuẫn bằng chứng (knowledge, file RELEASED, kết quả quét), **dừng và
+phản biện** theo khung `Bạn nói X → nhưng bằng chứng Y cho thấy Z → giữ X hay đổi?
+(giữ / đổi / bỏ qua câu này)` trước khi ghi bất cứ gì. User quyết cuối — trên đầy
+đủ thông tin.
 
 ================================================================================
 10. LỆNH `/haro-docs review <chủ đề|file>` - REVIEW PHẢN BIỆN QUA SUBAGENT
@@ -610,7 +653,7 @@ QUY TRÌNH:
    - Thiếu file: dùng 1 `critic` inline với prompt mặc định từ `features/agents.yaml`
      (chế độ single-critic).
    - Có file: hiện agents đang enabled (`id | role`), cho user multi-select (picker nếu
-     có, không thì list đánh số). Pre-select `default_reviewer`. Mặc định là **1 critic**;
+     có, không thì list đánh số). Mode: multiple. Pre-select `default_reviewer`. Mặc định là **1 critic**;
      chỉ chạy multi-agent khi user chọn 2+ agents hoặc chủ đề cần cả research + phản biện.
    - Cờ `--no-agents` ép chạy single inline critic, bỏ qua config.
    - Nếu runtime không có cơ chế subagent (không có Task tool): **fallback inline** — chạy
@@ -631,11 +674,10 @@ QUY TRÌNH:
    - `Overall verdict:` agree | conditionally-agree | disagree + rationale 3-5 dòng
    - `Risks & alternatives:` list ngắn
    Trả lời bằng `language.response`. Khách quan: báo cáo trung thực bất đồng, không giấu.
-5. **Lưu báo cáo (phải hỏi trước)** — hỏi `Lưu báo cáo review vào .haro-docs/reviews/?
-   (save / skip)`. Nếu `save`, ghi `.haro-docs/reviews/RR-YYYYMMDD-HHmmss-<slug>.md` với
+5. **Lưu báo cáo (phải hỏi trước)** — Mode: single. Hỏi với option `Lưu báo cáo (save) — ghi vào reviews/ + index` / `Bỏ qua (skip)`. Nếu `save`, ghi `.haro-docs/reviews/RR-YYYYMMDD-HHmmss-<slug>.md` với
    frontmatter (`topic, verdict, reviewers, date, sources`) + synthesis + tóm tắt từng
    reviewer. Không ghi khi chưa hỏi.
-6. **Popup tiếp theo** — sau synthesis luôn đề xuất follow-up (picker nếu có): vd
+6. **Popup tiếp theo** — sau synthesis luôn đề xuất follow-up (Mode: single; picker nếu có): vd
    `generate <file liên quan>`, `remember <fact mới lộ ra>`, `review lại với thêm bằng
    chứng`, `dừng`. Chờ pick; KHÔNG tự chạy.
 
@@ -664,7 +706,7 @@ QUY TRÌNH:
 1. Đọc state: `agents.yaml` (có? N enabled, default?), Phần B của
    `00-common/01-conventions.md` (bảng 6 giá trị hoặc `missing`),
    `language.response/documentation` từ `project.yaml`.
-2. Hiện picker (picker tool nếu có, không thì list đánh số), mỗi dòng kèm 1 dòng trạng thái:
+2. Hiện picker (Mode: single; picker tool nếu có, không thì list đánh số), mỗi dòng kèm 1 dòng trạng thái:
    - `1. agents — subagent review (N enabled, default: <id>)`
    - `2. conventions — quy ước đặc thù (diagram, API format, tone, approver...)`
    - `3. language — ngôn ngữ trả lời + ngôn ngữ tài liệu`
@@ -677,7 +719,7 @@ Quản lý cấu hình `.haro-docs/config/agents.yaml`:
 
 1. Thiếu file thì tạo từ `features/agents.yaml` của skill rồi hiện nội dung.
 2. Có file thì liệt kê `id | role | enabled | default?`.
-3. Cho chọn thao tác (picker nếu có, không thì list số): `thêm agent | đặt role/prompt |
+3. Cho chọn thao tác (Mode: single; picker nếu có, không thì list số): `thêm agent | đặt role/prompt |
    bật / tắt | đặt default_reviewer | reset từ template (confirm trước)`.
 4. Sau khi ghi, render lại list và nhắc `/haro-docs review` sẽ offer các agents này để chọn.
 
@@ -687,7 +729,7 @@ Quản lý cấu hình `.haro-docs/config/agents.yaml`:
 
 1. Hiện Phần B hiện tại dạng bảng `mục | giá trị`; Phần A chỉ hiện 6 bullet tiêu đề
    (full text khi user yêu cầu).
-2. Cho đặt từng mục (picker nếu có, không thì list số): diagram tool | API format |
+2. Cho đặt từng mục (Mode: single; picker nếu có, không thì list số): diagram tool | API format |
    tone & depth | người duyệt RELEASED | thuật ngữ khóa | deliverable ưu tiên. Mỗi mục
    kèm default suy từ scan.
 3. `reset` ghi Phần A mới từ `features/conventions.md` và **giữ nguyên Phần B**.
