@@ -8,7 +8,7 @@ Initialize the documentation structure for a new project.
 
 ### 5.1 Check current state
 
-1. **Scan first** — same deep scan as SKILL.md (§3): README, source tree + tech stack, existing docs (inside and outside doc-root), `.haro-docs/config/` state (`project.yaml`, `schema.yaml`, knowledge file count, agents config).
+1. **Scan first** — same deep scan as commands/dashboard.md (§3): README, source tree + tech stack, existing docs (inside and outside doc-root), `.haro-docs/config/` state (`project.yaml`, `schema.yaml`, knowledge file count, agents config).
 2. **When `.haro-docs/` already exists** — report `Already initialized` with the current profile (doc-root, languages, docs file count, knowledge N files) and stop. Point to the next commands (`generate`, `remember`, `review`).
 
 ### 5.2 Required workflow
