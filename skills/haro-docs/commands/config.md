@@ -17,7 +17,7 @@ Central hub for skill configuration. Three branches; doc-root lives only in `.ha
 
 Workflow:
 
-1. Read state: `agents.yaml` (exists? N enabled, default?), Part B of `00-common/01-conventions.md` (6-row table or `missing`), `language.response/documentation` from `.haro-docs/config/project.yaml`.
+1. Read state: `agents.yaml` (exists? N enabled, default?), `conventions:` + `audience.technical_depth` + `deliverables` from `.haro-docs/config/project.yaml` (or `missing`), `language.response/documentation` from the same file.
 2. Show picker (Mode: single; picker tool when available, otherwise numbered list), each row with a one-line status:
    - `1. agents — reviewer subagents (N enabled, default: <id>)`
    - `2. conventions — project-specific conventions (diagram, API format, tone, approver...)`
@@ -40,11 +40,11 @@ Manage the `.haro-docs/config/agents.yaml` configuration:
 
 ### 11.3 Branch: conventions — Set Project-Specific Conventions
 
-Set Part B of `00-common/01-conventions.md` (Part A is fixed by the skill):
+Set the `conventions:` mapping in `.haro-docs/config/project.yaml` (plus `audience.technical_depth` and `deliverables` when relevant):
 
-1. Show current Part B as table `item | value`; show Part A as 6 bullet titles only (full text on request).
-2. Offer per-item values (Mode: single; picker when available, otherwise numbered list): diagram tool | API spec format | tone & depth | RELEASED approver | locked terms | priority deliverables. Each item offers scan-based defaults.
-3. `reset` writes Part A fresh from `templates/conventions.md` and **keeps Part B**. Confirm before any write.
+1. Show current values as table `key | value` (`diagram_tool | api_format | tone ← audience.technical_depth | approver | locked_terms | deliverables`); fixed rules live in `shared/writing-rules.md` and are shown as titles only (full text on request).
+2. Offer per-key values (Mode: single; picker when available, otherwise numbered list), each with scan-based defaults.
+3. Confirm before any write. After writing, re-render the `00-common/01-conventions.md` view from the yaml so it never goes stale.
 4. After writing, suggest `review` for any RELEASED files the new conventions touch — only suggest the `review` command; `config` never writes to doc files.
 
 ### 11.4 Branch: language — Reply + Documentation Language

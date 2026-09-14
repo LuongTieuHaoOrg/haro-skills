@@ -19,6 +19,12 @@ audience:
   primary: []                 # e.g. [engineers, project managers]
   technical_depth: ""         # high-level | balanced | deep-dive
 
-deliverables: []              # e.g. [BRD, PRD, SAD]
+deliverables: []              # e.g. [BRD, PRD, SAD] — also the priority deliverables for conventions
 tech_stack: []                # e.g. [Next.js, PostgreSQL]
 compliance: []                # e.g. [GDPR, ISO 27001]
+
+conventions:                  # project-specific conventions (tone uses audience.technical_depth above)
+  diagram_tool: ""            # mermaid | plantuml | drawio + image fallback
+  api_format: ""              # openapi-yaml | md-table | both
+  approver: ""                # who approves RELEASED: single name/role, or per-domain approvers
+  locked_terms: []            # product/brand terms with fixed spelling, or empty

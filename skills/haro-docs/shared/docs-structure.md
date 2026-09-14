@@ -24,7 +24,7 @@ Single structure for all projects:
 
 ```
 docs/                        # or .haro-docs/docs/ depending on user-chosen doc-root
-├── 00-common/               # 01-conventions.md, 02-references.md, 03-abbreviations.md, 04-glossary.md, 05-traceability.md (01 decided at init, 02-05 written only by generate)
+├── 00-common/               # 01-conventions.md, 02-references.md, 03-abbreviations.md, 04-glossary.md, 05-traceability.md (01 rendered view from project.yaml, 02-05 written only by generate)
 ├── 01-overview/             # 01-problem-statement.md, 02-vision.md, 03-goals.md, 04-scope.md, 05-stakeholders.md, 06-constraints.md, 07-roadmap.md (Version|Goal|Target|Status)
 ├── 02-business/             # 01-value-proposition.md, 02-market-analysis.md, 03-business-model.md, 04-pricing.md, 05-sla.md, 06-risk-legal.md, use-cases/, change-requests/CR-*.md
 ├── 03-features/             # 01-feature-catalog.md, 04-dependencies.md, features/<feature>/ 01-overview.md, 02-user-stories.md, 03-acceptance-criteria.md
@@ -38,7 +38,7 @@ docs/                        # or .haro-docs/docs/ depending on user-chosen doc-
 └── 99-assets/               # Images, diagrams, templates
 ```
 
-`init` creates all folders/files above; each `10-deliverables/*.md` is a placeholder with its own headings plus `Ref: ../01-overview/...` links — not identical templates. In `00-common`, `01-conventions.md` is decided during `init` (§5.2 step 3b, 2 layers: fixed Part A + project-specific Part B, MD-only single source) while `02-references, 03-abbreviations, 04-glossary, 05-traceability` are living references with status `UPDATING`, written only by `generate`; `05-traceability.md` format is a table `deliverable | source blocks | block status (from status.yaml) | knowledge refs (from index.yaml)`. `01-overview` is the starting point for writing (not `00-common`).
+`init` creates all folders/files above; each `10-deliverables/*.md` is a placeholder with its own headings plus `Ref: ../01-overview/...` links — not identical templates. In `00-common`, `01-conventions.md` is a read-only view rendered by `init` from `config/project.yaml` (`conventions:`, `audience.technical_depth`, `deliverables`) plus a pointer to the fixed rules (`shared/writing-rules.md`), while `02-references, 03-abbreviations, 04-glossary, 05-traceability` are living references with status `UPDATING`, written only by `generate`; `05-traceability.md` format is a table `deliverable | source blocks | block status (from status.yaml) | knowledge refs (from index.yaml)`. `01-overview` is the starting point for writing (not `00-common`).
 
 ### Distinguishing `03-features` from `02-business/use-cases/`
 
@@ -54,3 +54,13 @@ These two folders cause the most confusion — distinguish by audience and detai
 One use case is typically decomposed into multiple user stories; each story links back to its source use case instead of retelling the flow.
 
 Folders not yet needed may stay with their `README.md` and a short `> Out of scope for this project` note.
+
+### Doc-root README outline
+
+`init` renders the root overview README at the doc-root from `config/schema.yaml` + `config/project.yaml` following this outline (no template file — compose from the sources):
+
+1. Title + one-line project/solution description (from `project.yaml`: name, description)
+2. Folder tree from the approved schema (from `schema.yaml`), one line of purpose per folder
+3. Reading path table (01-overview → ... → 10-deliverables, high-level to details)
+4. Quick lookup table (common needs → where to read)
+5. Pointer to `00-common/01-conventions.md` for conventions and glossary

@@ -322,19 +322,18 @@ Khởi tạo cấu trúc tài liệu cho một dự án mới.
 3. **Hỏi vị trí lưu tài liệu (doc-root)** — user chọn (single):
    - `docs/` (thư mục tài liệu truyền thống), hoặc
    - `.haro-docs/docs/` (gói gọn trong workspace của skill)
-3b. **Chốt quy ước (gọn 4-6 câu)** — Phần A (cố định do skill áp: naming file, SSOT,
-   vòng đời status, ngôn ngữ, images, quy tắc file auto) được seed từ
-   `templates/conventions.md`, không hỏi; chỉ hiện preview read-only. Chỉ hỏi Phần B
-   (đặc thù dự án) kèm default suy từ scan:
-   - Diagram tool (single): `mermaid | plantuml | drawio` (+ fallback image)
-   - API spec format (single): `openapi-yaml | md-table | both`
-   - Tone & độ sâu (single): `high-level | balanced | deep-dive` (sync `audience.technical_depth`)
-   - Người duyệt RELEASED (free-text): một tên/role, hoặc duyệt theo domain
-   - Thuật ngữ khóa (free-text): tên sản phẩm/thương hiệu giữ nguyên cách viết, hoặc `(none)`
-   - Deliverable ưu tiên (multiple): BRD/PRD/SAD/... nào trước, hoặc `(all)`
+3b. **Chốt quy ước (gọn 4-6 câu)** — quy tắc cố định không cần hỏi (nằm ở Mục 9 luật viết);
+   chỉ hiện preview read-only. Chỉ hỏi quy ước đặc thù dự án dưới đây, đáp án ghi vào
+   `config/project.yaml` (`conventions:`, `audience.technical_depth`, `deliverables`), kèm
+   default suy từ scan:
+   - Diagram tool (single) → `conventions.diagram_tool`: `mermaid | plantuml | drawio` (+ fallback image)
+   - API spec format (single) → `conventions.api_format`: `openapi-yaml | md-table | both`
+   - Tone & độ sâu (single) → `audience.technical_depth`: `high-level | balanced | deep-dive`
+   - Người duyệt RELEASED (free-text) → `conventions.approver`: một tên/role, hoặc duyệt theo domain
+   - Thuật ngữ khóa (free-text) → `conventions.locked_terms`: tên sản phẩm/thương hiệu giữ nguyên cách viết, hoặc `(none)`
+   - Deliverable ưu tiên (multiple) → `deliverables`: BRD/PRD/SAD/... nào trước, hoặc `(all)`
 
-   Mục nào bỏ trống thì dùng default đã ghi rõ. File conventions được ghi ở bước 5
-   với trạng thái RELEASED.
+   Mục nào bỏ trống thì dùng default đã ghi rõ.
 3c. **Thiết lập agent (nhanh)** — chạy flow dùng chung ở Phụ lục 12: hiện bảng preset
    trong chat, tick chọn role (multiple), đặt tên từng con, chọn default, confirm rồi ghi.
    Bỏ qua thì không ghi gì — không tạo `config/agents.yaml`, và flow setup sẽ hiện lại khi
@@ -356,12 +355,14 @@ Khởi tạo cấu trúc tài liệu cho một dự án mới.
      với `entries: []` rỗng
    - Tạo `.haro-docs/elicitation/index.yaml` từ `templates/elicitation.yaml`
      với `entries: []` rỗng
-   - Ghi `00-common/01-conventions.md` từ `templates/conventions.md` với giá trị Phần B
-     từ bước 3b (trạng thái RELEASED); tạo `02-references.md`, `03-abbreviations.md`,
+   - Render `00-common/01-conventions.md` dạng view chỉ-đọc từ `config/project.yaml`
+     (`conventions:`, `audience.technical_depth`, `deliverables`) với trạng thái RELEASED;
+     tạo `02-references.md`, `03-abbreviations.md`,
      `04-glossary.md`, `05-traceability.md` dạng placeholder cho `generate` điền
      (trạng thái UPDATING)
    - Tạo cây thư mục theo dàn ý, mỗi thư mục có `README.md` mô tả phạm vi
-   - Tạo README tổng quan tại doc-root kèm lộ trình đọc
+   - Tạo README tổng quan tại doc-root theo outline ở Mục 8 (Doc-root README outline),
+     điền cây và lộ trình đọc từ `config/schema.yaml` + `config/project.yaml`
 
 ### 5.3 SAU INIT — POPUP LỆNH TIẾP THEO
 
@@ -388,7 +389,7 @@ Không có mô tả: vẫn quét dự án hiện tại trước, rồi hỏi t�
 Xây tài liệu linh hoạt dựa trên thực trạng + vai trò bạn. Hai chế độ:
 
 - `/haro-docs generate` — đề xuất 2-3 file tiếp theo để xây, dựa trên thực trạng.
-  Bỏ qua toàn bộ `00-common` — `01-conventions.md` đã chốt lúc `init` (bước 3b),
+  Bỏ qua toàn bộ `00-common` — `01-conventions.md` do `init` render từ project.yaml,
   `02-05` do `generate` tự điền; điểm bắt đầu viết là `01-overview`.
 - `/haro-docs generate <file>` — tạo file chỉ định (vd `02-business/01-value-prop.md`
   hoặc `10-deliverables/01-BRD.md`). Nếu file đã `RELEASED`, báo
@@ -441,7 +442,7 @@ vắng trong map tính là `UPDATING`:
     - Quét thực trạng từ `status.yaml`: file nào còn `UPDATING`, file nào
       `RELEASED`, `change-requests/CR-*.md` nào có. Dùng order chuẩn làm tham chiếu để hiểu
       tiền đề (vd `01-overview` và `02-business` là tiền đề cho `04-architecture`).
-      Bỏ qua toàn bộ `00-common` (`01-conventions.md` đã chốt lúc init, `02-05` do
+      Bỏ qua toàn bộ `00-common` (`01-conventions.md` là view render sẵn, `02-05` do
       generate tự điền); điểm bắt đầu viết là `01-overview`, không phải `00-common`.
    - Nếu `<file>` đã `RELEASED`: báo final và gợi ý file đang mở tiếp theo.
    - Nếu `<file>` còn `UPDATING`: coi như bạn muốn file đó, nhưng nếu nó phụ thuộc tiền đề chưa
@@ -476,8 +477,9 @@ vắng trong map tính là `UPDATING`:
    `Chọn A (khuyến nghị) / Chọn B (thay thế) / Sửa outline`, mỗi option ≤1 dòng (chi tiết đã
    nằm ở chat).
 5. **Viết** — tạo file đích trong folder chuẩn (kebab-case + prefix số,
-   Mục 9) bằng văn current-state first-version (Mục 9). Tuân thủ Phần B của
-   `00-common/01-conventions.md` (diagram tool, API format, tone, thuật ngữ khóa);
+   Mục 9) bằng văn current-state first-version (Mục 9). Tuân thủ quy ước trong
+   `config/project.yaml` (`conventions:`, `audience.technical_depth`;
+   `00-common/01-conventions.md` chỉ là view chỉ-đọc của chúng);
    nếu conventions thiếu chỉ dẫn cho file này thì dùng default hợp lý và ghi chú 1 dòng,
    không ghi vào conventions. Ghi trạng thái mới vào `.haro-docs/config/status.yaml`
    (`UPDATING`). Nếu có fact mới, ghi vào `knowledge/` khi cần.
@@ -530,7 +532,7 @@ Chỉ block `RELEASED` mới ghép vào deliverable. Deliverable mà nguồn ch�
 Cấu trúc duy nhất cho mọi dự án:
 
 docs/                        # hoặc .haro-docs/docs/ tùy doc-root user chọn
-├── 00-common/               # 01-conventions.md, 02-references.md, 03-abbreviations.md, 04-glossary.md, 05-traceability.md (01 chốt lúc init, 02-05 do generate điền)
+├── 00-common/               # 01-conventions.md (view generated từ project.yaml), 02-references.md, 03-abbreviations.md, 04-glossary.md, 05-traceability.md (01 render lúc init, 02-05 do generate điền)
 ├── 01-overview/             # 01-problem-statement.md, 02-vision.md, 03-goals.md, 04-scope.md, 05-stakeholders.md, 06-constraints.md, 07-roadmap.md (Version|Goal|Target|Status)
 ├── 02-business/             # 01-value-proposition.md, 02-market-analysis.md, 03-business-model.md, 04-pricing.md, 05-sla.md, 06-risk-legal.md, use-cases/, change-requests/CR-*.md
 ├── 03-features/             # 01-feature-catalog.md, 04-dependencies.md, features/<feature>/ 01-overview.md, 02-user-stories.md, 03-acceptance-criteria.md
@@ -543,7 +545,17 @@ docs/                        # hoặc .haro-docs/docs/ tùy doc-root user chọn
 ├── 10-deliverables/         # 01-BRD.md, 02-PRD.md, 03-SAD.md, 04-FSD.md, 05-SRD.md, 06-Proposal.md, 07-TestPlan.md, 08-Runbook.md, 09-UserAdminGuide.md (placeholder với headings riêng + Ref link, không giống nhau)
 └── 99-assets/               # Hình ảnh, sơ đồ, templates
 
-`init` tạo đủ folder/file trên; mỗi `10-deliverables/*.md` là placeholder với headings riêng kèm `Ref: ../01-overview/...` — không y nhau. Trong `00-common`, `01-conventions.md` được chốt lúc `init` (bước 3b, 2 lớp: Phần A cố định + Phần B đặc thù dự án, nguồn duy nhất dạng MD), còn `02-references, 03-abbreviations, 04-glossary, 05-traceability` là tham chiếu sống trạng thái `UPDATING` do `generate` điền; format `05-traceability.md` là bảng `deliverable | source blocks | block status (từ status.yaml) | knowledge refs (từ index.yaml)`. Điểm bắt đầu viết là `01-overview` (không phải `00-common`).
+`init` tạo đủ folder/file trên; mỗi `10-deliverables/*.md` là placeholder với headings riêng kèm `Ref: ../01-overview/...` — không y nhau. Trong `00-common`, `01-conventions.md` là view chỉ-đọc do `init` render từ `config/project.yaml` (`conventions:`, `audience.technical_depth`, `deliverables`) kèm trỏ tới luật cố định (Mục 9), còn `02-references, 03-abbreviations, 04-glossary, 05-traceability` là tham chiếu sống trạng thái `UPDATING` do `generate` điền; format `05-traceability.md` là bảng `deliverable | source blocks | block status (từ status.yaml) | knowledge refs (từ index.yaml)`. Điểm bắt đầu viết là `01-overview` (không phải `00-common`).
+
+### Doc-root README outline
+
+`init` render README tổng quan tại doc-root từ `config/schema.yaml` + `config/project.yaml` theo outline sau (không có file mẫu — dựng từ nguồn):
+
+1. Title + mô tả dự án/giải pháp 1 dòng (từ `project.yaml`: name, description)
+2. Cây thư mục từ schema đã duyệt (từ `schema.yaml`), mỗi folder 1 dòng mục đích
+3. Bảng lộ trình đọc (01-overview → ... → 10-deliverables, từ tổng quan tới chi tiết)
+4. Bảng tra nhanh (nhu cầu thường gặp → đọc ở đâu)
+5. Trỏ tới `00-common/01-conventions.md` cho quy ước và glossary
 
 --- PHÂN ĐỊNH `03-features` VÀ `02-business/use-cases/` ---
 
@@ -632,6 +644,9 @@ của user mâu thuẫn bằng chứng (knowledge, file RELEASED, kết quả qu
 phản biện** theo khung `Bạn nói X → nhưng bằng chứng Y cho thấy Z → giữ X hay đổi?
 (giữ / đổi / bỏ qua câu này)` trước khi ghi bất cứ gì. User quyết cuối — trên đầy
 đủ thông tin.
+10. **File generated là view chỉ-đọc:** `00-common/01-conventions.md` (render từ
+`config/project.yaml`), `05-traceability.md` và README doc-root do đúng lệnh chủ quản
+sinh ra — không bao giờ viết tay, không dùng làm nguồn viết.
 
 ================================================================================
 10. LỆNH `/haro-docs review <chủ đề|file>` - REVIEW PHẢN BIỆN QUA SUBAGENT
@@ -715,8 +730,8 @@ Hub tập trung cho cấu hình skill. Ba nhánh, doc-root nằm trong `project.
 
 QUY TRÌNH:
 
-1. Đọc state: `agents.yaml` (có? N enabled, default?), Phần B của
-   `00-common/01-conventions.md` (bảng 6 giá trị hoặc `missing`),
+1. Đọc state: `agents.yaml` (có? N enabled, default?), `conventions:` + `audience.technical_depth`
+   + `deliverables` từ `config/project.yaml` (hoặc `missing`),
    `language.response/documentation` từ `project.yaml`.
 2. Hiện picker (Mode: single; picker tool nếu có, không thì list đánh số), mỗi dòng kèm 1 dòng trạng thái:
    - `1. agents — subagent review (N enabled, default: <id>)`
@@ -749,15 +764,13 @@ Quản lý cấu hình `.haro-docs/config/agents.yaml`:
 
 ### 11.3 NHÁNH: conventions - ĐẶT QUY ƯỚC ĐẶC THÙ
 
-Đặt Phần B của `00-common/01-conventions.md` (Phần A do skill cố định):
+Đặt mapping `conventions:` trong `.haro-docs/config/project.yaml` (cùng `audience.technical_depth`
+và `deliverables` khi liên quan):
 
-1. Hiện Phần B hiện tại dạng bảng `mục | giá trị`; Phần A chỉ hiện 6 bullet tiêu đề
-   (full text khi user yêu cầu).
-2. Cho đặt từng mục (Mode: single; picker nếu có, không thì list số): diagram tool | API format |
-   tone & depth | người duyệt RELEASED | thuật ngữ khóa | deliverable ưu tiên. Mỗi mục
-   kèm default suy từ scan.
-3. `reset` ghi Phần A mới từ `templates/conventions.md` và **giữ nguyên Phần B**.
-   Confirm trước mọi ghi file.
+1. Hiện giá trị hiện tại dạng bảng `key | giá trị` (`diagram_tool | api_format | tone ← audience.technical_depth | approver | locked_terms | deliverables`); luật cố định nằm ở Mục 9 luật viết, chỉ hiện tiêu đề khi được hỏi.
+2. Cho đặt từng key (Mode: single; picker nếu có, không thì list số), mỗi key kèm default suy từ scan.
+3. Confirm trước mọi ghi file. Sau khi ghi, render lại view `00-common/01-conventions.md` từ yaml
+   để không bao giờ lệch.
 4. Sau lưu, gợi ý `review` cho các file RELEASED mà quy ước mới chạm tới — chỉ gợi ý
    lệnh `review`, `config` không bao giờ ghi vào file docs.
 

@@ -11,7 +11,7 @@ structure:
     purpose: "Conventions, references, abbreviations, glossary, traceability (glossary auto, conventions manual)"
     readme: true
     files:
-      - 01-conventions.md       # Manual — decided during init (§5.2 step 3b), editable via /haro-docs config conventions; single source (MD-only)
+      - 01-conventions.md       # Generated view — rendered by init from config/project.yaml (read-only)
       - 02-references.md        # Auto — appended by generate
       - 03-abbreviations.md     # Auto — appended by generate
       - 04-glossary.md          # Auto — appended by generate

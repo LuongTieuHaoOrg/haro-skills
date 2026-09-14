@@ -26,13 +26,13 @@ Initialize the documentation structure for a new project.
 3. **Ask for the doc-root** — the user chooses (single):
    - `docs/` (traditional documentation folder), or
    - `.haro-docs/docs/` (contained within the skill workspace)
-3b. **Decide conventions (compact, 4–6 questions)** — Part A (fixed by skill: file naming, SSOT, status lifecycle, language ref, images, auto-file rule) is seeded from `templates/conventions.md` without asking; show it as read-only preview. Ask only Part B (project-specific), offering scan-based defaults:
-   - Diagram tool (single): `mermaid | plantuml | drawio` (+ image fallback)
-   - API spec format (single): `openapi-yaml | md-table | both`
-   - Tone & depth (single): `high-level | balanced | deep-dive` (sync with `audience.technical_depth`)
-   - RELEASED approver (free-text): single name/role, or per-domain approvers
-   - Locked terms (free-text): product/brand terms with fixed spelling, or `(none)`
-   - Priority deliverables (multiple): which of BRD/PRD/SAD/... first, or `(all)`
+3b. **Decide conventions (compact, 4–6 questions)** — fixed rules need no questions (they live in `shared/writing-rules.md`); show them as read-only preview. Ask only project-specific conventions below, writing answers into `config/project.yaml` (`conventions:`, `audience.technical_depth`, `deliverables`), offering scan-based defaults:
+   - Diagram tool (single) → `conventions.diagram_tool`: `mermaid | plantuml | drawio` (+ image fallback)
+   - API spec format (single) → `conventions.api_format`: `openapi-yaml | md-table | both`
+   - Tone & depth (single) → `audience.technical_depth`: `high-level | balanced | deep-dive`
+   - RELEASED approver (free-text) → `conventions.approver`: single name/role, or per-domain approvers
+   - Locked terms (free-text) → `conventions.locked_terms`: product/brand terms with fixed spelling, or `(none)`
+   - Priority deliverables (multiple) → `deliverables`: which of BRD/PRD/SAD/... first, or `(all)`
 
    Unanswered items use the stated defaults. The conventions file is written at init step 5 with status RELEASED.
 3c. **Agent setup (quick)** — run the shared flow in `shared/agents-setup.md`: present presets in chat, multi-pick roles, name each, pick the default, write on confirm. Skipping writes nothing — no `config/agents.yaml` is created, and the setup returns automatically the next time a command needs agents.
@@ -44,9 +44,9 @@ Initialize the documentation structure for a new project.
    - Create `.haro-docs/knowledge/index.yaml` from `templates/knowledge.yaml` with empty `entries: []`
    - Create `.haro-docs/reviews/index.yaml` from `templates/reviews.yaml` with empty `entries: []`
    - Create `.haro-docs/elicitation/index.yaml` from `templates/elicitation.yaml` with empty `entries: []`
-   - Write `00-common/01-conventions.md` from `templates/conventions.md` with the Part B values from step 3b (status RELEASED); create `02-references.md`, `03-abbreviations.md`, `04-glossary.md`, `05-traceability.md` as placeholders for `generate` to fill (status UPDATING)
+   - Write `00-common/01-conventions.md` as a read-only view rendered from `config/project.yaml` (`conventions:`, `audience.technical_depth`, `deliverables`) with status RELEASED; create `02-references.md`, `03-abbreviations.md`, `04-glossary.md`, `05-traceability.md` as placeholders for `generate` to fill (status UPDATING)
    - Create the folder tree per the outline, each folder gets a `README.md` describing its scope
-   - Create a root overview README at the doc-root from `templates/doc-root-readme.md`, filling the folder tree and reading path from the approved outline
+   - Create a root overview README at the doc-root following the outline in `shared/docs-structure.md` (Doc-root README outline), filling the tree and reading path from `config/schema.yaml` + `config/project.yaml`
 
 ### 5.3 After init — next-step popup
 
