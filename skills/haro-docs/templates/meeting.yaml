@@ -2,6 +2,7 @@
 version: 1
 meeting_id: ""             # MT-YYYYMMDD-HHmmss-<slug>
 created_at: ""             # YYYY-MM-DD HH:mm:ss
+status: "in-progress"      # in-progress | completed
 topic: ""                  # Meeting topic / problem statement
 goal: ""                   # Target objective to achieve
 lead_agent: ""             # Selected Lead / MC agent
