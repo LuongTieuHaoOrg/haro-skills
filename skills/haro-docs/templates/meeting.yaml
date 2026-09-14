@@ -13,6 +13,6 @@ rules:
   - "Do NOT paste raw source code blocks or irrelevant verbose text."
   - "Maintain logical rigor and ground statements in evidence."
 
-rounds: []                 # List of rounds with round summaries and pointers to raw markdown files
+rounds: []                 # List of rounds with structured summaries (consensus, conflicts, takeaways, open questions) and pointers to raw markdown files
 conclusion: ""             # Final agreed resolution / action items
 
