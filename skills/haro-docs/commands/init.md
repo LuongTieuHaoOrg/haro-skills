@@ -2,18 +2,22 @@
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-docs init`. Do not act, answer, edit, or call tools from memory: read every step below first. If in doubt at any point, re-read. The reference always wins over memory.
 > **Ground rules (apply to every action in this file):** read `docroot` from `.haro-docs/config/project.yaml` before operating — never guess it. Respect `language.response` (conversation) and `language.documentation` (doc content); if either is missing, ask the user first. Knowledge in `.haro-docs/knowledge/` is ground truth over scanned defaults (see `commands/knowledge.md`).
 
-## 5. Command `/haro-docs init <project description>`
+## 5. Command `/haro-docs init [<project description>]`
 
-Initialize the documentation structure for a new project.
+Read the project state to decide what happens next. Runs any time, any number of times: fresh projects get the full structure; initialized projects get a refreshed read (re-scan + delta report, never touching user content).
 
-### 5.1 Check current state
+### 5.1 Deep read (always runs first, read-only except refresh sync)
 
-1. **Scan first** — same deep scan as commands/dashboard.md (§3): README, source tree + tech stack, existing docs (inside and outside doc-root), `.haro-docs/config/` state (`project.yaml`, `schema.yaml`, knowledge file count, agents config).
-2. **When `.haro-docs/` already exists** — report `Already initialized` with the current profile (doc-root, languages, docs file count, knowledge N files) and stop. Point to the next commands (`generate`, `knowledge --ingest`, `review`).
+1. **Deep scan** — README (business domain, key features), source tree + tech stack signals (package.json / requirements / go.mod / pom.xml / Cargo.toml...), code scale estimate, existing docs inside and outside doc-root, `.haro-docs/` state (`config/project.yaml`, `config/schema.yaml`, knowledge file count, agents config).
+2. **Docs reality** — when initialized: list the actual folder tree under doc-root (for each of `00-common` → `99-assets` show exists/missing, file count, and UPDATING/RELEASED breakdown from `.haro-docs/config/status.yaml`; paths missing from the map count as UPDATING). Check indexes: knowledge/reviews/elicitation file counts + first rows, agents enabled list.
+3. **Synthesize in chat first** — a **Project Note** (5–8 lines: initialized?, doc-root, docs coverage % RELEASED, top-3 gaps, tech stack, knowledge depth) plus an **Agent take** (2–3 lines: biggest risk, most worrying gap, proposed move + one-line reason).
+4. **Branch:**
+   - Not initialized → continue the fresh workflow (§5.2 below).
+   - Initialized → **refresh mode**: add missing doc files to `config/status.yaml` as `UPDATING` (the only write; never removes or rewrites user content), report the delta (new files, coverage change, still-open gaps), then suggest next commands (`generate`, `review`, `knowledge --ingest`) via picker (Mode: single) and continue with the picked one after reading its workflow file.
 
 ### 5.2 Required workflow
 
-1. **Scan the project** — read README, source code (tree structure, main technologies), and any existing docs to synthesize context: business domain, key features, code scale, technical constraints.
+1. **Scan the project** — reuse the §5.1 deep read above (no second scan); only dig deeper where §5.1 left blanks, to synthesize context: business domain, key features, code scale, technical constraints.
 1b. **Agent analysis** — present `Situation (3–5 lines from scan) → Assessment (risks, which docs to prioritize, anything suspicious in the stack) → My proposal (which deliverables first + why)` **in chat first**, then proceed to clarifying questions. Drop questions the analysis already answered.
 2. **Proactively ask clarifying questions** — ask the user, offering suggestions based on scan results:
    - Product/solution goals (free-text)
@@ -65,4 +69,4 @@ Use the agent's question/picker tool when available, otherwise a numbered list. 
 /haro-docs init
 ```
 
-With no description: still scan the current project first, then start asking from step 2 of §5.2.
+With no description: still run the §5.1 deep read first, then follow the matching fresh/refresh branch.

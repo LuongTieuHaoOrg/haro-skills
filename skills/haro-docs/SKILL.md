@@ -59,7 +59,7 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 
 | Command | When to use | Read first (fully, before acting) | Example |
 |---------|-------------|-----------------------------------|---------|
-| `/haro-docs` (no args) | Scan project, show dashboard, pick next action | `commands/dashboard.md` | `/haro-docs` |
+| `/haro-docs` (no args) | Scan project, show dashboard, pick next action | `commands/index.md` | `/haro-docs` |
 | `/haro-docs init <description>` | Initialize the documentation structure for a new project | `commands/init.md` | `/haro-docs init E-commerce Next.js + PostgreSQL` |
 | `/haro-docs generate` | Build next doc (guided Q&A) | `commands/generate.md` + `shared/writing-rules.md` when writing | `/haro-docs generate` |
 | `/haro-docs generate <file>` | Focus on a specific file | `commands/generate.md` + `shared/writing-rules.md` when writing | `/haro-docs generate 02-business/01-value-prop.md` |
@@ -78,6 +78,6 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 - Write current state as the first version — no change-log phrasing, no version history in bodies (git owns versions).
 - `RELEASED` means final and must-follow; `UPDATING` means reference-only.
 
-## 3. Command `/haro-docs` (no args) — Project Scan + Status Dashboard + Action Picker
+## 3. Command `/haro-docs` (no args) — Index + Fallback
 
-Runs from `commands/dashboard.md` — read it fully before acting.
+Runs from `commands/index.md` — read it fully before acting. (`init` owns the deep project read; see its §5.1.)

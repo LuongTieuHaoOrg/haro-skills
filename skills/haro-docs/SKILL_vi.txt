@@ -121,57 +121,28 @@ QUY TẮC TRÌNH BÀY — CHAT TRƯỚC, PICKER SAU (mọi lệnh)
    hàng đợi file (chạy lần lượt theo thứ tự đã chọn; `dừng` kết thúc bất cứ lúc nào).
 
 ================================================================================
-3. LỆNH `/haro-docs` (không tham số) - QUÉT DỰ ÁN + DASHBOARD + CHỌN THAO TÁC
+3. LỆNH `/haro-docs` (không tham số) - INDEX + FALLBACK (= `/` + sai lệnh về đây)
 ================================================================================
 
-Khi user chạy `/haro-docs` không tham số, hoặc tham số không khớp lệnh nào, KHÔNG
-thực thi workflow. Thay vào đó chạy **quét sâu chỉ-đọc** rồi hiện dashboard + popup
-chọn thao tác:
+Khi user chạy `/haro-docs` không tham số, gọi `help` / `--help` / `-h`, hoặc tham số
+không khớp lệnh nào, KHÔNG thực thi workflow. Hiện index: giới thiệu ngắn + bảng lệnh +
+chọn thao tác (y như router: sai đường thì về `/`):
 
-1. **Quét sâu (read-only)** -
-   - Nếu `.haro-docs/config/project.yaml` và `.haro-docs/config/schema.yaml` tồn tại: đọc `docroot`,
-     `language.*`, `version`; liệt kê cây thực tế dưới doc-root (mỗi folder
-     00-common -> 99-assets: tồn tại/thiếu, số file, breakdown UPDATING/RELEASED
-     từ `.haro-docs/config/status.yaml`; path vắng trong map tính là UPDATING).
-   - Nếu chưa init: hiện `Not initialized` và preview cây chuẩn từ Mục 8.
-   - Kiểm tra index: `knowledge/index.yaml` → `Knowledge: N files` + 5 entry đầu;
-     `reviews/index.yaml` → `Reviews: N (verdict gần nhất)`; `elicitation/index.yaml` →
-     `Elicitation: N file đang mở`; `config/agents.yaml` (≥1 entry enabled) →
-     `Agents: <ids> (default: <id>)`. Thiếu file → `Knowledge: (empty)` / `Reviews: (none)` /
-     `Elicitation: (none)` / `Agents: (chưa thiết lập — hỏi khi cần dùng)`.
-   - Quét nhẹ repo: README (domain, tính năng chính), cây source top-level + tín hiệu
-     tech stack (package.json / requirements / go.mod / pom.xml / Cargo.toml...),
-     ước lượng quy mô code, file docs nằm ngoài doc-root (nếu có).
-   - Tổng hợp **Project Note**: 5-8 dòng hiện trạng — đã init?, doc-root, coverage
-     docs (% RELEASED), gap lớn nhất (top-3 folder/file trống), tech stack, độ sâu knowledge.
-   - Tổng hợp **Nhận định của agent** (tách khỏi picker trung tính ở mục 4): 2-3 dòng
-     góc nhìn riêng — rủi ro lớn nhất, gap đáng lo nhất, nước đi đề xuất + lý do 1 dòng.
-     Gợi ý ở mục 4 suy từ nhận định này.
-2. **Tóm tắt lệnh:**
+1. **Giới thiệu (chat, 3-4 dòng)** — haro-docs tổ chức docs theo Atomic Content Blocks
+   (mỗi mục 1 file, viết 1 lần) rồi ghép thành BRD/PRD/SAD/FSD; mọi workflow lệnh nằm ở file
+   riêng; trạng thái docs nằm ở `.haro-docs/`.
+2. **Tóm tắt lệnh:** render bảng Command index trong `SKILL.md` (kèm ví dụ). Không nhân bản
+   bảng thứ hai ở đây.
+3. **Check nhẹ (1 lần đọc):** `.haro-docs/config/project.yaml` tồn tại → `Đã init tại <docroot>`;
+   không thì → `Chưa init — chạy init trước`. Đọc sâu hiện trạng là việc của `/haro-docs init`
+   (chạy lại lúc nào cũng được).
+4. **Popup chọn thao tác** — hỏi làm gì tiếp (Mode: single; picker nếu có, không thì list
+   đánh số): liệt kê 6 lệnh (`init`, `generate`, `review`, `knowledge`, `config`, `dừng`),
+   mỗi lệnh 1 dòng khi nào dùng. Chưa init thì gợi ý sẵn `init`. Chốt rồi đọc workflow file
+   của lệnh đó trước khi làm. KHÔNG tự chạy side-effect.
 
-    | Lệnh | Khi nào dùng | Ví dụ |
-    |------|-------------|-------|
-    | `/haro-docs init <mô tả>` | Khởi tạo cấu trúc 12 folder | `/haro-docs init E-commerce Next.js + PostgreSQL` |
-    | `/haro-docs generate` | Xây file tiếp theo (hỏi đáp dẫn dắt, được bỏ qua/để sau) | `/haro-docs generate` |
-    | `/haro-docs generate <file>` | Tập trung vào file chỉ định | `/haro-docs generate 02-business/01-value-prop.md` |
-    | `/haro-docs review <chủ đề\|file>` | Review phản biện vấn đề/file qua subagent | `/haro-docs review Có nên dùng microservices?` |
-    | `/haro-docs knowledge` | Mở hub picker (list / ingest / index / clean / delete) | `/haro-docs knowledge` |
-    | `/haro-docs knowledge --ingest [<nội dung>]` | Nạp nội dung mới (gợi ý từ discussion, hoặc trực tiếp) | `/haro-docs knowledge --ingest STID là công ty` |
-    | `/haro-docs knowledge --index` | Sinh index + compact file nhỏ | `/haro-docs knowledge --index` |
-    | `/haro-docs knowledge --clean` | Xóa knowledge cũ/không liên quan | `/haro-docs knowledge --clean` |
-    | `/haro-docs knowledge --delete [<uid>]` | Xóa 1 fact đã ingest theo UID (hoặc picker) | `/haro-docs knowledge --delete kb-0007` |
-    | `/haro-docs config [agents\|conventions\|language]` | Hub cấu hình: subagent review, quy ước, ngôn ngữ | `/haro-docs config` |
-
-3. **Hiện Aggregation Matrix rút gọn** - BRD/PRD/SAD/FSD từ Mục 7.
-4. **Popup chọn thao tác** — sau dashboard luôn hỏi user làm gì tiếp (dùng question/picker
-   nếu có, không thì list đánh số). Đề xuất sẵn **2-3 gợi ý thông minh** theo hiện trạng, vd:
-   - Vd: chưa init → `init`; `01-overview`/`02-business` trống → `generate <file đó>`;
-     nhiều `RELEASED` mà chưa review → `review <chủ đề>`; knowledge trống → `knowledge --ingest <facts>`.
-   User được chọn gợi ý hoặc gọi lệnh khác. KHÔNG tự chạy side-effect khi chưa qua
-   confirm của lệnh đó. Mode: gợi ý file được chọn nhiều (thành hàng đợi theo thứ tự),
-   các lựa chọn khác là single. Nhãn gợi ý giữ lý do 1 dòng; chi tiết nằm ở chat theo
-   Quy tắc trình bày.
-5. **Không tạo file, không ghi file.** Nếu token đầu không khớp (vd `/haro-docs foo`), prefix
+5. **Hiện Aggregation Matrix rút gọn** - BRD/PRD/SAD/FSD từ Mục 7.
+6. **Không tạo file, không ghi file.** Nếu token đầu không khớp (vd `/haro-docs foo`), prefix
    `Unknown command 'foo'. Valid: init, generate, review, knowledge, knowledge --ingest, knowledge --index, knowledge --clean, knowledge --delete, config.`
    và gợi ý gần đúng. Alias `help`, `--help`, `-h` cũng hiện dashboard. So khớp
    case-insensitive.
@@ -272,22 +243,31 @@ Unknown subcommand cho nhóm này -> `Unknown command 'X'. Valid: knowledge, kno
 5. LỆNH `/haro-docs init <mô tả dự án>`
 ================================================================================
 
-Khởi tạo cấu trúc tài liệu cho một dự án mới.
+Đọc hiện trạng project để quyết định tiếp theo — chạy lúc nào, mấy lần cũng được: project mới
+thì khởi tạo full cấu trúc, đã init thì refresh (đọc lại + báo delta).
 
-### 5.1 KIỂM TRA HIỆN TRẠNG
+### 5.1 ĐỌC SÂU (chạy đầu mọi lượt, read-only trừ sync refresh)
 
-1. **Quét trước** — quét sâu như Mục 3: README, cây source + tech stack, docs hiện có
-   (trong và ngoài doc-root), trạng thái `.haro-docs/` (project.yaml,
+1. **Quét sâu** — README (domain, tính năng chính), cây source + tín hiệu tech stack, ước lượng
+   quy mô code, docs hiện có trong và ngoài doc-root, trạng thái `.haro-docs/` (project.yaml,
    schema.yaml, số file knowledge, config agents).
-2. **Nếu `.haro-docs/` đã tồn tại** — báo `Already initialized` kèm profile hiện tại
-   (doc-root, ngôn ngữ, số file docs, knowledge N files) và dừng. Chỉ sang các lệnh
-   `generate`, `knowledge --ingest`, `review`.
+2. **Thực trạng docs** — nếu đã init: liệt kê cây thực tế dưới doc-root (mỗi folder 00-common →
+   99-assets: tồn tại/thiếu, số file, breakdown UPDATING/RELEASED từ `config/status.yaml`; path vắng
+   tính là UPDATING). Check index knowledge/reviews/elicitation + agents enabled.
+3. **Tổng hợp trong chat trước** — **Project Note** (5–8 dòng: đã init?, doc-root, coverage %
+   RELEASED, top-3 gap, tech stack, độ sâu knowledge) + **Nhận định của agent** (2–3 dòng: rủi ro
+   lớn nhất, gap đáng lo nhất, nước đi đề xuất + lý do 1 dòng).
+4. **Rẽ nhánh:**
+   - Chưa init → sang quy trình fresh (§5.2 dưới đây).
+   - Đã init → **chế độ refresh**: thêm file docs mới xuất hiện vào `config/status.yaml` thành
+     `UPDATING` (lần ghi duy nhất; không xóa/sửa gì của user), báo delta (file mới, coverage đổi,
+     gap còn mở), rồi gợi ý lệnh tiếp theo (`generate`, `review`, `knowledge --ingest`) qua picker
+     (Mode: single) và đi tiếp lệnh được chọn sau khi đọc workflow file của nó.
 
 ### 5.2 QUY TRÌNH CHUẨN
 
-1. **Quét dự án** — đọc README, mã nguồn (cấu trúc cây, công nghệ chính), tài
-   liệu hiện có (nếu có) để tổng hợp bối cảnh: domain nghiệp vụ, tính năng chính,
-   quy mô code, ràng buộc kỹ thuật.
+1. **Quét dự án** — dùng lại deep read §5.1 ở trên (không quét lần hai); chỉ đào sâu chỗ §5.1
+   còn trống, để tổng hợp bối cảnh: domain nghiệp vụ, tính năng chính, quy mô code, ràng buộc kỹ thuật.
 1b. **Phân tích của agent** — trình bày `Tình hình (3-5 dòng từ scan) → Nhận định
    (rủi ro, docs nào ưu tiên, stack có gì đáng ngờ) → Đề xuất của tôi (deliverable nào
    trước + vì sao)` **trong chat trước**, rồi mới sang câu hỏi làm rõ. Bỏ các câu hỏi
@@ -362,7 +342,7 @@ VÍ DỤ:
 /haro-docs init Dự án e-commerce bằng Next.js + PostgreSQL, đội 3 dev
 /haro-docs init
 
-Không có mô tả: vẫn quét dự án hiện tại trước, rồi hỏi từ bước 2.
+Không có mô tả: vẫn deep read §5.1 trước, rồi đi tiếp nhánh fresh/refresh tương ứng.
 
 ================================================================================
 6. LỆNH `/haro-docs generate` / `generate <file>` - XÂY DOCS (HỎI ĐÁP DẪN DẮT)
