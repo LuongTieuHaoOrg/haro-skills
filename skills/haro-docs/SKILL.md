@@ -80,4 +80,4 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 
 ## 3. Command `/haro-docs` (no args) — Index + Fallback
 
-Runs from `commands/index.md` — read it fully before acting. (`init` owns the deep project read; see its §5.1.)
+Runs from `commands/index.md` — read it fully before acting.
