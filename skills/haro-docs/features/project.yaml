@@ -1,0 +1,24 @@
+# .haro-docs/config/project.yaml
+# Project profile — created by /haro-docs init.
+# Every command reads this file first. Single source for docroot + language.
+
+version: 1
+updated_at: ""                # YYYY-MM-DD
+
+name: ""                      # Project/solution name
+description: ""               # Short description
+type: ""                      # software | hardware | service | research
+
+docroot: ""                   # "docs" or ".haro-docs/docs" — chosen during init
+
+language:
+  response: ""                # Agent reply language: "en" | "vi"
+  documentation: ""           # Doc content language: "en" | "vi" | "vi-en" (see shared/authoring.md)
+
+audience:
+  primary: []                 # e.g. [engineers, project managers]
+  technical_depth: ""         # high-level | balanced | deep-dive
+
+deliverables: []              # e.g. [BRD, PRD, SAD]
+tech_stack: []                # e.g. [Next.js, PostgreSQL]
+compliance: []                # e.g. [GDPR, ISO 27001]

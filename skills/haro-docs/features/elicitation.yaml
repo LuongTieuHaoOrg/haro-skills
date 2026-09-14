@@ -1,0 +1,15 @@
+# .haro-docs/elicitation/index.yaml
+# Lookup of interim generate Q&A — created by /haro-docs init,
+# written by /haro-docs generate on elicitation create/remove.
+# Agents read this file (small) to load exactly one elicitation file per target.
+# Never hand-write this file. Every elicitation file has exactly one entry;
+# removing the file removes its entry.
+
+version: 1
+updated_at: ""                # YYYY-MM-DD
+
+entries:
+  # - target: "02-business/01-value-prop.md"
+  #   file: "02-business-01-value-prop.md"
+  #   role: "dev"              # who answered: customer | sales | BA | dev | PM
+  #   updated: ""              # YYYY-MM-DD

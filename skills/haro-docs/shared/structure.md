@@ -1,6 +1,6 @@
 # Standard structure & aggregation (Haro Docs reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative reference for structure and aggregation (read when init/generate need it). Do not act, answer, edit, or call tools from memory: read every step below first. If in doubt at any point, re-read. The reference always wins over memory.
-> **Ground rules (apply to every action in this file):** read `docroot` from `.haro-docs/project-profile.yaml` before operating — never guess it. Respect `language.response` (conversation) and `language.documentation` (doc content); if either is missing, ask the user first. Knowledge in `.haro-docs/knowledge/` is ground truth over scanned defaults (see `references/knowledge.md`).
+> **Ground rules (apply to every action in this file):** read `docroot` from `.haro-docs/config/project.yaml` before operating — never guess it. Respect `language.response` (conversation) and `language.documentation` (doc content); if either is missing, ask the user first. Knowledge in `.haro-docs/knowledge/` is ground truth over scanned defaults (see `commands/knowledge.md`).
 
 ## 7. Aggregation Matrix
 
@@ -16,13 +16,15 @@
 | **Runbook** | 08-operations + 06-implementation + 04-architecture |
 | **User/Admin Guide** | 09-guides + 03-features + 01-overview |
 
+Only `RELEASED` source blocks feed a deliverable. A deliverable whose sources are not all `RELEASED` stays `UPDATING`.
+
 ## 8. Standard structure (single)
 
 Single structure for all projects:
 
 ```
 docs/                        # or .haro-docs/docs/ depending on user-chosen doc-root
-├── 00-common/               # 01-conventions.md, 02-references.md, 03-abbreviations.md, 04-glossary.md, 05-traceability.md (01 manual, 02-05 auto)
+├── 00-common/               # 01-conventions.md, 02-references.md, 03-abbreviations.md, 04-glossary.md, 05-traceability.md (01 decided at init, 02-05 written only by generate)
 ├── 01-overview/             # 01-problem-statement.md, 02-vision.md, 03-goals.md, 04-scope.md, 05-stakeholders.md, 06-constraints.md, 07-roadmap.md (Version|Goal|Target|Status)
 ├── 02-business/             # 01-value-proposition.md, 02-market-analysis.md, 03-business-model.md, 04-pricing.md, 05-sla.md, 06-risk-legal.md, use-cases/, change-requests/CR-*.md
 ├── 03-features/             # 01-feature-catalog.md, 04-dependencies.md, features/<feature>/ 01-overview.md, 02-user-stories.md, 03-acceptance-criteria.md
@@ -36,7 +38,7 @@ docs/                        # or .haro-docs/docs/ depending on user-chosen doc-
 └── 99-assets/               # Images, diagrams, templates
 ```
 
-`init` creates all folders/files above; each `10-deliverables/*.md` is a placeholder with its own headings plus `Ref: ../01-overview/...` links — not identical templates. In `00-common`, `01-conventions.md` is decided during `init` (§5.2 step 3b, 2 layers: fixed Part A + project-specific Part B, MD-only single source) while `02-references, 03-abbreviations, 04-glossary, 05-traceability` are living references auto-populated by `generate` from placeholders marked `auto-populated by generate — do not edit manually`; `05-traceability.md` format is a table `deliverable | source blocks | block status | knowledge refs`. `01-overview` is the starting point for writing (not `00-common`).
+`init` creates all folders/files above; each `10-deliverables/*.md` is a placeholder with its own headings plus `Ref: ../01-overview/...` links — not identical templates. In `00-common`, `01-conventions.md` is decided during `init` (§5.2 step 3b, 2 layers: fixed Part A + project-specific Part B, MD-only single source) while `02-references, 03-abbreviations, 04-glossary, 05-traceability` are living references with status `UPDATING`, written only by `generate`; `05-traceability.md` format is a table `deliverable | source blocks | block status (from status.yaml) | knowledge refs (from index.yaml)`. `01-overview` is the starting point for writing (not `00-common`).
 
 ### Distinguishing `03-features` from `02-business/use-cases/`
 
@@ -52,4 +54,3 @@ These two folders cause the most confusion — distinguish by audience and detai
 One use case is typically decomposed into multiple user stories; each story links back to its source use case instead of retelling the flow.
 
 Folders not yet needed may stay with their `README.md` and a short `> Out of scope for this project` note.
-

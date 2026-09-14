@@ -3,15 +3,16 @@ SKILL: HARO-DOCS — BẢN DỊCH TIẾNG VIỆT (THAM KHẢO CHO NGƯỜI ĐỌ
 File này CHỈ dành cho con người đọc. Agent KHÔNG load file này —
 bản chính thức để agent thực thi là SKILL.md (tiếng Anh).
 
-NOTE CHO NGƯỜI ĐỌC: từ bản này, SKILL.md (tiếng Anh, để agent thực thi) đã tách thành router mỏng + thư mục skills/haro-docs/references/ (chi tiết từng lệnh). File VI này giữ nguyên 1 file để con người đọc liền mạch.
-
+NOTE CHO NGƯỜI ĐỌC: SKILL.md (tiếng Anh, để agent thực thi) là router mỏng +
+thư mục skills/haro-docs/commands/ (chi tiết từng lệnh). File VI này giữ
+nguyên 1 file để con người đọc liền mạch.
 ================================================================================
 
 --- FRONTMATTER ---
 name: haro-docs
 description: Quản lý và tạo cấu trúc tài liệu dự án theo mô hình Atomic
 Content Blocks. Kích hoạt khi user muốn khởi tạo cấu trúc tài liệu cho dự án mới,
-tổ chức/refactor tài liệu đang tồn tại, tổng hợp tài liệu hoàn chỉnh (BRD, PRD,
+tổ chức tài liệu đang tồn tại, tổng hợp tài liệu hoàn chỉnh (BRD, PRD,
 SAD, FSD...), review phản biện một vấn đề/file qua subagent, hoặc quản lý bộ nhớ
 kiến thức project qua remember/knowledge. Gõ /haro-docs không tham số để quét
 dự án và chọn thao tác tiếp theo.
@@ -33,61 +34,90 @@ SAD, FSD...).
   gốc theo **Aggregation Matrix** (Mục 7).
 - **Bộ nhớ kiến thức:** fact của project (business, technical, team...) lưu thành
   file nhỏ theo domain dưới `.haro-docs/knowledge/` và load chọn lọc như RAG.
+- **Hai trạng thái:** mọi file docs là `UPDATING` (đang làm, chỉ tham khảo) hoặc
+  `RELEASED` (đã chốt, phải chuẩn). Trạng thái chỉ nằm trong
+  `.haro-docs/config/status.yaml` — file nội dung không gắn trạng thái.
 
 ================================================================================
 1.1 KNOWLEDGE NHƯ RAG CHỌN LỌC (không cần vector DB)
 ================================================================================
 
-Vì không có vector search, knowledge được tổ chức để truy xuất qua filename + index:
+Vì không có vector search, knowledge được tổ chức để truy xuất qua index + frontmatter:
 
-- Mỗi fact lưu trong file đặt tên theo domain: `business-*.md`, `technical-*.md`,
-  `team-*.md`, `common-*.md`, `security-*.md`... Agent tự chọn tên phù hợp nhất
-  với nội dung để có thể tìm mà không cần load toàn bộ.
-- `.haro-docs/knowledge/_index.md` là bảng tra duy nhất: mỗi file một dòng
-  `file | domain | summary | tags`. Agent chỉ đọc `_index.md` (nhỏ) để quyết định
-  file nào cần load cho task hiện tại, rồi chỉ load những file đó. Không load toàn
-  bộ `knowledge/` mặc định.
-- Dùng `_index.md` trước mọi lượt `init`, `generate` cần context:
-  đọc `_index`, chọn dòng có domain/tags khớp task (vd business cho BRD, technical
-  cho SAD), chỉ load file khớp. Knowledge thắng default khi xung đột.
+- Mỗi fact nằm trong file topic đặt tên theo domain: `business-*.md`,
+  `technical-*.md`, `team-*.md`, `common-*.md`, `security-*.md`... Một domain giữ
+  1-3 file topic; mỗi file topic gom toàn bộ fact cùng chủ đề dưới các heading
+  (không tạo file lẻ cho từng fact).
+- Mỗi file topic có frontmatter YAML làm định danh máy đọc:
+  `domain / tags / summary / updated`.
+- `.haro-docs/knowledge/index.yaml` là nguồn tra duy nhất: mỗi file một entry
+  `file | domain | tags | summary | updated | facts | state`. Agent chỉ đọc
+  `index.yaml` (nhỏ) để quyết định file nào cần load cho task hiện tại, rồi chỉ
+  load những file đó. Không load toàn bộ `knowledge/` mặc định. Không bao giờ
+  ghi `index.yaml` bằng tay — file này do `remember` và `--reindex` sinh ra từ
+  frontmatter.
+- Dùng `index.yaml` trước mọi lượt `init`, `generate` cần context:
+  đọc `index.yaml`, chọn entry có domain/tags khớp task (vd business cho BRD,
+  technical cho SAD), chỉ load file khớp. Knowledge thắng default khi xung đột.
+
+================================================================================
+1.2 TRẠNG THÁI 2-STATE
+================================================================================
+
+- `UPDATING` (đang làm) = **nên tham khảo**: đọc lấy bối cảnh, không coi là sự
+  thật, không ghép vào deliverable.
+- `RELEASED` (đã chốt) = **phải chuẩn**: file sinh sau tuân thủ tuyệt đối, xung
+  đột thì dừng và hỏi; chỉ `RELEASED` mới được ghép vào `10-deliverables/`,
+  mới được dùng làm tiền đề/bằng chứng.
+- Nguồn duy nhất: `.haro-docs/config/status.yaml`. Path nào vắng trong map thì tính là
+  `UPDATING`. `generate` không bao giờ ghi vào file `RELEASED`.
 
 ================================================================================
 2. WORKSPACE `.haro-docs/`
 ================================================================================
 
-Skill lưu toàn bộ cấu hình và trạng thái vào `.haro-docs/` tại gốc dự án:
+Skill lưu toàn bộ cấu hình và trạng thái vào `.haro-docs/` tại gốc dự án.
+File YAML là nguồn duy nhất cho mọi tra cứu của agent; file Markdown dưới
+`knowledge/`, `elicitation/`, `reviews/` là payload nội dung có frontmatter YAML.
 
 .haro-docs/
-├── project-profile.yaml   # Hồ sơ dự án: loại, audience, doc-root, cấu hình ngôn ngữ, schema_version
-├── schema.yaml            # Cây thư mục đã duyệt + ma trận tổng hợp (+ schema_version)
-├── agents.yaml            # Cấu hình subagent review ("đệ tử") — xem Mục 10
-├── status/                # Trạng thái: DRAFT | UPDATING | RELEASED
-├── knowledge/             # Bộ nhớ kiến thức - RAG chọn lọc (xem Mục 4)
-│   ├── _index.md          # Tra cứu: file | domain | summary | tags
+├── config/
+│   ├── project.yaml     # Hồ sơ dự án: loại, audience, doc-root, ngôn ngữ, version
+│   ├── schema.yaml      # Cây thư mục đã duyệt + ma trận tổng hợp (version nằm ở project.yaml)
+│   ├── agents.yaml      # Cấu hình subagent review ("đệ tử") — xem Mục 10
+│   └── status.yaml      # Nguồn duy nhất trạng thái docs: UPDATING | RELEASED
+├── knowledge/           # Bộ nhớ kiến thức - RAG chọn lọc (xem Mục 4)
+│   ├── index.yaml       # Nguồn tra duy nhất: file | domain | tags | summary
 │   ├── business-*.md
 │   ├── technical-*.md
 │   ├── team-*.md
 │   └── common-*.md
-├── elicitation/           # Q&A tạm cho generate (xem Mục 6)
+├── elicitation/         # Q&A tạm cho generate (xem Mục 6)
+│   ├── index.yaml       # Tra cứu: target | file | role | updated
 │   └── <sanitized-path>.md
-└── reviews/               # Báo cáo review đã lưu: RR-YYYYMMDD-HHmmss-<slug>.md (xem Mục 10)
+└── reviews/             # Báo cáo review (xem Mục 10)
+    ├── index.yaml       # Tra cứu: id | topic | verdict | reviewers | date
+    └── RR-YYYYMMDD-HHmmss-<slug>.md
 
-> QUAN TRỌNG: `project-profile.yaml` ghi rõ **doc-root** — vị trí lưu tài liệu do
+> QUAN TRỌNG: `config/project.yaml` ghi rõ **doc-root** — vị trí lưu tài liệu do
 > user chọn khi chạy `init`. Mọi lệnh (generate, remember, knowledge) phải
 > đọc config này trước khi thao tác. Tuyệt đối không suy đoán doc-root.
 
-> CẤU HÌNH NGÔN NGỮ: `project-profile.yaml` cũng ghi **ngôn ngữ trả lời**
+> THỨ TỰ ĐỌC CHUẨN (mọi lệnh): `config/project.yaml` → `config/schema.yaml`
+> → `config/status.yaml` → `knowledge/index.yaml` → chỉ load file payload khớp.
+
+> CẤU HÌNH NGÔN NGỮ: `config/project.yaml` cũng ghi **ngôn ngữ trả lời**
 > (`language.response`) và **ngôn ngữ tài liệu** (`language.documentation`). Đây
 > là nguồn sự thật duy nhất cho mọi quyết định giao tiếp và nội dung — xem Mục 9.
 > Nếu trống hoặc thiếu, phải hỏi user trước khi chạy lệnh nào.
 
 > BỘ NHỚ RAG: Trước mọi lượt `init`, `generate` cần context,
-> đọc `.haro-docs/knowledge/_index.md` (nếu tồn tại), rồi chỉ load file knowledge
+> đọc `.haro-docs/knowledge/index.yaml` (nếu tồn tại), rồi chỉ load file knowledge
 > có domain/tags khớp task. Dùng knowledge làm ground truth khi xung đột. Xem Mục 4.
 
 > ELICITATION & STATUS: `generate` lưu Q&A tạm tại `.haro-docs/elicitation/` và
-> đánh trạng thái mỗi file `DRAFT | UPDATING | RELEASED` (frontmatter `status:` +
-> `.haro-docs/status/`). Xem Mục 6.
+> ghi trạng thái mỗi file `UPDATING | RELEASED` vào `.haro-docs/config/status.yaml`
+> (nguồn duy nhất — file docs không gắn trạng thái). Xem Mục 6.
 
 ================================================================================
 3. LỆNH `/haro-docs` (không tham số) - QUÉT DỰ ÁN + DASHBOARD + CHỌN THAO TÁC
@@ -98,14 +128,18 @@ thực thi workflow. Thay vào đó chạy **quét sâu chỉ-đọc** rồi hi�
 chọn thao tác:
 
 1. **Quét sâu (read-only)** -
-   - Nếu `.haro-docs/project-profile.yaml` và `schema.yaml` tồn tại: đọc `docroot`,
-     `language.*`, `schema_version`; liệt kê cây thực tế dưới doc-root (mỗi folder
-     00-common -> 99-assets: tồn tại/thiếu, số file, breakdown DRAFT/UPDATING/RELEASED
-     từ frontmatter `status:` + `.haro-docs/status/`).
+   - Nếu `.haro-docs/config/project.yaml` và `.haro-docs/config/schema.yaml` tồn tại: đọc `docroot`,
+     `language.*`, `version`; liệt kê cây thực tế dưới doc-root (mỗi folder
+     00-common -> 99-assets: tồn tại/thiếu, số file, breakdown UPDATING/RELEASED
+     từ `.haro-docs/config/status.yaml`; path vắng trong map tính là UPDATING).
    - Nếu chưa init: hiện `Not initialized` và preview cây chuẩn từ Mục 8.
-   - Kiểm tra knowledge: nếu `.haro-docs/knowledge/_index.md` tồn tại, hiện
-     `Knowledge: N files` và 5 dòng đầu; nếu không, hiện `Knowledge: (empty)`.
-   - Kiểm tra agents: nếu `.haro-docs/agents.yaml` tồn tại, hiện
+   - Kiểm tra knowledge: nếu `.haro-docs/knowledge/index.yaml` tồn tại, hiện
+     `Knowledge: N files` và 5 entry đầu; nếu không, hiện `Knowledge: (empty)`.
+   - Kiểm tra reviews: nếu `.haro-docs/reviews/index.yaml` tồn tại, hiện
+     `Reviews: N (verdict gần nhất)`; nếu không, hiện `Reviews: (none)`.
+   - Kiểm tra elicitation: nếu `.haro-docs/elicitation/index.yaml` tồn tại, hiện
+     `Elicitation: N file đang mở`; nếu không, hiện `Elicitation: (none)`.
+   - Kiểm tra agents: nếu `.haro-docs/config/agents.yaml` tồn tại, hiện
      `Agents: <ids> (default: <id>)`; nếu không, hiện `Agents: (default inline critic)`.
    - Quét nhẹ repo: README (domain, tính năng chính), cây source top-level + tín hiệu
      tech stack (package.json / requirements / go.mod / pom.xml / Cargo.toml...),
@@ -116,12 +150,14 @@ chọn thao tác:
 
     | Lệnh | Khi nào dùng | Ví dụ |
     |------|-------------|-------|
-    | `/haro-docs init <mô tả>` | Khởi tạo cấu trúc 12 folder, hoặc re-init / migrate nếu đã init | `/haro-docs init E-commerce Next.js + PostgreSQL` |
+    | `/haro-docs init <mô tả>` | Khởi tạo cấu trúc 12 folder | `/haro-docs init E-commerce Next.js + PostgreSQL` |
     | `/haro-docs generate` | Xây file tiếp theo theo thứ tự (hỏi theo role) | `/haro-docs generate` |
     | `/haro-docs generate <file>` | Tập trung vào file chỉ định | `/haro-docs generate 02-business/01-value-prop.md` |
     | `/haro-docs review <chủ đề\|file>` | Review phản biện vấn đề/file qua subagent | `/haro-docs review Có nên dùng microservices?` |
     | `/haro-docs remember <text tự do>` | Ghi kiến thức (phân tích -> confirm -> lưu) | `/haro-docs remember STID là công ty` |
-    | `/haro-docs knowledge` | Liệt kê knowledge | `/haro-docs knowledge` |
+    | `/haro-docs knowledge` | Mở hub picker (list / remember / reindex / clean) | `/haro-docs knowledge` |
+    | `/haro-docs knowledge --reindex` | Sinh index + compact file nhỏ | `/haro-docs knowledge --reindex` |
+    | `/haro-docs knowledge --clean` | Xóa knowledge cũ/không liên quan | `/haro-docs knowledge --clean` |
     | `/haro-docs config [agents\|conventions\|language]` | Hub cấu hình: subagent review, quy ước, ngôn ngữ | `/haro-docs config` |
 
 3. **Hiện Aggregation Matrix rút gọn** - BRD/PRD/SAD/FSD từ Mục 7.
@@ -133,8 +169,8 @@ chọn thao tác:
    - Knowledge trống → gợi ý `remember <facts>`.
    User được chọn gợi ý hoặc gọi lệnh khác. KHÔNG tự chạy side-effect khi chưa qua
    confirm của lệnh đó.
-5. **Không tạo/sửa file.** Nếu token đầu không khớp (vd `/haro-docs foo`), prefix
-   `Unknown command 'foo'. Valid: init, generate, review, remember, knowledge, config.`
+5. **Không tạo file, không ghi file.** Nếu token đầu không khớp (vd `/haro-docs foo`), prefix
+   `Unknown command 'foo'. Valid: init, generate, review, remember, knowledge, knowledge --reindex, knowledge --clean, config.`
    và gợi ý gần đúng. Alias `help`, `--help`, `-h` cũng hiện dashboard. So khớp
    case-insensitive.
 
@@ -142,81 +178,105 @@ chọn thao tác:
 4. LỆNH `/haro-docs remember / knowledge` - BỘ NHỚ KIẾN THỨC (RAG CHỌN LỌC)
 ================================================================================
 
-File kiến thức là fact chuẩn mà agent phải nhớ và tuân theo. Lưu thành file nhỏ
+File kiến thức là fact chuẩn mà agent phải nhớ và tuân theo. Lưu thành file topic
 theo domain để load chọn lọc mà không cần đọc toàn bộ.
 
 ### Lưu trữ
 
 .haro-docs/knowledge/
-├── _index.md          # file | domain | summary | tags - chỉ file này đọc mặc định
-├── business-*.md
+├── index.yaml           # nguồn tra duy nhất — do remember/--reindex sinh, không ghi tay
+├── business-*.md        # file topic có frontmatter (domain/tags/summary/updated)
 ├── technical-*.md
 ├── team-*.md
 ├── common-*.md
 └── security-*.md
 
-`_index.md` format (mỗi file một dòng):
+Mỗi file topic có frontmatter:
 
-| file | domain | summary | tags |
-|------|--------|---------|------|
-| business-stid-team.md | business | STID là công ty, PM là Hảo, member Hảo/Vu/Dai | stid, team, pm |
-| technical-stack.md | technical | Stack: Next.js + PostgreSQL | nextjs, postgres |
+---
+domain: business
+tags: [team, stid]
+summary: "STID là công ty, PM là Hảo"
+updated: "YYYY-MM-DD"
+---
+
+Mỗi entry `index.yaml`:
+
+  - file: "business-team.md"
+    domain: "business"
+    tags: [team, stid, pm]
+    summary: "STID là công ty, PM là Hảo, member Hảo/Vu/Dai"
+    updated: "YYYY-MM-DD"
+    facts: 3
+    state: active
 
 Domain: `business`, `technical`, `team`, `common`, `security`, `quality`,
-`operations`, `guides` - chọn gần nhất. Agent tự chọn tên file khớp nội dung nhất
-(vd `business-stid-team.md` cho fact về team) để tìm mà không load toàn bộ. Mỗi
-file giữ 1-3 fact; nếu user nói nhiều domain thì tách thành nhiều file.
+`operations`, `guides` - chọn gần nhất. Một domain giữ 1-3 file topic; fact mới
+cùng chủ đề thì append vào file topic khớp nhất thay vì tạo file mới.
 
 ### Load chọn lọc (RAG không vector DB)
 
 Trước mọi lượt `init`, `generate` cần context:
 
-1. Đọc `knowledge/_index.md` nếu tồn tại (nhỏ, luôn đọc).
-2. Chỉ chọn dòng có `domain`/`tags`/`summary` khớp task hiện tại (vd `business` cho
-   BRD/Proposal, `technical`+`architecture` cho SAD/FSD, `team` cho task liên quan
-   con người).
+1. Đọc `knowledge/index.yaml` nếu tồn tại (nhỏ, luôn đọc).
+2. Chỉ chọn entry có `state: active` và `domain`/`tags`/`summary` khớp task hiện tại
+   (vd `business` cho BRD/Proposal, `technical`+`architecture` cho SAD/FSD,
+   `team` cho task liên quan con người).
 3. Chỉ load file knowledge khớp. KHÔNG load toàn bộ `knowledge/`.
 
 Knowledge là ground truth: khi knowledge xung đột với code/README scan, ưu tiên
 knowledge.
 
+### Hub (không subcommand)
+
+`/haro-docs knowledge` không subcommand thì mở picker (picker tool nếu có, không thì
+list đánh số) — cùng pattern hub với `/haro-docs config`:
+
+1. `list` — liệt kê knowledge (read-only, xem bảng dưới)
+2. `remember (mới)` — trước hết hỏi `Nhập fact cần ghi:`, rồi chạy luồng `remember`
+   dưới đây với text đã nhập
+3. `--reindex` — sinh index + compact
+4. `--clean` — dọn stale (confirm từng dòng)
+
+Gọi kèm flag (`knowledge --reindex`, `knowledge --clean`, `knowledge <text>`) thì bỏ
+qua picker, chạy thẳng nhánh đó. Xong nhánh thì hỏi `về hub / dừng`.
+
 ### Subcommands
 
 | Subcommand | Hành vi |
 |------------|---------|
-| `remember <text tự do>` | **Phân tích -> confirm -> lưu.** Parse text, tách fact riêng, viết lại mỗi fact thành câu chuẩn (văn current-state Mục 9, không lịch sử), chọn tên file domain cho mỗi fact, hiện preview bảng `file | nội dung chuẩn` + dòng `_index` sẽ thêm. Hỏi `Confirm? (yes / edit <sửa>)`. Chỉ khi `yes` (hoặc sau `edit` và yes lại) mới ghi file và cập nhật `_index.md`. Nếu user nói `edit`, render lại preview đã sửa và hỏi lại. `knowledge <text>` là alias của lệnh này. Không giữ backward. |
-| `knowledge` | **Liệt kê** (không tham số). Đọc `_index.md` và render bảng + số file. Nếu `_index` thiếu nhưng file tồn tại, rebuild từ tên file. Read-only. |
+| `remember <text tự do>` | **Phân tích -> confirm -> lưu.** Parse text, tách fact riêng, viết lại mỗi fact thành câu chuẩn (văn current-state Mục 9), tìm file topic khớp cho mỗi fact (hoặc đặt tên file topic mới khi chưa có chủ đề khớp), hiện preview bảng `file \| nội dung chuẩn` + entry index mới. Hỏi `Confirm? (yes / edit <sửa>)`. Chỉ khi `yes` (hoặc sau `edit` và yes lại) mới ghi file topic và ghi entry mới vào `index.yaml`. Deduplicate trước: fact đã tồn tại thì báo, không ghi trùng. `knowledge <text>` là alias của lệnh này. |
+| `knowledge` (= `list`, hub option 1) | **Liệt kê** (không tham số). Đọc `index.yaml` và render bảng + số file. Read-only. |
+| `knowledge --reindex` | **Sinh index + compact.** Đọc frontmatter mọi `knowledge/*.md`, ghi `index.yaml` mới từ đó, rồi compact: gộp file topic cùng domain nhỏ hơn ~10 dòng, dedup câu trùng. Báo `trước N file → sau M file`. Không cần confirm; chỉ báo kết quả. |
+| `knowledge --clean` | **Xóa bộ nhớ cũ/không liên quan.** Quét `index.yaml` tìm ứng viên: `state: stale`, `updated` quá 90 ngày (hoặc `--older-than <Nd>`), summary không còn tham chiếu trong code/docs. Hiện bảng `file \| lý do \| keep/delete` và confirm **từng dòng**. Chỉ dòng confirm `delete` mới bị xóa; sau đó ghi `index.yaml` mới. Không bao giờ xóa khi chưa confirm từng dòng. |
 
-Unknown subcommand cho nhóm này -> `Unknown command 'X'. Valid: remember <text>, knowledge.` rồi hiện bảng. `help`/`--help`/`-h` cũng hiện.
+Unknown subcommand cho nhóm này -> `Unknown command 'X'. Valid: remember <text>, knowledge, knowledge --reindex, knowledge --clean.` rồi hiện bảng. `help`/`--help`/`-h` cũng hiện.
 
 ### Ví dụ
 
 ```
 /haro-docs remember STID là công ty tôi, tôi là PM, member gồm Hảo (tôi), Vu (Backend) và Dai (Frontend)
 /haro-docs knowledge
+/haro-docs knowledge --reindex
+/haro-docs knowledge --clean
 ```
 
 ================================================================================
 5. LỆNH `/haro-docs init <mô tả dự án>`
 ================================================================================
 
-Khởi tạo cấu trúc tài liệu cho một dự án. Xử lý cả init mới và re-init khi đã init rồi.
+Khởi tạo cấu trúc tài liệu cho một dự án mới.
 
-### 5.1 PHÁT HIỆN TRẠNG THÁI HIỆN TẠI
+### 5.1 KIỂM TRA HIỆN TRẠNG
 
 1. **Quét trước** — quét sâu như Mục 3: README, cây source + tech stack, docs hiện có
-   (trong và ngoài doc-root), trạng thái `.haro-docs/` (project-profile.yaml,
-   schema.yaml, `schema_version`, số file knowledge, config agents).
-2. **Nếu `.haro-docs/` đã tồn tại** (re-init) — hiện cái đang có (profile,
-   schema_version, doc-root, số file docs, knowledge N files) và hỏi:
-   - `[1] Override — xây lại từ đầu` (`.haro-docs` + cây docs mới từ templates)
-   - `[2] Migrate / Upgrade — cập nhật tại chỗ, giữ nội dung` (khuyên dùng khi
-     docs/knowledge đã có giá trị)
-   - `[3] Hủy`
-   KHÔNG làm tiếp khi chưa có lựa chọn rõ ràng.
-3. **Nếu chưa init** — đi tiếp quy trình chuẩn §5.2.
+   (trong và ngoài doc-root), trạng thái `.haro-docs/` (project.yaml,
+   schema.yaml, số file knowledge, config agents).
+2. **Nếu `.haro-docs/` đã tồn tại** — báo `Already initialized` kèm profile hiện tại
+   (doc-root, ngôn ngữ, số file docs, knowledge N files) và dừng. Chỉ sang các lệnh
+   `generate`, `remember`, `review`.
 
-### 5.2 QUY TRÌNH CHUẨN (init mới)
+### 5.2 QUY TRÌNH CHUẨN
 
 1. **Quét dự án** — đọc README, mã nguồn (cấu trúc cây, công nghệ chính), tài
    liệu hiện có (nếu có) để tổng hợp bối cảnh: domain nghiệp vụ, tính năng chính,
@@ -229,13 +289,13 @@ Khởi tạo cấu trúc tài liệu cho một dự án. Xử lý cả init mớ
    - Các loại tài liệu đầu ra cần có (BRD, PRD, SAD...)
    - **Ngôn ngữ trả lời** — ngôn ngữ agent dùng khi hội thoại: `en` hoặc `vi`
      - **Ngôn ngữ tài liệu** — ngôn ngữ nội dung tài liệu: `en`, `vi`, hoặc
-       `vi-en` (định nghĩa tại Mục 10)
+       `vi-en` (định nghĩa tại Mục 9)
 3. **Hỏi vị trí lưu tài liệu (doc-root)** — user chọn:
    - `docs/` (thư mục tài liệu truyền thống), hoặc
    - `.haro-docs/docs/` (gói gọn trong workspace của skill)
 3b. **Chốt quy ước (gọn 4-6 câu)** — Phần A (cố định do skill áp: naming file, SSOT,
    vòng đời status, ngôn ngữ, images, quy tắc file auto) được seed từ
-   `templates/conventions.md`, không hỏi; chỉ hiện preview read-only. Chỉ hỏi Phần B
+   `features/conventions.md`, không hỏi; chỉ hiện preview read-only. Chỉ hỏi Phần B
    (đặc thù dự án) kèm default suy từ scan:
    - Diagram tool: `mermaid | plantuml | drawio` (+ fallback image)
    - API spec format: `openapi-yaml | md-table | both`
@@ -244,45 +304,34 @@ Khởi tạo cấu trúc tài liệu cho một dự án. Xử lý cả init mớ
    - Thuật ngữ khóa: tên sản phẩm/thương hiệu giữ nguyên cách viết, hoặc `(none)`
    - Deliverable ưu tiên: BRD/PRD/SAD/... nào trước, hoặc `(all)`
 
-   Mục nào bỏ trống thì dùng default đã ghi rõ. Ghi `00-common/01-conventions.md` ngay
-   (status RELEASED, nguồn duy nhất dạng MD — không mirror sang YAML).
+   Mục nào bỏ trống thì dùng default đã ghi rõ. File conventions được ghi ở bước 5
+   với trạng thái RELEASED.
 4. **Xác nhận dàn ý** — trình bày cây thư mục + danh sách file cụ thể (đã gồm quy ước
-   vừa chốt), chờ user duyệt. Nếu dự án đã có tài liệu không theo schema, đề xuất luôn
-   phương án sắp xếp lại (bảng mapping `old path → new path | giữ / di chuyển / archive
-   vào 99-assets/_legacy/`) trong bước này.
+   vừa chốt), chờ user duyệt. Nếu dự án đã có tài liệu nằm ngoài cây chuẩn, kèm luôn
+   bảng đặt vị trí `old path → new path` trong bước này, chờ confirm từng dòng.
 5. **Khởi tạo** — sau khi duyệt:
-   - Tạo `.haro-docs/project-profile.yaml` và `.haro-docs/schema.yaml`
-     (từ template trong thư mục `templates/` của skill) với `schema_version: 1`,
+   - Tạo `.haro-docs/config/project.yaml` và `.haro-docs/config/schema.yaml`
+     (từ template trong thư mục `features/` của skill) với `version: 1`,
      bao gồm cả `language.response` và `language.documentation` đã chọn
-   - Tạo `.haro-docs/agents.yaml` từ `templates/agents.yaml` nếu chưa có (không bao
-     giờ ghi đè file đã tồn tại khi chưa hỏi)
-   - Ghi `00-common/01-conventions.md` từ `templates/conventions.md` với giá trị Phần B
-     từ bước 3b; tạo `02-references.md`, `03-abbreviations.md`, `04-glossary.md`,
-     `05-traceability.md` dạng placeholder ghi `auto-populated by generate — do not edit manually`
+   - Tạo `.haro-docs/config/agents.yaml` từ `features/agents.yaml`
+   - Tạo `.haro-docs/config/status.yaml` từ `features/status.yaml`, liệt kê mọi file
+     theo dàn ý với trạng thái `UPDATING`
+   - Tạo `.haro-docs/knowledge/index.yaml` từ `features/knowledge.yaml`
+     với `entries: []` rỗng
+   - Tạo `.haro-docs/reviews/index.yaml` từ `features/reviews.yaml`
+     với `entries: []` rỗng
+   - Tạo `.haro-docs/elicitation/index.yaml` từ `features/elicitation.yaml`
+     với `entries: []` rỗng
+   - Ghi `00-common/01-conventions.md` từ `features/conventions.md` với giá trị Phần B
+     từ bước 3b (trạng thái RELEASED); tạo `02-references.md`, `03-abbreviations.md`,
+     `04-glossary.md`, `05-traceability.md` dạng placeholder cho `generate` điền
+     (trạng thái UPDATING)
    - Tạo cây thư mục theo dàn ý, mỗi thư mục có `README.md` mô tả phạm vi
    - Tạo README tổng quan tại doc-root kèm lộ trình đọc
 
-### 5.3 RE-INIT: OVERRIDE vs MIGRATE
+### 5.3 SAU INIT — POPUP LỆNH TIẾP THEO
 
-**Backup trước (bắt buộc cả 2 nhánh):** trước khi đụng vào gì, copy `.haro-docs/` +
-cây doc-root sang `.haro-docs.backup-<YYYYMMDD-HHmmss>/` và báo đường dẫn backup
-trong reply. Backup lỗi thì dừng và hỏi user.
-
-| | Override (xây lại) | Migrate / Upgrade (tại chỗ) |
-|---|---|---|
-| `project-profile.yaml` | Tạo mới từ template (`schema_version: 1`); hỏi lại language + doc-root | Giữ + merge: giữ `language.*`, `docroot.path`, audience; chỉ điền key thiếu và bump `schema_version` |
-| `schema.yaml` | Tạo mới từ template | Cập nhật tại chỗ: thêm folder/file thiếu, giữ tùy biến đã duyệt; đồng bộ `meta.docroot` + `schema_version` |
-| `agents.yaml` | Tạo mới từ template chỉ khi thiếu hoặc user đồng ý | Giữ config user; chỉ merge key thiếu (agent id mới, `default_reviewer`) |
-| `knowledge/` | **Giữ mặc định** — copy lại từ backup; chỉ bỏ khi user nói rõ | Giữ toàn bộ; rebuild `_index.md` nếu lệch |
-| Nội dung docs | Cây mới (file cũ mất khỏi doc-root — vẫn còn trong backup) | Giữ: không xóa file user đã viết; chỉ tạo folder/file + `README.md` còn thiếu |
-| `00-common/01-conventions.md` | Ghi từ template với Phần B từ bước 3b | Thiếu: seed Phần A + hỏi Phần B. Đã có: giữ Phần B, chỉ refresh Phần A khi user đồng ý |
-| File lệch schema | N/A (mới) | Đề xuất bảng mapping; chỉ move/giữ/archive vào `99-assets/_legacy/` sau khi confirm từng dòng |
-
-Sau cả 2 nhánh, báo cáo: `đường dẫn backup | cái gì được giữ | cái gì xây mới | cái gì cần user rà soát`.
-
-### 5.4 SAU INIT — POPUP LỆNH TIẾP THEO
-
-Khi init (mới, override hay migrate) xong, luôn hiện picker lệnh tiếp theo với **2-3
+Khi init xong, luôn hiện picker lệnh tiếp theo với **2-3
 gợi ý cụ thể** theo trạng thái mới, vd:
 
 - `generate 01-overview/01-problem-statement.md — mục đích nền tảng còn trống`
@@ -304,56 +353,61 @@ Không có mô tả: vẫn quét dự án hiện tại trước, rồi hỏi t�
 
 Xây tài liệu linh hoạt dựa trên thực trạng + vai trò bạn. Hai chế độ:
 
-- `/haro-docs generate` — đề xuất 2-3 file tiếp theo để xây, dựa trên thực trạng, không cứng nhắc.
+- `/haro-docs generate` — đề xuất 2-3 file tiếp theo để xây, dựa trên thực trạng.
   Bỏ qua toàn bộ `00-common` — `01-conventions.md` đã chốt lúc `init` (bước 3b),
-  `02-05` auto-populate; điểm bắt đầu viết là `01-overview`.
-- `/haro-docs generate <file>` — tập trung vào file chỉ định (vd `02-business/01-value-prop.md`
-  hoặc `10-deliverables/01-BRD.md`) để tạo hoặc điều chỉnh. Nếu file đã `RELEASED`,
-  cảnh báo và hỏi có update không.
+  `02-05` do `generate` tự điền; điểm bắt đầu viết là `01-overview`.
+- `/haro-docs generate <file>` — tạo file chỉ định (vd `02-business/01-value-prop.md`
+  hoặc `10-deliverables/01-BRD.md`). Nếu file đã `RELEASED`, báo
+  `File is RELEASED (final)` kèm tóm tắt 1 dòng và gợi ý file đang mở tiếp theo —
+  `generate` không bao giờ ghi vào file `RELEASED`.
 
 ### Thứ tự chuẩn
 
 Thứ tự là `00-common -> 01-overview -> 02-business -> 03-features -> 04-architecture
 -> 05-security -> 06-implementation -> 07-quality -> 08-operations -> 09-guides
 -> 10-deliverables -> 99-assets` như trong `schema.yaml` và Mục 8. Trong mỗi folder,
-file xếp theo prefix số. Thứ tự này là tham chiếu, không phải gate cứng: dùng để hiểu
-tiền đề (vd `01-overview` và `02-business` là tiền đề cho `04-architecture`), nhưng
-không chặn linh hoạt. Nếu tất cả đã `RELEASED`, trả `Tất cả đã hoàn thiện.`.
+file xếp theo prefix số. Thứ tự này là tham chiếu để hiểu tiền đề
+(vd `01-overview` và `02-business` là tiền đề cho `04-architecture`). Nếu tất cả đã
+`RELEASED`, trả `Tất cả đã hoàn thiện.`.
 
 ### Lưu elicitation
 
 Q&A tạm lưu tại `.haro-docs/elicitation/<sanitized-path>.md` (vd
-`02-business-01-value-prop.md`) để đỡ context. Chỉ đọc khi cần trong `generate`.
-Sau khi xong file chính, hỏi user giữ hay xóa file elicitation.
+`02-business-01-value-prop.md`) với frontmatter (`target`, `role`, `updated`) để đỡ
+context. Chỉ đọc khi cần trong `generate`. Sau khi xong file chính, hỏi user giữ hay
+xóa file elicitation.
 
 ### Trạng thái
 
-Mỗi file docs có `status:` ở frontmatter và mirror tại `.haro-docs/status/<path>`:
+Nguồn duy nhất là `.haro-docs/config/status.yaml`. File docs không gắn trạng thái; path
+vắng trong map tính là `UPDATING`:
 
-- `DRAFT` — file mới hoàn toàn, version đầu tiên.
-- `UPDATING` — đã có nội dung tham khảo và đang chỉnh sửa.
-- `RELEASED` — đã hoàn thiện, có thể dùng làm cơ sở cho file khác, không sửa.
-  Nếu `generate <file>` nhắm vào `RELEASED`, báo `File đã RELEASED` và hỏi
-  `Update? (yes/no)`. Nếu `yes`, đổi thành `UPDATING` rồi mới sửa.
-
-Không giữ backward: mọi tạo mới/điều chỉnh đều coi như version đầu tiên (Mục 9).
+- `UPDATING` — đang làm, chỉ tham khảo: đọc lấy bối cảnh, không coi là sự thật,
+  không ghép vào deliverable.
+- `RELEASED` — đã chốt, phải chuẩn: file sinh sau tuân thủ tuyệt đối; chỉ `RELEASED`
+  mới ghép vào `10-deliverables/`; `generate` không bao giờ ghi vào file `RELEASED`.
+- `00-common/02-references.md`, `03-abbreviations.md`, `04-glossary.md`,
+  `05-traceability.md` là tham chiếu sống với trạng thái `UPDATING` nên `generate`
+  append vào bất cứ lúc nào.
 
 ### QUY TRÌNH
 
-1. **RAG chọn lọc** — đọc `knowledge/_index.md` (nếu có), chọn dòng có
-   domain/tags khớp file đích (`business` cho BRD, `technical`+`architecture` cho
-   SAD, `team` cho người), chỉ load file khớp.
+1. **RAG chọn lọc** — đọc `knowledge/index.yaml` (nếu có), chọn entry có
+   `state: active` và domain/tags khớp file đích (`business` cho BRD, `technical`+
+   `architecture` cho SAD, `team` cho người), chỉ load file khớp. Đọc
+   `.haro-docs/config/status.yaml`: file `RELEASED` trong phạm vi là ràng buộc cứng
+   (xung đột thì dừng và hỏi), file `UPDATING` chỉ là bối cảnh.
 2. **Hỏi bạn là ai & đề xuất file theo thực trạng:**
    - Hỏi trước: `Bạn là ai trong dự án này? Vai trò gì? (customer / sales / BA / dev / PM)
-     — bạn nắm gì nhất?` Lưu vào `knowledge/team-role.md` nếu chưa có (lần sau chỉ
+     — bạn nắm gì nhất?` Lưu vào `knowledge/team-role.md` khi chưa có (lần sau chỉ
      xác nhận `Vẫn là <role>?`), và vào `elicitation/<target>.md`.
-    - Quét thực trạng: file nào thiếu/trống (`DRAFT`), `UPDATING`, `RELEASED`,
-      `change-requests/CR-*.md` mới. Dùng order chuẩn làm tham chiếu để hiểu tiền đề
-      (vd `01-overview` và `02-business` là tiền đề cho `04-architecture`), nhưng
-      **không cứng nhắc** — hiểu linh hoạt cái gì thực sự cần. Bỏ qua toàn bộ
-      `00-common` (`01-conventions.md` đã chốt lúc init, `02-05` auto); điểm bắt đầu viết
-      là `01-overview`, không phải `00-common`.
-   - Nếu có `<file>`: coi như bạn muốn file đó, nhưng nếu nó phụ thuộc tiền đề chưa
+    - Quét thực trạng từ `status.yaml`: file nào còn `UPDATING`, file nào
+      `RELEASED`, `change-requests/CR-*.md` nào có. Dùng order chuẩn làm tham chiếu để hiểu
+      tiền đề (vd `01-overview` và `02-business` là tiền đề cho `04-architecture`).
+      Bỏ qua toàn bộ `00-common` (`01-conventions.md` đã chốt lúc init, `02-05` do
+      generate tự điền); điểm bắt đầu viết là `01-overview`, không phải `00-common`.
+   - Nếu `<file>` đã `RELEASED`: báo final và gợi ý file đang mở tiếp theo.
+   - Nếu `<file>` còn `UPDATING`: coi như bạn muốn file đó, nhưng nếu nó phụ thuộc tiền đề chưa
      xong (vd nhắm `04-architecture` trong khi `01-overview/03-goals.md` còn trống),
      giải thích vì sao tiền đề quan trọng và hỏi `Bạn muốn tiếp tục file này hay
      chuyển sang tiền đề?`.
@@ -361,38 +415,35 @@ Không giữ backward: mọi tạo mới/điều chỉnh đều coi như version
      kèm lý do 1 dòng (vd `1. 01-overview/01-problem-statement.md — mục đích nền tảng
      còn trống; 2. 02-business/01-value-prop.md — business cần trước architecture`).
      Để bạn chọn. Bạn cũng có thể chỉ định file khác.
-   - Khi đã chọn/chốt đích, đọc nội dung hiện có (nếu `UPDATING`) và file lân cận
-     cùng folder + glossary.
+   - Khi đã chọn/chốt đích, đọc file lân cận cùng folder + glossary lấy context.
 3. **Hỏi chi tiết linh hoạt theo role+thực trạng:**
    - Sinh **~5 câu hỏi** dựa trên `role + domain file + thực trạng` (vd
      `02-business/*` với customer -> market/pain/SLA/metrics; `04-architecture/*`
      với customer -> chỉ hỏi flow/business rule, với dev mới hỏi endpoint/schema/
-     NFR/diagram). **Không hỏi khách hàng về code**, nhưng không áp rule cứng
-     "mục đích trước technical" cho mọi case.
-   - Append Q&A vào elicitation file. Phân tích thiếu field nào của file đích
-     (theo schema) còn thiếu gì → hỏi tiếp 3-5 câu bổ sung, append, lặp đến khi đủ.
+     NFR/diagram). **Không hỏi khách hàng về code.**
+   - Append Q&A vào elicitation file. Phân tích field nào của file đích
+     (theo schema) còn thiếu → hỏi tiếp 3-5 câu bổ sung, append, lặp đến khi đủ.
 4. **Đề xuất outline** — liệt kê section cho file đích, ghi chú nguồn
    (block/folder và file knowledge nào). Chờ duyệt.
-5. **Viết** — tạo/cập nhật file đích trong folder chuẩn (kebab-case + prefix số,
-   Mục 9) bằng văn current-state (Mục 9, không backward). Tuân thủ Phần B của
+5. **Viết** — tạo file đích trong folder chuẩn (kebab-case + prefix số,
+   Mục 9) bằng văn current-state first-version (Mục 9). Tuân thủ Phần B của
    `00-common/01-conventions.md` (diagram tool, API format, tone, thuật ngữ khóa);
    nếu conventions thiếu chỉ dẫn cho file này thì dùng default hợp lý và ghi chú 1 dòng,
-   không tự sửa conventions. Cập nhật `status:` thành `DRAFT` hoặc `UPDATING`.
-   Nếu có fact mới, cập nhật `knowledge/` nếu cần.
-6. **Tự động cập nhật 00-common** — ngay sau khi viết, quét nội dung mới để tìm
-   thuật ngữ, viết tắt, reference chưa có trong `00-common/`. Tự động append vào
+   không ghi vào conventions. Ghi trạng thái mới vào `.haro-docs/config/status.yaml`
+   (`UPDATING`). Nếu có fact mới, ghi vào `knowledge/` khi cần.
+6. **Tự động điền 00-common** — ngay sau khi viết, quét nội dung mới để tìm
+   thuật ngữ, viết tắt, reference chưa có trong `00-common/`. Append vào
    file tương ứng mà không cần lệnh khác:
    - Thuật ngữ mới → append vào `00-common/04-glossary.md` với định nghĩa 1 dòng
      suy từ context; nếu `vi-en` thì thêm gloss tiếng Anh.
    - Viết tắt mới → append vào `00-common/03-abbreviations.md`.
    - Reference ngoài mới → append vào `00-common/02-references.md`.
-   Không cần confirm; chỉ ghi chú `Auto-updated 00-common: +2 terms, +1 abbreviation.`
-   trong reply. Deduplicate trước khi append và vẫn auto-append ngay cả khi file
-   `00-common` đã `RELEASED` (vì đây là tham chiếu sống).
-7. **Dọn elicitation** — hỏi `Giữ file elicitation để tra cứu hay xóa? (keep / delete)`.
-8. **Confirm & đánh trạng thái** — hỏi `Đánh trạng thái file là? (DRAFT / UPDATING / RELEASED)`.
-   Mặc định `RELEASED` nếu user nói đã xong. Cập nhật frontmatter và
-   `.haro-docs/status/<path>`. `RELEASED` mới được tham chiếu bởi `generate` sau.
+   Không cần confirm; chỉ ghi chú `Auto 00-common: +2 terms, +1 abbreviation.`
+   trong reply. Deduplicate trước khi append.
+7. **Dọn elicitation** — hỏi `Giữ file elicitation để tra cứu hay xóa? (keep / remove)`.
+8. **Confirm & đánh trạng thái** — hỏi `Đánh trạng thái file là? (UPDATING / RELEASED)`.
+   Khi `RELEASED`, ghi trạng thái mới vào `.haro-docs/config/status.yaml`. File `RELEASED`
+   thành căn cứ cho các lượt `generate` sau.
 9. **Popup lệnh tiếp theo** — sau khi đánh trạng thái luôn hỏi làm gì tiếp (picker nếu
    có, không thì list đánh số). Đề xuất 2-3 ứng viên cụ thể theo thực trạng mới (tiền đề
    + gap), mỗi cái kèm lý do 1 dòng, cộng thêm `review <file vừa xong>` và `dừng`. Chờ
@@ -419,6 +470,9 @@ VÍ DỤ:
 | Runbook          | 08-operations + 06-implementation + 04-architecture                  |
 | User/Admin Guide | 09-guides + 03-features + 01-overview                                |
 
+Chỉ block `RELEASED` mới ghép vào deliverable. Deliverable mà nguồn chưa đủ
+`RELEASED` thì giữ `UPDATING`.
+
 ================================================================================
 8. CẤU TRÚC CHUẨN (DUY NHẤT)
 ================================================================================
@@ -426,7 +480,7 @@ VÍ DỤ:
 Cấu trúc duy nhất cho mọi dự án:
 
 docs/                        # hoặc .haro-docs/docs/ tùy doc-root user chọn
-├── 00-common/               # 01-conventions.md, 02-references.md, 03-abbreviations.md, 04-glossary.md, 05-traceability.md (01 manual, 02-05 auto)
+├── 00-common/               # 01-conventions.md, 02-references.md, 03-abbreviations.md, 04-glossary.md, 05-traceability.md (01 chốt lúc init, 02-05 do generate điền)
 ├── 01-overview/             # 01-problem-statement.md, 02-vision.md, 03-goals.md, 04-scope.md, 05-stakeholders.md, 06-constraints.md, 07-roadmap.md (Version|Goal|Target|Status)
 ├── 02-business/             # 01-value-proposition.md, 02-market-analysis.md, 03-business-model.md, 04-pricing.md, 05-sla.md, 06-risk-legal.md, use-cases/, change-requests/CR-*.md
 ├── 03-features/             # 01-feature-catalog.md, 04-dependencies.md, features/<feature>/ 01-overview.md, 02-user-stories.md, 03-acceptance-criteria.md
@@ -439,7 +493,7 @@ docs/                        # hoặc .haro-docs/docs/ tùy doc-root user chọn
 ├── 10-deliverables/         # 01-BRD.md, 02-PRD.md, 03-SAD.md, 04-FSD.md, 05-SRD.md, 06-Proposal.md, 07-TestPlan.md, 08-Runbook.md, 09-UserAdminGuide.md (placeholder với headings riêng + Ref link, không giống nhau)
 └── 99-assets/               # Hình ảnh, sơ đồ, templates
 
-`init` tạo đủ folder/file trên; mỗi `10-deliverables/*.md` là placeholder với headings riêng kèm `Ref: ../01-overview/...` — không y nhau. Trong `00-common`, `01-conventions.md` được chốt lúc `init` (bước 3b, 2 lớp: Phần A cố định + Phần B đặc thù dự án, nguồn duy nhất dạng MD), còn `02-references, 03-abbreviations, 04-glossary, 05-traceability` là tham chiếu sống do `generate` auto-populate từ placeholder ghi `auto-populated by generate — do not edit manually`; format `05-traceability.md` là bảng `deliverable | source blocks | block status | knowledge refs`. Điểm bắt đầu viết là `01-overview` (không phải `00-common`).
+`init` tạo đủ folder/file trên; mỗi `10-deliverables/*.md` là placeholder với headings riêng kèm `Ref: ../01-overview/...` — không y nhau. Trong `00-common`, `01-conventions.md` được chốt lúc `init` (bước 3b, 2 lớp: Phần A cố định + Phần B đặc thù dự án, nguồn duy nhất dạng MD), còn `02-references, 03-abbreviations, 04-glossary, 05-traceability` là tham chiếu sống trạng thái `UPDATING` do `generate` điền; format `05-traceability.md` là bảng `deliverable | source blocks | block status (từ status.yaml) | knowledge refs (từ index.yaml)`. Điểm bắt đầu viết là `01-overview` (không phải `00-common`).
 
 --- PHÂN ĐỊNH `03-features` VÀ `02-business/use-cases/` ---
 
@@ -464,7 +518,7 @@ Folder chưa cần dùng có thể giữ nguyên `README.md` và ghi chú ngắn
 
 1. **Single Source of Truth:** mỗi nội dung chỉ viết một lần tại một file duy nhất;
    tài liệu tổng hợp chỉ ghép, không sao chép nội dung.
-2. **Cấu hình ngôn ngữ** — đọc từ `project-profile.yaml`
+2. **Cấu hình ngôn ngữ** — đọc từ `project.yaml`
    (`language.response`, `language.documentation`):
    - **Phản hồi hội thoại** (câu hỏi làm rõ, Q&A elicitation, đề xuất dàn ý...)
      dùng `language.response`.
@@ -501,30 +555,26 @@ Folder chưa cần dùng có thể giữ nguyên `README.md` và ghi chú ngắn
       Anh sau này → `vi-en` để tài liệu dạy từ ngay lần đầu.
    - **Fallback:** nếu cấu hình ngôn ngữ trống hoặc thiếu → PHẢI hỏi user quyết
      định trước khi chạy lệnh nào. Tuyệt đối không tự suy đoán mặc định.
-3. **Ghi trạng thái hiện tại, không ghi thay đổi - không giữ backward:** khi tạo
-   mới hoặc cập nhật block/tài liệu (dù tạo mới hay điều chỉnh), luôn coi như
-   **phiên bản đầu tiên**. Viết nội dung cuối cùng như thể viết lại từ đầu hôm nay.
-   Tài liệu mô tả sự vật ĐANG NHƯ THẾ NÀO, không mô tả CHÚNG ĐÃ THAY ĐỔI RA SAO.
-   TUYỆT ĐỐI không giữ backward: không đề cập backward, previous version, migration
-   từ bản cũ, hay lịch sử phiên bản. Cấm trong thân tài liệu các câu kiểu "đã cập
-   nhật...", "đã bổ sung...", "đã loại bỏ...", "không còn áp dụng...", "trước đây...",
-   "backward compatible", "previous version", "migration". Không nhúng lịch sử
-   phiên bản, ghi chú sửa đổi hay mục "có gì mới" vào bất kỳ đâu — việc kiểm soát
+3. **Ghi trạng thái hiện tại như phiên bản đầu tiên:** khi tạo block/tài liệu, luôn viết
+   nội dung cuối cùng như thể viết từ đầu hôm nay. Tài liệu mô tả sự vật ĐANG NHƯ THẾ NÀO.
+   TUYỆT ĐỐI không dùng văn change-log trong thân tài liệu: "đã bổ sung...",
+   "trước đây...", "không còn áp dụng...", "previous version". Không nhúng lịch sử
+   phiên bản, ghi chú thay đổi hay mục "có gì mới" vào bất kỳ đâu — việc kiểm soát
    phiên bản do **git đảm nhiệm**.
 
    | Sai (trong nội dung) | Đúng |
    |----------------------|------|
    | "Đã bổ sung tính năng thanh toán vào module hóa đơn." | "Module hóa đơn bao gồm tính năng thanh toán..." |
-   | "Phần báo cáo cũ đã bị loại bỏ ở phiên bản này." | *(xóa hẳn đoạn đó, không để lại dấu vết)* |
+   | "Phần báo cáo cũ đã bị loại bỏ ở phiên bản này." | *(đơn giản vắng mặt, không để lại dấu vết)* |
 
 4. **Không trùng lặp:** kiểm tra glossary trước khi định nghĩa thuật ngữ mới.
 5. **Tên file:** kebab-case kèm tiền tố số thể hiện thứ tự đọc — ví dụ
    `01-problem-statement.md`.
 6. **Hình ảnh/sơ đồ:** lưu tại `99-assets/`, tham chiếu bằng đường dẫn tương đối;
    không nhúng base64 inline.
-7. **Vòng đời block:** mỗi block có trạng thái `draft → review → approved`, quản
-   lý tại `.haro-docs/status/`; chỉ block `approved` được đem vào tài liệu tổng
-   hợp mà không cần xem lại.
+7. **Vòng đời block:** mỗi block là `UPDATING` (đang làm, chỉ tham khảo) hoặc
+   `RELEASED` (đã chốt, phải chuẩn), quản lý tại `.haro-docs/config/status.yaml`;
+   chỉ block `RELEASED` được đem vào tài liệu tổng hợp.
 8. **README con:** mọi thư mục phải có `README.md` mô tả phạm vi và danh sách file.
 
 ================================================================================
@@ -533,8 +583,8 @@ Folder chưa cần dùng có thể giữ nguyên `README.md` và ghi chú ngắn
 
 Nghiên cứu, phân tích và đánh giá khách quan một vấn đề, ý tưởng hoặc file docs
 bằng tư duy phản biện và logic. Skill điều phối subagent review ("đệ tử"), rồi tổng
-hợp các báo cáo thành một verdict + đề xuất tiếp theo. **Chỉ-đọc với docs**: không
-bao giờ sửa file được review; chỉ lưu báo cáo vào `.haro-docs/reviews/` khi đã hỏi.
+hợp các báo cáo thành một verdict + đề xuất tiếp theo. **Chỉ-đọc với docs**: file
+được review không bao giờ bị ghi; chỉ ghi báo cáo mới vào `.haro-docs/reviews/` khi đã hỏi.
 
 CÚ PHÁP:
 
@@ -544,17 +594,20 @@ CÚ PHÁP:
 
 QUY TRÌNH:
 
-1. **Parse đích + load context (RAG chọn lọc)** — đọc `knowledge/_index.md` (nếu có),
-   chỉ load dòng có domain/tags khớp chủ đề. Nếu đích là đường dẫn docs: đọc file đó +
+1. **Parse đích + load context (RAG chọn lọc)** — đọc `knowledge/index.yaml` (nếu có),
+   chỉ load entry có `state: active` và domain/tags khớp chủ đề. Đọc
+   `.haro-docs/config/status.yaml`: đích `RELEASED` được tính là căn cứ mức bằng chứng;
+   đích `UPDATING` chỉ tính là bối cảnh (finding về nó là góp ý draft, không phải
+   verdict trên căn cứ chốt). Nếu đích là đường dẫn docs: đọc file đó +
    file lân cận cùng folder + glossary. Nếu là text tự do: quét nhẹ repo + doc-root tìm
    bằng chứng liên quan. Nêu rõ `sources: ...` để reviewer trích dẫn được.
-2. **Chốt reviewer từ `.haro-docs/agents.yaml`:**
-   - Thiếu file: dùng 1 `critic` inline với prompt mặc định từ `templates/agents.yaml`
+2. **Chốt reviewer từ `.haro-docs/config/agents.yaml`:**
+   - Thiếu file: dùng 1 `critic` inline với prompt mặc định từ `features/agents.yaml`
      (chế độ single-critic).
    - Có file: hiện agents đang enabled (`id | role`), cho user multi-select (picker nếu
      có, không thì list đánh số). Pre-select `default_reviewer`. Mặc định là **1 critic**;
      chỉ chạy multi-agent khi user chọn 2+ agents hoặc chủ đề cần cả research + phản biện.
-   - Cờ `--no-agents` ép chạy single inline critic, bỏ qua config (để debug).
+   - Cờ `--no-agents` ép chạy single inline critic, bỏ qua config.
    - Nếu runtime không có cơ chế subagent (không có Task tool): **fallback inline** — chạy
      tuần tự từng reviewer trong context hiện tại, gắn nhãn `Reviewer <id> (inline
      fallback)`, rồi tổng hợp. Không fail chỉ vì thiếu subagent.
@@ -576,7 +629,7 @@ QUY TRÌNH:
 5. **Lưu báo cáo (phải hỏi trước)** — hỏi `Lưu báo cáo review vào .haro-docs/reviews/?
    (save / skip)`. Nếu `save`, ghi `.haro-docs/reviews/RR-YYYYMMDD-HHmmss-<slug>.md` với
    frontmatter (`topic, verdict, reviewers, date, sources`) + synthesis + tóm tắt từng
-   reviewer. Không lưu khi chưa hỏi.
+   reviewer. Không ghi khi chưa hỏi.
 6. **Popup tiếp theo** — sau synthesis luôn đề xuất follow-up (picker nếu có): vd
    `generate <file liên quan>`, `remember <fact mới lộ ra>`, `review lại với thêm bằng
    chứng`, `dừng`. Chờ pick; KHÔNG tự chạy.
@@ -591,8 +644,8 @@ VÍ DỤ:
 11. LỆNH `/haro-docs config` - HUB CẤU HÌNH (agents | conventions | language)
 ================================================================================
 
-Hub tập trung cho cấu hình skill. Ba nhánh, không có `doc-root` ở đây (đổi doc-root
-là migrate nặng — giữ trong `init`).
+Hub tập trung cho cấu hình skill. Ba nhánh, doc-root nằm trong `project.yaml`
+(được chọn lúc `init`).
 
 ### 11.1 HUB (không tham số)
 
@@ -605,7 +658,7 @@ QUY TRÌNH:
 
 1. Đọc state: `agents.yaml` (có? N enabled, default?), Phần B của
    `00-common/01-conventions.md` (bảng 6 giá trị hoặc `missing`),
-   `language.response/documentation` từ `project-profile.yaml`.
+   `language.response/documentation` từ `project.yaml`.
 2. Hiện picker (picker tool nếu có, không thì list đánh số), mỗi dòng kèm 1 dòng trạng thái:
    - `1. agents — subagent review (N enabled, default: <id>)`
    - `2. conventions — quy ước đặc thù (diagram, API format, tone, approver...)`
@@ -615,36 +668,33 @@ QUY TRÌNH:
 
 ### 11.2 NHÁNH: agents - QUẢN LÝ SUBAGENT REVIEW
 
-Quản lý cấu hình `.haro-docs/agents.yaml`:
+Quản lý cấu hình `.haro-docs/config/agents.yaml`:
 
-1. Thiếu file thì tạo từ `templates/agents.yaml` của skill rồi hiện nội dung.
+1. Thiếu file thì tạo từ `features/agents.yaml` của skill rồi hiện nội dung.
 2. Có file thì liệt kê `id | role | enabled | default?`.
-3. Cho chọn thao tác (picker nếu có, không thì list số): `thêm agent | sửa role/prompt |
-   bật / tắt | đặt default_reviewer | reset từ template (hỏi trước khi ghi đè prompt custom)`.
-4. Sau đổi, render lại list và nhắc `/haro-docs review` sẽ offer các agents này để chọn.
-   `init` không bao giờ ghi đè `agents.yaml` đã có khi chưa hỏi (chỉ merge key thiếu) —
-   xem Mục 5.3.
+3. Cho chọn thao tác (picker nếu có, không thì list số): `thêm agent | đặt role/prompt |
+   bật / tắt | đặt default_reviewer | reset từ template (confirm trước)`.
+4. Sau khi ghi, render lại list và nhắc `/haro-docs review` sẽ offer các agents này để chọn.
 
-### 11.3 NHÁNH: conventions - SỬA QUY ƯỚC ĐẶC THÙ
+### 11.3 NHÁNH: conventions - ĐẶT QUY ƯỚC ĐẶC THÙ
 
-Sửa Phần B của `00-common/01-conventions.md` (Phần A do skill cố định):
+Đặt Phần B của `00-common/01-conventions.md` (Phần A do skill cố định):
 
 1. Hiện Phần B hiện tại dạng bảng `mục | giá trị`; Phần A chỉ hiện 6 bullet tiêu đề
    (full text khi user yêu cầu).
-2. Cho sửa từng mục (picker nếu có, không thì list số): diagram tool | API format |
+2. Cho đặt từng mục (picker nếu có, không thì list số): diagram tool | API format |
    tone & depth | người duyệt RELEASED | thuật ngữ khóa | deliverable ưu tiên. Mỗi mục
    kèm default suy từ scan.
-3. `reset` seed lại Phần A từ `templates/conventions.md` và **giữ nguyên Phần B**.
+3. `reset` ghi Phần A mới từ `features/conventions.md` và **giữ nguyên Phần B**.
    Confirm trước mọi ghi file.
-4. Sau lưu, hỏi `review các file RELEASED chịu ảnh hưởng?` — chỉ gợi ý lệnh `review`,
-   không bao giờ tự sửa file RELEASED. `init`/`migrate` không ghi đè Phần B khi chưa hỏi
-   (xem Mục 5.3).
+4. Sau lưu, gợi ý `review` cho các file RELEASED mà quy ước mới chạm tới — chỉ gợi ý
+   lệnh `review`, `config` không bao giờ ghi vào file docs.
 
 ### 11.4 NHÁNH: language - NGÔN NGỮ TRẢ LỜI + TÀI LIỆU
 
-1. Hiện `language.response` + `language.documentation` từ `.haro-docs/project-profile.yaml`
+1. Hiện `language.response` + `language.documentation` từ `.haro-docs/config/project.yaml`
    (kèm định nghĩa `vi` vs `vi-en` ở Mục 9).
-2. Cho đổi với option `en | vi | vi-en` tùy mục; confirm trước khi ghi vào `project-profile.yaml`.
+2. Cho đặt với option `en | vi | vi-en` tùy mục; confirm trước khi ghi vào `project.yaml`.
 
 ================================================================================
 HẾT — Bản chính thức để agent thực thi là SKILL.md

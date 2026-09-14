@@ -1,0 +1,13 @@
+# .haro-docs/config/status.yaml
+# Single source of doc status — created by /haro-docs init, written by /haro-docs generate.
+# Doc files carry no status themselves. Two states only:
+#   UPDATING — in progress, reference-only (consult for context, never treat as truth)
+#   RELEASED — final, must-follow (later files comply strictly; only RELEASED feeds deliverables)
+# Paths missing from this map count as UPDATING.
+
+version: 1
+updated_at: ""                # YYYY-MM-DD
+
+files:
+  # "01-overview/01-problem-statement.md": {status: UPDATING, updated_at: "", note: ""}
+  # "01-overview/02-vision.md": {status: RELEASED, updated_at: "", note: ""}

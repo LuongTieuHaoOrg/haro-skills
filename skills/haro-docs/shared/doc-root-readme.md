@@ -24,7 +24,7 @@ docs/
 └── 99-assets/               # Images, diagrams, templates
 ```
 
-<Folder tree from the approved schema — fill from .haro-docs/schema.yaml>
+<Folder tree from the approved schema — fill from .haro-docs/config/schema.yaml>
 
 ## Reading Path
 
@@ -58,5 +58,5 @@ Read in the following order, from high-level to details:
 ## Conventions
 
 - Each file is an atomic content block; complete documents under `10-deliverables/` are aggregations.
-- Block lifecycle: `draft → review → approved` (tracked in `.haro-docs/status/`).
+- Block lifecycle: `UPDATING → RELEASED` (tracked in `.haro-docs/config/status.yaml`).
 - Quality review reports are stored in `.haro-docs/reviews/`.

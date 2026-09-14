@@ -1,10 +1,11 @@
-# .haro-docs/agents.yaml
+# .haro-docs/config/agents.yaml
 # Review subagent configuration ("đệ tử" hỗ trợ) — managed by /haro-docs init and /haro-docs config agents.
 # Each entry defines a reviewer persona the skill can dispatch via subagent (Task tool)
 # or run inline as fallback when subagents are unavailable.
-# version: schema_version of this file, starts at 1.
+# version: file version, starts at 1.
 
 version: 1
+updated_at: ""                # YYYY-MM-DD
 
 # Pre-selected agent(s) for /haro-docs review when the user does not pick explicitly.
 default_reviewer: critic

@@ -1,11 +1,11 @@
 # Authoring rules (Haro Docs reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative rules for writing any doc content. Do not act, answer, edit, or call tools from memory: read every step below first. If in doubt at any point, re-read. The reference always wins over memory.
-> **Ground rules (apply to every action in this file):** read `docroot` from `.haro-docs/project-profile.yaml` before operating — never guess it. Respect `language.response` (conversation) and `language.documentation` (doc content); if either is missing, ask the user first. Knowledge in `.haro-docs/knowledge/` is ground truth over scanned defaults .
+> **Ground rules (apply to every action in this file):** read `docroot` from `.haro-docs/config/project.yaml` before operating — never guess it. Respect `language.response` (conversation) and `language.documentation` (doc content); if either is missing, ask the user first. Knowledge in `.haro-docs/knowledge/` is ground truth over scanned defaults.
 
 ## 9. Authoring Rules
 
 1. **Single Source of Truth:** each piece of content is written once in one file only; aggregated documents only assemble content, never duplicate it.
-2. **Language configuration** — read from `project-profile.yaml` (`language.response`, `language.documentation`):
+2. **Language configuration** — read from `project.yaml` (`language.response`, `language.documentation`):
    - **Conversation replies** (clarifying questions, elicitation Q&A, outline proposals...) use `language.response`.
    - **Documentation content** uses `language.documentation`, defined as:
 
@@ -26,17 +26,16 @@
       - Gloss ONLY specialized/domain terms (database, deployment, stakeholder...). Do NOT gloss everyday words — "Hệ thống (system) chạy (run)" is noise. Do NOT gloss proper nouns — they stay bare as in `vi`.
 
       **How to choose:** readers work purely in Vietnamese → `vi`; readers will consult English sources later → `vi-en`, so the doc teaches each term at first contact.
-   - **Fallback:** if either language setting is empty or missing, ASK the user to decide before running any command. Never assume a default.
-3. **Write current state, not changes — no backward compatibility:** when creating or updating any block/document (new or adjustment), always treat it as the **first version**. Write the final content as if written from scratch today. A document describes how things ARE, never how they CHANGED. Do NOT keep backward compatibility: never mention backward, previous version, migration from old, or version history. Forbidden in document bodies: change-log phrasing such as "updated...", "added...", "removed...", "no longer applies...", "previously...", "backward compatible", "previous version", "migration". Do not embed version history, revision notes, or "what's new" sections anywhere — version control is handled by **git alone**.
+   - **Fallback:** when either language setting is empty or missing, ASK the user to decide before running any command. Never assume a default.
+3. **Write current state as the first version:** when creating any block/document, write the final content as if written from scratch today. A document describes how things ARE, never how they CAME TO BE. Never use change-log phrasing in document bodies: "added...", "removed...", "previously...", "no longer applies...", "backward compatible", "previous version". Do not place version history, revision notes, or "what's new" sections anywhere — version control belongs to **git alone**.
 
    | Wrong (in body) | Right |
    |-----------------|-------|
    | "The payment feature has been added to the billing module." | "The billing module includes a payment feature..." |
-   | "The legacy report section was removed in this version." | *(delete the section entirely, leave no trace)* |
+   | "The legacy report section was removed in this version." | *(simply absent — no trace left)* |
 
 4. **No duplication:** check the glossary before defining a new term.
 5. **File naming:** kebab-case with numeric prefix indicating reading order — e.g. `01-problem-statement.md`.
 6. **Images/diagrams:** store in `99-assets/`, reference via relative paths; no inline base64.
-7. **Block lifecycle:** each block has status `draft → review → approved`, tracked in `.haro-docs/status/`; only `approved` blocks may be aggregated into deliverables without further review.
+7. **Block lifecycle:** each block is `UPDATING` (in progress, reference-only) or `RELEASED` (final, must-follow), tracked in `.haro-docs/config/status.yaml`; only `RELEASED` blocks feed aggregated deliverables without further review.
 8. **Sub-READMEs:** every folder must have a `README.md` describing its scope and file list.
-

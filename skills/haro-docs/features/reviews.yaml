@@ -1,0 +1,16 @@
+# .haro-docs/reviews/index.yaml
+# Lookup of saved review reports — created by /haro-docs init,
+# appended by /haro-docs review on every `save`.
+# Agents read this file (small) to skip already-reviewed topics and to cite past reports.
+# Never hand-write this file: entries are appended from report frontmatter on save.
+
+version: 1
+updated_at: ""                # YYYY-MM-DD
+
+entries:
+  # - id: "RR-YYYYMMDD-HHmmss-<slug>"
+  #   topic: "..."             # reviewed topic or doc path
+  #   verdict: ""              # agree | conditionally-agree | disagree
+  #   reviewers: [critic]      # agent ids from config/agents.yaml
+  #   date: ""                 # YYYY-MM-DD
+  #   sources: ""              # what was loaded for the review

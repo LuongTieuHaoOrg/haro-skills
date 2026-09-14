@@ -1,0 +1,17 @@
+# .haro-docs/knowledge/index.yaml
+# Single source of knowledge lookup — created by /haro-docs init,
+# written by /haro-docs remember and /haro-docs knowledge --reindex / --clean.
+# Agents read this file (small) to decide which knowledge files to load.
+# Never hand-write this file: it is produced from the frontmatter of knowledge/*.md.
+
+version: 1
+updated_at: ""                # YYYY-MM-DD
+
+entries:
+  # - file: "business-team.md"
+  #   domain: "business"       # business | technical | team | common | security | quality | operations | guides
+  #   tags: [team, pm]         # lowercase keywords for matching
+  #   summary: "One-line fact summary"
+  #   updated: ""              # YYYY-MM-DD
+  #   facts: 0                 # number of facts in the file
+  #   state: active            # active | stale (marked by --clean)
