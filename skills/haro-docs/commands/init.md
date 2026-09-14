@@ -26,7 +26,7 @@ Initialize the documentation structure for a new project.
 3. **Ask for the doc-root** — the user chooses (single):
    - `docs/` (traditional documentation folder), or
    - `.haro-docs/docs/` (contained within the skill workspace)
-3b. **Decide conventions (compact, 4–6 questions)** — Part A (fixed by skill: file naming, SSOT, status lifecycle, language ref, images, auto-file rule) is seeded from `features/conventions.md` without asking; show it as read-only preview. Ask only Part B (project-specific), offering scan-based defaults:
+3b. **Decide conventions (compact, 4–6 questions)** — Part A (fixed by skill: file naming, SSOT, status lifecycle, language ref, images, auto-file rule) is seeded from `templates/conventions.md` without asking; show it as read-only preview. Ask only Part B (project-specific), offering scan-based defaults:
    - Diagram tool (single): `mermaid | plantuml | drawio` (+ image fallback)
    - API spec format (single): `openapi-yaml | md-table | both`
    - Tone & depth (single): `high-level | balanced | deep-dive` (sync with `audience.technical_depth`)
@@ -38,13 +38,13 @@ Initialize the documentation structure for a new project.
 3c. **Agent setup (quick)** — run the shared flow in `shared/agent-setup.md`: present presets in chat, multi-pick roles, name each, pick the default, write on confirm. Skipping writes nothing — no `config/agents.yaml` is created, and the setup returns automatically the next time a command needs agents.
 4. **Confirm the outline** — present the folder tree + specific file list (including the decided conventions); wait for user approval. When the project already holds docs outside the canonical tree, include a placement table `old path → new path` in this step and wait for per-row confirmation.
 5. **Initialize** — after approval:
-   - Create `.haro-docs/config/project.yaml` and `.haro-docs/config/schema.yaml` (from the skill's `features/` directory) with `version: 1`, including the chosen `language.response` and `language.documentation`
+   - Create `.haro-docs/config/project.yaml` and `.haro-docs/config/schema.yaml` (from the skill's `templates/` directory) with `version: 1`, including the chosen `language.response` and `language.documentation`
    - Agents: when step 3c completed setup, `config/agents.yaml` already exists — leave it. When skipped, create nothing: the setup in `shared/agent-setup.md` returns automatically the next time a command needs agents.
-   - Create `.haro-docs/config/status.yaml` from `features/status.yaml` with every planned file listed as `UPDATING`
-   - Create `.haro-docs/knowledge/index.yaml` from `features/knowledge.yaml` with empty `entries: []`
-   - Create `.haro-docs/reviews/index.yaml` from `features/reviews.yaml` with empty `entries: []`
-   - Create `.haro-docs/elicitation/index.yaml` from `features/elicitation.yaml` with empty `entries: []`
-   - Write `00-common/01-conventions.md` from `features/conventions.md` with the Part B values from step 3b (status RELEASED); create `02-references.md`, `03-abbreviations.md`, `04-glossary.md`, `05-traceability.md` as placeholders for `generate` to fill (status UPDATING)
+   - Create `.haro-docs/config/status.yaml` from `templates/status.yaml` with every planned file listed as `UPDATING`
+   - Create `.haro-docs/knowledge/index.yaml` from `templates/knowledge.yaml` with empty `entries: []`
+   - Create `.haro-docs/reviews/index.yaml` from `templates/reviews.yaml` with empty `entries: []`
+   - Create `.haro-docs/elicitation/index.yaml` from `templates/elicitation.yaml` with empty `entries: []`
+   - Write `00-common/01-conventions.md` from `templates/conventions.md` with the Part B values from step 3b (status RELEASED); create `02-references.md`, `03-abbreviations.md`, `04-glossary.md`, `05-traceability.md` as placeholders for `generate` to fill (status UPDATING)
    - Create the folder tree per the outline, each folder gets a `README.md` describing its scope
    - Create a root overview README at the doc-root including the reading path
 

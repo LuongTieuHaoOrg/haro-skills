@@ -1,4 +1,4 @@
-# skills/haro-docs/features/agents.yaml
+# skills/haro-docs/templates/agents.yaml
 # Reviewer preset registry — ALSO the template manifest (each entry points at its template file).
 # /haro-docs init (onboarding) and /haro-docs config agents read this file to list presets.
 # invoke: how this reviewer runs — inline (skill runs the prompt) | task (runtime Task subagent_type) | command (slash-command, runtime-dependent).

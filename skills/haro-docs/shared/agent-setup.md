@@ -4,7 +4,7 @@
 
 ## Setup flow
 
-1. **Present presets in chat first** — render the table below from the skill's `features/agents.yaml` (id | lens 1-line | runs via | suggested). Never compress it into picker options.
+1. **Present presets in chat first** — render the table below from the skill's `templates/agents.yaml` (id | lens 1-line | runs via | suggested). Never compress it into picker options.
 
    | Pick | Lens | Runs via | Suggested |
    |------|------|----------|-----------|
@@ -26,7 +26,7 @@
 
 2. **Picker (Mode: multiple)** — tick roles to use. Suggested rows are pre-selected. Picking nothing (or `stop`) = **skip: write nothing, create no file**. Skipping is final for this turn; the setup returns automatically the next time a command needs agents.
 3. **Name each pick (single per pick)** — default name = preset id. Rules: lowercase-hyphen, unique within the project. On clash, report and ask again — never overwrite silently.
-4. **Invoke (default per preset, changeable)** — inline presets run as-is; `task` presets use `type` = filename stem (no typing needed); `command` asks for the `@name` (default `@agent_lead` for lead). `custom (blank)` creates `.haro-docs/agents/<name>.md` from `features/agents/_blank.md` for the user to fill.
+4. **Invoke (default per preset, changeable)** — inline presets run as-is; `task` presets use `type` = filename stem (no typing needed); `command` asks for the `@name` (default `@agent_lead` for lead). `custom (blank)` creates `.haro-docs/agents/<name>.md` from `agents/_blank.md` for the user to fill.
 5. **Default reviewer (single)** — pick from the named set (default `critic` when picked, else first pick).
 6. **Write (only on confirm)** — confirm the summary table `name | preset | invoke | default?` first (`proceed / edit`), then write:
    - copy each picked template file into `.haro-docs/agents/` (only files still missing — never overwrite a user-tuned file);

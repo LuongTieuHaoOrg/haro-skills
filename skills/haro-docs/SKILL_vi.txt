@@ -324,7 +324,7 @@ Khởi tạo cấu trúc tài liệu cho một dự án mới.
    - `.haro-docs/docs/` (gói gọn trong workspace của skill)
 3b. **Chốt quy ước (gọn 4-6 câu)** — Phần A (cố định do skill áp: naming file, SSOT,
    vòng đời status, ngôn ngữ, images, quy tắc file auto) được seed từ
-   `features/conventions.md`, không hỏi; chỉ hiện preview read-only. Chỉ hỏi Phần B
+   `templates/conventions.md`, không hỏi; chỉ hiện preview read-only. Chỉ hỏi Phần B
    (đặc thù dự án) kèm default suy từ scan:
    - Diagram tool (single): `mermaid | plantuml | drawio` (+ fallback image)
    - API spec format (single): `openapi-yaml | md-table | both`
@@ -344,19 +344,19 @@ Khởi tạo cấu trúc tài liệu cho một dự án mới.
    bảng đặt vị trí `old path → new path` trong bước này, chờ confirm từng dòng.
 5. **Khởi tạo** — sau khi duyệt:
    - Tạo `.haro-docs/config/project.yaml` và `.haro-docs/config/schema.yaml`
-     (từ template trong thư mục `features/` của skill) với `version: 1`,
+     (từ template trong thư mục `templates/` của skill) với `version: 1`,
      bao gồm cả `language.response` và `language.documentation` đã chọn
    - Agent: nếu bước 3c đã setup xong, `config/agents.yaml` có sẵn — giữ nguyên. Nếu đã bỏ
      qua, không tạo gì: flow setup ở Phụ lục 12 sẽ hiện lại khi lệnh nào đó cần agent.
-   - Tạo `.haro-docs/config/status.yaml` từ `features/status.yaml`, liệt kê mọi file
+   - Tạo `.haro-docs/config/status.yaml` từ `templates/status.yaml`, liệt kê mọi file
      theo dàn ý với trạng thái `UPDATING`
-   - Tạo `.haro-docs/knowledge/index.yaml` từ `features/knowledge.yaml`
+   - Tạo `.haro-docs/knowledge/index.yaml` từ `templates/knowledge.yaml`
      với `entries: []` rỗng
-   - Tạo `.haro-docs/reviews/index.yaml` từ `features/reviews.yaml`
+   - Tạo `.haro-docs/reviews/index.yaml` từ `templates/reviews.yaml`
      với `entries: []` rỗng
-   - Tạo `.haro-docs/elicitation/index.yaml` từ `features/elicitation.yaml`
+   - Tạo `.haro-docs/elicitation/index.yaml` từ `templates/elicitation.yaml`
      với `entries: []` rỗng
-   - Ghi `00-common/01-conventions.md` từ `features/conventions.md` với giá trị Phần B
+   - Ghi `00-common/01-conventions.md` từ `templates/conventions.md` với giá trị Phần B
      từ bước 3b (trạng thái RELEASED); tạo `02-references.md`, `03-abbreviations.md`,
      `04-glossary.md`, `05-traceability.md` dạng placeholder cho `generate` điền
      (trạng thái UPDATING)
@@ -730,14 +730,14 @@ QUY TRÌNH:
 Quản lý cấu hình `.haro-docs/config/agents.yaml`:
 
 1. Thiếu file hoặc không có entry enabled nào thì chạy flow setup dùng chung ở Phụ lục 12
-   trước (nó list preset từ `features/agents.yaml`).
+   trước (nó list preset từ `templates/agents.yaml`).
 2. Có rồi thì liệt kê `id | invoke | type/command | role | enabled | default?` (file/model
    từng id tra qua `.haro-docs/agents/index.yaml`).
 3. Cho chọn thao tác (Mode: single; picker nếu có, không thì list số): `thêm từ mẫu | thêm custom (trắng) |
    gắn sẵn có | chỉnh model | bật / tắt | đặt default_reviewer | export sang IDE | reset từ template (confirm trước)`.
    - thêm từ mẫu: chọn preset trong registry → đặt tên (lowercase-hyphen, duy nhất) → invoke
      (default theo preset) → copy file mẫu vào `.haro-docs/agents/` khi thiếu → confirm rồi ghi index + registry.
-   - thêm custom (trắng): đặt tên → tạo `.haro-docs/agents/<tên>.md` từ `features/agents/_blank.md`
+   - thêm custom (trắng): đặt tên → tạo `.haro-docs/agents/<tên>.md` từ `agents/_blank.md`
      để user tự điền → confirm rồi ghi.
    - gắn sẵn có: chọn nguồn — Task runtime type (catalog: sub_reviewer, sub_qc, sub_sec, sub_ba,
      sub_e2e, sub_uiux, sub_data, sub_arch, explore), hoặc `@command` (gõ tay, hoặc pick từ
@@ -756,7 +756,7 @@ Quản lý cấu hình `.haro-docs/config/agents.yaml`:
 2. Cho đặt từng mục (Mode: single; picker nếu có, không thì list số): diagram tool | API format |
    tone & depth | người duyệt RELEASED | thuật ngữ khóa | deliverable ưu tiên. Mỗi mục
    kèm default suy từ scan.
-3. `reset` ghi Phần A mới từ `features/conventions.md` và **giữ nguyên Phần B**.
+3. `reset` ghi Phần A mới từ `templates/conventions.md` và **giữ nguyên Phần B**.
    Confirm trước mọi ghi file.
 4. Sau lưu, gợi ý `review` cho các file RELEASED mà quy ước mới chạm tới — chỉ gợi ý
    lệnh `review`, `config` không bao giờ ghi vào file docs.

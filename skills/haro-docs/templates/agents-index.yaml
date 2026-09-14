@@ -13,5 +13,5 @@ entries:
   #   file: "sub_ba.md"        # project copy in .haro-docs/agents/
   #   model: ""                # from file frontmatter; empty = runtime default
   #   enabled: true
-  #   template: "agents/sub_ba.md"  # source template in skill features/, "" = custom
+  #   template: "agents/sub_ba.md"  # source template in skill templates/, "" = custom
   #   invoke: "task"           # inline | task | command
