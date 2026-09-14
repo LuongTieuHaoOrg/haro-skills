@@ -31,5 +31,6 @@
 6. **Write (only on confirm)** — confirm the summary table `name | preset | invoke | default?` first (`proceed / edit`), then write:
    - copy each picked template file into `.haro-docs/agents/` (only files still missing — never overwrite a user-tuned file);
    - write `.haro-docs/agents/index.yaml` entries (`id | file | model | enabled | template | invoke`);
+     a fresh index file starts as `version: 1`, `updated_at: ""`, `entries: []`;
    - write `.haro-docs/config/agents.yaml` entries from the registry (with user names, invoke choices, default).
    Report what was created and return to the caller workflow.
