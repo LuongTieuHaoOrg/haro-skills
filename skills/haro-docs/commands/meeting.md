@@ -4,7 +4,12 @@
 
 ## 11. Command `/haro-docs meeting [<topic>]` — Multi-Agent Collaborative Discussion Room
 
-Initiate a structured multi-agent collaborative meeting where selected specialist agents discuss, debate, and analyze a problem under the coordination of a designated Lead agent. The conversation is logged into an active meeting YAML file, supporting session resumption if interrupted.
+Initiate or resume a structured multi-agent collaborative meeting where specialist agents discuss, debate, and analyze a problem under the coordination of a designated Lead agent. 
+
+### Storage Architecture
+- Each meeting folder resides at `.haro-docs/meetings/<meeting_id>/`.
+- Contains `meeting.yaml` (metadata, status, rounds index, summary of rounds, and recap pointers).
+- Contains a `rounds/` subfolder storing individual raw answer markdown files (`round-<N>-<agent_id>.md`) to keep metadata extremely lightweight and avoid context bloat.
 
 ### Syntax
 
@@ -17,9 +22,9 @@ Initiate a structured multi-agent collaborative meeting where selected specialis
 
 1. **Initialize & Check Unfinished Meetings (Case 1 vs Case 2):**
    - **Case 1 (No argument `/haro-docs meeting`):**
-     - Scan `.haro-docs/meetings/` for any meeting YAML files with `status: "in-progress"`.
-     - **If unfinished meetings found:** Display them in chat and present a picker/options:
-       1. *Resume an existing meeting:* Select from the list of in-progress meetings.
+     - Scan `.haro-docs/meetings/*/meeting.yaml` for any meetings with `status: "in-progress"`.
+     - **If unfinished meetings found:** Display them in chat and present options:
+       1. *Resume an existing meeting:* Select from the list.
        2. *Create a new meeting:* Proceed to prompt for topic and goal.
      - **If no unfinished meetings found (or user chooses new):** Ask the user:
        1. *"What topic or problem would you like to discuss in this meeting?"* (Capture input).
@@ -38,9 +43,9 @@ Initiate a structured multi-agent collaborative meeting where selected specialis
 3. **Select Lead (MC / Coordinator):**
    - Prompt the user to select **1 agent** from the chosen participant list to act as the Meeting Lead (default suggestion: `agent_lead` if present, else the first participant).
 
-4. **Initialize or Resume Meeting Artifact (`.haro-docs/meetings/MT-YYYYMMDD-HHmmss-<slug>.yaml`):**
-   - **For New Meeting:** Instantiate from `templates/meeting.yaml` with `status: "in-progress"`, populate `meeting_id`, `created_at`, `topic`, `goal`, `lead_agent`, `participants`, and `rules`.
-   - **For Resumed Meeting:** Load the selected meeting YAML file, read existing `rounds` and `participants`, and confirm restoration in chat.
+4. **Initialize or Resume Meeting Directory & Artifact:**
+   - **For New Meeting:** Create directory `.haro-docs/meetings/MT-YYYYMMDD-HHmmss-<slug>/` and instantiate `meeting.yaml` from `templates/meeting.yaml` with `status: "in-progress"`, populating metadata. Also create `rounds/` subdirectory.
+   - **For Resumed Meeting:** Load the selected `meeting.yaml` and verify its `rounds/` folder structure.
 
 5. **Health Check (Smoke Test):**
    - Before kicking off or resuming, the Lead agent sends a lightweight probe (ping) to each participating agent: 
@@ -50,10 +55,13 @@ Initiate a structured multi-agent collaborative meeting where selected specialis
      - If slow or incoherent -> Alert the user immediately: *"Warning: Agent [name] is responding slowly or returning unreliably. Would you like to switch its model or replace it with another agent?"*
 
 6. **Official Kick-off / Resume & Discussion Loop (Round-robin Debate):**
-   - The Lead agent formally opens the discussion (or resumes from the last recorded round), injects meeting rules (professional analysis, structured arguments, examples, no raw source code), and dispatches prompts.
-   - **Full Transcript Logging:** The Lead agent records all verbatim responses into the meeting YAML file under `rounds`, keeping `status: "in-progress"`.
-   - **Round Summary:** At the end of each round, summarize consensus and open disputes.
-   - **Human-in-the-loop Interruption:** Pause after each round summary, waiting for user input. When concluded by the user, update meeting status to `status: "completed"`.
+   - The Lead agent formally opens the discussion (or resumes from the last recorded round).
+   - **Execution & Storage:** 
+     - Each participating agent writes their detailed analysis and arguments (structured points, examples, no raw source code).
+     - Save each agent's raw response into `.haro-docs/meetings/<meeting_id>/rounds/round-<N>-<agent_id>.md`.
+     - Record a short `recap` sentence and a pointer (`raw_file`) in `meeting.yaml`.
+   - **Round Summary:** At the end of each round, the Lead agent writes a `summary_of_round` into `meeting.yaml` capturing consensus and open disputes.
+   - **Human-in-the-loop Interruption:** Pause after each round summary, presenting the recap to the user in chat. Wait for user instructions (continue, redirect, or conclude meeting with `status: "completed"`).
 
 ### Examples
 
