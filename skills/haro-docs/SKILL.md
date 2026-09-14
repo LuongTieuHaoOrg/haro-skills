@@ -23,36 +23,19 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 ```
 .haro-docs/
 ├── config/
-│   ├── project.yaml     # Project profile: type, audience, doc-root, language settings, version
-│   ├── schema.yaml      # Approved folder tree + aggregation matrix (version lives in project.yaml)
-│   ├── agents.yaml      # Reviewer registry (entries point at agents/ files) — setup flow: shared/agents-setup.md
-│   └── status.yaml      # Single source of doc status: UPDATING | RELEASED (see commands/generate.md (§6))
-├── agents/              # Project agent copies, tuned by user — created on setup (see shared/agents-setup.md)
-│   ├── index.yaml       # Lookup: id | file | model | enabled | template | invoke
-│   └── <id>.md
-├── knowledge/           # Project knowledge memory — selective RAG (see commands/knowledge.md (§4))
-│   ├── index.yaml       # Lookup source: file | domain | summary | tags | updated — read this, not the payloads
-│   ├── business-*.md
-│   ├── technical-*.md
-│   ├── team-*.md
-│   └── common-*.md
-├── elicitation/         # Interim Q&A for generate (see commands/generate.md (§6))
-│   ├── index.yaml       # Lookup: target | file | updated | open_gaps — one entry per Q&A file
-│   └── <sanitized-path>.md
-└── reviews/             # Saved review reports (see commands/review.md (§10))
-    ├── index.yaml       # Lookup: id | topic | verdict | reviewers | date — appended on every save
-    └── RR-YYYYMMDD-HHmmss-<slug>.md
+│   ├── project.yaml     # profile: type, audience, doc-root, language, version
+│   ├── schema.yaml      # approved folder tree + aggregation matrix
+│   ├── agents.yaml      # reviewer registry
+│   └── status.yaml      # doc status: UPDATING | RELEASED
+├── agents/              # project agent copies (<id>.md + index.yaml)
+├── knowledge/           # topic files (business-*, technical-*, team-*, common-*.md + index.yaml)
+├── elicitation/         # interim Q&A (<sanitized-path>.md + index.yaml)
+└── reviews/             # reports (RR-*.md + index.yaml)
 ```
 
 > **Important:** `config/project.yaml` records the **doc-root** — the documentation location chosen by the user during `init`. Every command (`generate`, `remember`, `knowledge`) reads this config first. Never guess the doc-root.
 
-> **Read order (every command):** `config/project.yaml` → `config/schema.yaml` → `config/status.yaml` → `knowledge/index.yaml` → selectively load only the matching payload files. See the command's workflow file for details.
-
-> **Knowledge RAG:** Before any `init` or `generate` turn that needs project context, read `.haro-docs/knowledge/index.yaml` (if it exists), then selectively load only the knowledge files whose domain/tags match the task. Knowledge counts as ground truth when it conflicts with scanned defaults. See commands/knowledge.md (§4).
-
-> **Elicitation & Status:** `generate` stores interim Q&A in `.haro-docs/elicitation/` (located via its `index.yaml`) and marks each doc file `UPDATING | RELEASED` in `.haro-docs/config/status.yaml` (single source — doc files carry no status). See commands/generate.md (§6).
-
-> **Reviews:** `review` appends one entry per saved report to `.haro-docs/reviews/index.yaml` and reads it first to skip already-reviewed topics. See commands/review.md (§10).
+> **Read order (every command):** `config/project.yaml` → `config/schema.yaml` → `config/status.yaml` → `knowledge/index.yaml` (read this first, not the payloads) → selectively load only the matching payload files. Knowledge counts as ground truth over scanned defaults. Agents resolve via `config/agents.yaml` + `agents/index.yaml` when review/config needs them. See the command's workflow file for details.
 
 > **Language settings:** `config/project.yaml` also records the **reply language** (`language.response`) and the **documentation language** (`language.documentation`). These are the single source of truth for all communication and content decisions — see shared/writing-rules.md (§9). If they are empty or missing, ask the user before running any command.
 
@@ -74,18 +57,18 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 
 ## Command index
 
-| Command | When to use | Read first (fully, before acting) |
-|---------|-------------|-----------------------------------|
-| `/haro-docs` (no args) | Scan project, show dashboard, pick next action | — (runs from §3 below) |
-| `/haro-docs init <description>` | Initialize the documentation structure for a new project | `commands/init.md` |
-| `/haro-docs generate` | Build next doc (guided Q&A) | `commands/generate.md` + `shared/writing-rules.md` when writing |
-| `/haro-docs generate <file>` | Focus on a specific file | `commands/generate.md` + `shared/writing-rules.md` when writing |
-| `/haro-docs review <topic\|file>` | Critically review a problem/file via subagent reviewer(s) | `commands/review.md` |
-| `/haro-docs remember <free text>` | Record knowledge (analyze → confirm → save) | `commands/knowledge.md` |
-| `/haro-docs knowledge` | Open hub picker (list / remember / reindex / clean) | `commands/knowledge.md` |
-| `/haro-docs knowledge --reindex` | Rebuild the knowledge index from payload frontmatter + compact | `commands/knowledge.md` |
-| `/haro-docs knowledge --clean` | List stale/irrelevant knowledge, confirm per row, then remove | `commands/knowledge.md` |
-| `/haro-docs config [agents\|conventions\|language]` | Manage config via hub picker | `commands/config.md` |
+| Command | When to use | Read first (fully, before acting) | Example |
+|---------|-------------|-----------------------------------|---------|
+| `/haro-docs` (no args) | Scan project, show dashboard, pick next action | — (runs from §3 below) | `/haro-docs` |
+| `/haro-docs init <description>` | Initialize the documentation structure for a new project | `commands/init.md` | `/haro-docs init E-commerce Next.js + PostgreSQL` |
+| `/haro-docs generate` | Build next doc (guided Q&A) | `commands/generate.md` + `shared/writing-rules.md` when writing | `/haro-docs generate` |
+| `/haro-docs generate <file>` | Focus on a specific file | `commands/generate.md` + `shared/writing-rules.md` when writing | `/haro-docs generate 02-business/01-value-prop.md` |
+| `/haro-docs review <topic\|file>` | Critically review a problem/file via subagent reviewer(s) | `commands/review.md` | `/haro-docs review Should we use microservices?` |
+| `/haro-docs remember <free text>` | Record knowledge (analyze → confirm → save) | `commands/knowledge.md` | `/haro-docs remember STID is my company` |
+| `/haro-docs knowledge` | Open hub picker (list / remember / reindex / clean) | `commands/knowledge.md` | `/haro-docs knowledge` |
+| `/haro-docs knowledge --reindex` | Rebuild the knowledge index from payload frontmatter + compact | `commands/knowledge.md` | `/haro-docs knowledge --reindex` |
+| `/haro-docs knowledge --clean` | List stale/irrelevant knowledge, confirm per row, then remove | `commands/knowledge.md` | `/haro-docs knowledge --clean` |
+| `/haro-docs config [agents\|conventions\|language]` | Manage config via hub picker | `commands/config.md` | `/haro-docs config` |
 
 ## Writing rules (summary — full text in `shared/writing-rules.md`)
 
@@ -93,8 +76,6 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 - Conversation uses `language.response`, doc content uses `language.documentation` (`en` | `vi` | `vi-en`); if missing, ask first.
 - Write current state as the first version — no change-log phrasing, no version history in bodies (git owns versions).
 - `RELEASED` means final and must-follow; `UPDATING` means reference-only.
-- Proactive partner: assess first, propose with alternatives, counter-argue on conflict (shared/writing-rules.md §9.9).
-- Chat first, picker second; natural option labels; declared single/multiple mode (§Presentation rule).
 
 ## 3. Command `/haro-docs` (no args) — Project Scan + Status Dashboard + Action Picker
 
@@ -103,32 +84,14 @@ When the user runs `/haro-docs` with no arguments, or with arguments that do not
 1. **Deep scan (read-only)** —
    - If `.haro-docs/config/project.yaml` and `.haro-docs/config/schema.yaml` exist: read `docroot`, `language.*`, `version`; list the actual folder tree under doc-root (for each of `00-common` → `99-assets` show exists/missing, file count, and UPDATING/RELEASED breakdown from `.haro-docs/config/status.yaml`; paths missing from the map count as UPDATING).
    - If not initialized: show `Not initialized` and display the standard tree from shared/docs-structure.md (§8) as preview.
-   - Check knowledge: if `.haro-docs/knowledge/index.yaml` exists, show `Knowledge: N files` and the first 5 entries; otherwise show `Knowledge: (empty)`.
-   - Check reviews: if `.haro-docs/reviews/index.yaml` exists, show `Reviews: N (latest verdict)`; otherwise show `Reviews: (none)`.
-   - Check elicitation: if `.haro-docs/elicitation/index.yaml` exists, show `Elicitation: N open`; otherwise show `Elicitation: (none)`.
-   - Check agents: if `.haro-docs/config/agents.yaml` exists with ≥1 enabled entry, show `Agents: <ids> (default: <id>)`; otherwise show `Agents: (not set up — offered on first use)`.
+   - Check indexes: `knowledge/index.yaml` → `Knowledge: N files` + first 5 entries; `reviews/index.yaml` → `Reviews: N (latest verdict)`; `elicitation/index.yaml` → `Elicitation: N open`; `config/agents.yaml` (≥1 enabled) → `Agents: <ids> (default: <id>)`. Missing file → `Knowledge: (empty)` / `Reviews: (none)` / `Elicitation: (none)` / `Agents: (not set up — offered on first use)`.
    - Scan the repo lightly: README (business domain, key features), top-level source tree + tech stack signals (package.json / requirements / go.mod / pom.xml / Cargo.toml...), code scale estimate, docs files lying outside doc-root (if any).
    - Synthesize a **Project Note**: 5–8 lines on current state — initialized?, doc-root, docs coverage (% RELEASED), biggest gaps (top-3 empty folders/files), tech stack, knowledge depth.
    - Synthesize an **Agent take** (apart from the neutral picker in step 4): 2–3 lines of the agent's own view — biggest risk, most worrying gap, proposed move + one-line reason. Step-4 recommendations derive from it.
-2. **Show command summary:**
-
-   | Command | When to use | Example |
-   |---------|-------------|---------|
-   | `/haro-docs init <description>` | Initialize structure (12 folders) | `/haro-docs init E-commerce Next.js + PostgreSQL` |
-   | `/haro-docs generate` | Build next doc in order (guided Q&A) | `/haro-docs generate` |
-   | `/haro-docs generate <file>` | Focus on a specific file | `/haro-docs generate 02-business/01-value-prop.md` |
-   | `/haro-docs review <topic\|file>` | Critically review a problem/file via subagent reviewer(s) | `/haro-docs review Should we use microservices?` |
-   | `/haro-docs remember <free text>` | Record knowledge (analyze → confirm → save) | `/haro-docs remember STID is my company` |
-   | `/haro-docs knowledge` | Open hub picker (list / remember / reindex / clean) | `/haro-docs knowledge` |
-   | `/haro-docs knowledge --reindex` | Rebuild index + compact small files | `/haro-docs knowledge --reindex` |
-   | `/haro-docs knowledge --clean` | Remove stale/irrelevant knowledge | `/haro-docs knowledge --clean` |
-   | `/haro-docs config [agents\|conventions\|language]` | Manage skill config via hub picker (subagents, conventions, language) | `/haro-docs config` |
+2. **Show command summary:** render the Command index table above (with examples).
 
 3. **Show Aggregation Matrix (compact)** — BRD/PRD/SAD/FSD source folders from shared/docs-structure.md (§7).
 4. **Action picker (popup)** — after the dashboard, always ask the user what to do next (use the agent's question/picker tool when available, otherwise a numbered list). Pre-suggest **2–3 smart recommendations** based on the scan, e.g.:
-   - Not initialized → recommend `init`.
-   - `01-overview` / `02-business` empty → recommend `generate <that file>`.
-   - Many files `RELEASED` but no recent review → recommend `review <topic>`.
-   - Knowledge empty → recommend `remember <seed facts>`.
+   - E.g.: not initialized → `init`; `01-overview`/`02-business` empty → `generate <that file>`; many `RELEASED` + no recent review → `review <topic>`; knowledge empty → `remember <seed facts>`.
    The user may pick a suggestion or name any other command. Once picked, follow the MANDATORY ROUTING above: read that command's workflow file fully before acting. Do NOT auto-run side effects without that command's normal confirmations. Mode: multiple allowed for file suggestions (they form a work queue in picked order); all other picks are single. Suggestion labels keep their one-line reasons; detail lives in chat per the Presentation rule.
 5. **Do not create any file or write to any file.** If the first token is unknown (e.g. `/haro-docs foo`), prefix the dashboard with `Unknown command 'foo'. Valid: init, generate, review, remember, knowledge, knowledge --reindex, knowledge --clean, config.` and suggest the closest match. Also handle `help`, `--help`, `-h` as aliases for this dashboard. Matching is case-insensitive, trim whitespace.

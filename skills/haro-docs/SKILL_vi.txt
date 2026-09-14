@@ -82,45 +82,28 @@ File YAML là nguồn duy nhất cho mọi tra cứu của agent; file Markdown 
 
 .haro-docs/
 ├── config/
-│   ├── project.yaml     # Hồ sơ dự án: loại, audience, doc-root, ngôn ngữ, version
-│   ├── schema.yaml      # Cây thư mục đã duyệt + ma trận tổng hợp (version nằm ở project.yaml)
-│   ├── agents.yaml      # Registry reviewer (entry trỏ file agents/) — flow setup: xem Phụ lục 12
-│   └── status.yaml      # Nguồn duy nhất trạng thái docs: UPDATING | RELEASED
-├── agents/              # Bản copy agent của project, user tinh chỉnh — tạo khi setup (xem Phụ lục 12)
-│   ├── index.yaml       # Tra cứu: id | file | model | enabled | template | invoke
-│   └── <id>.md
-├── knowledge/           # Bộ nhớ kiến thức - RAG chọn lọc (xem Mục 4)
-│   ├── index.yaml       # Nguồn tra duy nhất: file | domain | tags | summary
-│   ├── business-*.md
-│   ├── technical-*.md
-│   ├── team-*.md
-│   └── common-*.md
-├── elicitation/         # Q&A tạm cho generate (xem Mục 6)
-│   ├── index.yaml       # Tra cứu: target | file | updated | open_gaps
-│   └── <sanitized-path>.md
-└── reviews/             # Báo cáo review (xem Mục 10)
-    ├── index.yaml       # Tra cứu: id | topic | verdict | reviewers | date
-    └── RR-YYYYMMDD-HHmmss-<slug>.md
+│   ├── project.yaml     # hồ sơ: loại, audience, doc-root, ngôn ngữ, version
+│   ├── schema.yaml      # cây thư mục chuẩn + ma trận tổng hợp
+│   ├── agents.yaml      # registry reviewer
+│   └── status.yaml      # trạng thái docs: UPDATING | RELEASED
+├── agents/              # bản copy agent của project (<id>.md + index.yaml)
+├── knowledge/           # file topic (business-*, technical-*, team-*, common-*.md + index.yaml)
+├── elicitation/         # Q&A tạm (<sanitized-path>.md + index.yaml)
+└── reviews/             # báo cáo (RR-*.md + index.yaml)
 
 > QUAN TRỌNG: `config/project.yaml` ghi rõ **doc-root** — vị trí lưu tài liệu do
 > user chọn khi chạy `init`. Mọi lệnh (generate, remember, knowledge) phải
 > đọc config này trước khi thao tác. Tuyệt đối không suy đoán doc-root.
 
 > THỨ TỰ ĐỌC CHUẨN (mọi lệnh): `config/project.yaml` → `config/schema.yaml`
-> → `config/status.yaml` → `knowledge/index.yaml` → chỉ load file payload khớp.
+> → `config/status.yaml` → `knowledge/index.yaml` (đọc index trước, không đọc payload) →
+> chỉ load file payload khớp. Knowledge là ground truth khi xung đột với default quét được.
+> Agent resolve qua `config/agents.yaml` + `agents/index.yaml` khi review/config cần.
 
 > CẤU HÌNH NGÔN NGỮ: `config/project.yaml` cũng ghi **ngôn ngữ trả lời**
 > (`language.response`) và **ngôn ngữ tài liệu** (`language.documentation`). Đây
 > là nguồn sự thật duy nhất cho mọi quyết định giao tiếp và nội dung — xem Mục 9.
 > Nếu trống hoặc thiếu, phải hỏi user trước khi chạy lệnh nào.
-
-> BỘ NHỚ RAG: Trước mọi lượt `init`, `generate` cần context,
-> đọc `.haro-docs/knowledge/index.yaml` (nếu tồn tại), rồi chỉ load file knowledge
-> có domain/tags khớp task. Dùng knowledge làm ground truth khi xung đột. Xem Mục 4.
-
-> ELICITATION & STATUS: `generate` lưu Q&A tạm tại `.haro-docs/elicitation/` và
-> ghi trạng thái mỗi file `UPDATING | RELEASED` vào `.haro-docs/config/status.yaml`
-> (nguồn duy nhất — file docs không gắn trạng thái). Xem Mục 6.
 
 ================================================================================
 QUY TẮC TRÌNH BÀY — CHAT TRƯỚC, PICKER SAU (mọi lệnh)
@@ -151,14 +134,11 @@ chọn thao tác:
      00-common -> 99-assets: tồn tại/thiếu, số file, breakdown UPDATING/RELEASED
      từ `.haro-docs/config/status.yaml`; path vắng trong map tính là UPDATING).
    - Nếu chưa init: hiện `Not initialized` và preview cây chuẩn từ Mục 8.
-   - Kiểm tra knowledge: nếu `.haro-docs/knowledge/index.yaml` tồn tại, hiện
-     `Knowledge: N files` và 5 entry đầu; nếu không, hiện `Knowledge: (empty)`.
-   - Kiểm tra reviews: nếu `.haro-docs/reviews/index.yaml` tồn tại, hiện
-     `Reviews: N (verdict gần nhất)`; nếu không, hiện `Reviews: (none)`.
-   - Kiểm tra elicitation: nếu `.haro-docs/elicitation/index.yaml` tồn tại, hiện
-     `Elicitation: N file đang mở`; nếu không, hiện `Elicitation: (none)`.
-   - Kiểm tra agents: nếu `.haro-docs/config/agents.yaml` tồn tại và có ≥1 entry enabled, hiện
-     `Agents: <ids> (default: <id>)`; nếu không, hiện `Agents: (chưa thiết lập — hỏi khi cần dùng)`.
+   - Kiểm tra index: `knowledge/index.yaml` → `Knowledge: N files` + 5 entry đầu;
+     `reviews/index.yaml` → `Reviews: N (verdict gần nhất)`; `elicitation/index.yaml` →
+     `Elicitation: N file đang mở`; `config/agents.yaml` (≥1 entry enabled) →
+     `Agents: <ids> (default: <id>)`. Thiếu file → `Knowledge: (empty)` / `Reviews: (none)` /
+     `Elicitation: (none)` / `Agents: (chưa thiết lập — hỏi khi cần dùng)`.
    - Quét nhẹ repo: README (domain, tính năng chính), cây source top-level + tín hiệu
      tech stack (package.json / requirements / go.mod / pom.xml / Cargo.toml...),
      ước lượng quy mô code, file docs nằm ngoài doc-root (nếu có).
@@ -184,10 +164,8 @@ chọn thao tác:
 3. **Hiện Aggregation Matrix rút gọn** - BRD/PRD/SAD/FSD từ Mục 7.
 4. **Popup chọn thao tác** — sau dashboard luôn hỏi user làm gì tiếp (dùng question/picker
    nếu có, không thì list đánh số). Đề xuất sẵn **2-3 gợi ý thông minh** theo hiện trạng, vd:
-   - Chưa init → gợi ý `init`.
-   - `01-overview` / `02-business` trống → gợi ý `generate <file đó>`.
-   - Nhiều file `RELEASED` nhưng chưa review → gợi ý `review <chủ đề>`.
-   - Knowledge trống → gợi ý `remember <facts>`.
+   - Vd: chưa init → `init`; `01-overview`/`02-business` trống → `generate <file đó>`;
+     nhiều `RELEASED` mà chưa review → `review <chủ đề>`; knowledge trống → `remember <facts>`.
    User được chọn gợi ý hoặc gọi lệnh khác. KHÔNG tự chạy side-effect khi chưa qua
    confirm của lệnh đó. Mode: gợi ý file được chọn nhiều (thành hàng đợi theo thứ tự),
    các lựa chọn khác là single. Nhãn gợi ý giữ lý do 1 dòng; chi tiết nằm ở chat theo
