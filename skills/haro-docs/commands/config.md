@@ -33,7 +33,7 @@ Manage the `.haro-docs/config/agents.yaml` configuration:
 3. Offer operations (Mode: single; picker when available, otherwise numbered list): `add from template | add custom (blank) | attach existing | tune model | enable / disable | set default_reviewer | export to IDE | reset from template (confirm first)`.
    - add from template: pick a preset from the registry (`templates/agents.yaml`) → name it (lowercase-hyphen, unique) → invoke (preset default) → copy the template file into `.haro-docs/agents/` when missing → write index + registry entries on confirm.
    - add custom (blank): name it → create `.haro-docs/agents/<name>.md` from `agents/_blank.md` for the user to fill → write entries on confirm.
-   - attach existing: pick a source — Task runtime type (catalog: sub_reviewer, sub_qc, sub_sec, sub_ba, sub_e2e, sub_uiux, sub_data, sub_arch, explore), or `@command` (typed, or picked from `.claude/agents/*.md` / `.agents/**` when found), or an existing project file → name it → confirm.
+    - attach existing: pick a source — Task runtime type (catalog: agent_lead, agent_ba, agent_arch, agent_uiux, agent_devops, agent_qa, agent_reviewer), or `@command` (typed, or picked from `.claude/agents/*.md` / `.agents/**` when found), or an existing project file → name it → confirm.
    - tune model: edits only the `model:` line in the project copy frontmatter; confirm before writing.
    - export to IDE: copies `.haro-docs/agents/<id>.md` to `.claude/agents/` (Claude Code) or `.agents/`; confirm the target first; never writes outside on its own.
 4. After any write, re-render the list and remind that `/haro-docs review` will offer these agents for selection.

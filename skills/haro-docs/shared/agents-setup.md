@@ -12,14 +12,13 @@
    | `researcher` | evidence gathering, no judging | inline | on |
    | `po` | product value, scope, priority | inline | off |
    | `pm` | schedule, risk, resourcing | inline | off |
-   | `ba` (`sub_ba`) | requirements, flows, acceptance | Task `sub_ba` | off |
-   | `arch` (`sub_arch`) | architecture, contracts, data model | Task `sub_arch` | off |
-   | `sec` (`sub_sec`) | auth, vulnerabilities, hardening | Task `sub_sec` | off |
-   | `qc` (`sub_qc`) | functional correctness, coverage | Task `sub_qc` | off |
-   | `e2e` (`sub_e2e`) | user journeys, usability | Task `sub_e2e` | off |
-   | `reviewer` (`sub_reviewer`) | final quality gate | Task `sub_reviewer` | off |
-   | `docs` (`sub_docs`) | doc consistency | Task `sub_docs` | off |
-   | `data` (`sub_data`) | SQL, data model, migration | Task `sub_data` | off |
+   | `lead` (`agent_lead`) | project orchestration & review | Task `agent_lead` | on |
+   | `ba` (`agent_ba`) | business requirements, scope, acceptance | Task `agent_ba` | off |
+   | `arch` (`agent_arch`) | system architecture & data modeling | Task `agent_arch` | off |
+   | `uiux` (`agent_uiux`) | user experience & interface spec | Task `agent_uiux` | off |
+   | `devops` (`agent_devops`) | infrastructure, CI/CD, runbooks | Task `agent_devops` | off |
+   | `qa` (`agent_qa`) | testability & test strategy | Task `agent_qa` | off |
+   | `reviewer` (`agent_reviewer`) | final quality gate & critical review | Task `agent_reviewer` | off |
    | `lead` | coordinates multi-reviewer synthesis | `@agent_lead` | off |
    | `expert` (`domain-expert`) | feasibility from practice | inline | off |
    | `custom (blank)` | your own persona | inline | off |

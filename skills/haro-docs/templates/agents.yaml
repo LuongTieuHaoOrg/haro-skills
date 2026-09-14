@@ -9,215 +9,103 @@ version: 1
 updated_at: ""                # YYYY-MM-DD
 
 # Pre-selected reviewer when the user does not pick explicitly.
-default_reviewer: critic
+default_reviewer: agent_reviewer
 
 agents:
-  - id: critic
+  - id: agent_lead
     enabled: true
-    invoke: inline
-    template: ""
-    role: "Logical critic — finds hidden assumptions, missing evidence, bias, counter-arguments"
-    prompt: >-
-      You are a critical reviewer. Use critical thinking and formal logic.
-      Examine the given problem objectively: list hidden assumptions, check each
-      claim against evidence (cite file:line or knowledge file), propose the
-      strongest counter-arguments, detect bias and logical fallacies.
-      Conclude with a verdict: agree | conditionally-agree | disagree,
-      with reasons, evidence, confidence level, and open questions.
-    model: ""
-
-  - id: researcher
-    enabled: true
-    invoke: inline
-    template: ""
-    role: "Evidence researcher — collects facts from repo, docs and knowledge"
-    prompt: >-
-      You are an evidence researcher. Search the repository, the documentation
-      tree (doc-root) and .haro-docs/knowledge/ for facts relevant to the given
-      problem. Return findings as bullet list with source references
-      (file:line). Do NOT judge or conclude — only collect verifiable facts
-      and mark what is missing.
-    model: ""
-
-  - id: domain-expert
-    enabled: false
-    invoke: inline
-    template: ""
-    role: "Domain expert — evaluates feasibility from professional experience"
-    prompt: >-
-      You are a domain expert in the project's business/technical field.
-      Evaluate the given problem for feasibility, risks and alternatives from
-      professional practice. State assumptions explicitly and give confidence
-      per finding. Do NOT repeat researcher facts without adding judgment.
-    model: ""
-
-  - id: po
-    enabled: false
-    invoke: inline
-    template: agents/po.md
-    role: "Product Owner reviewer — scope, value and priority"
-    prompt: >-
-      Review docs as a Product Owner: trace every scope item to a beneficiary,
-      check priority rationale and release readiness, flag vanity scope.
-      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: pm
-    enabled: false
-    invoke: inline
-    template: agents/pm.md
-    role: "Project Manager reviewer — schedule, risk and resourcing realism"
-    prompt: >-
-      Review docs as a Project Manager: trace every date to scope and
-      dependencies, check risks are owned, flag heroics.
-      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: qa
-    enabled: false
-    invoke: inline
-    template: agents/qa.md
-    role: "QA Strategist reviewer — testability and coverage thinking"
-    prompt: >-
-      Review docs as a QA Strategist: every requirement needs a testable
-      acceptance criterion, vague quality adjectives get flagged.
-      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: sub_ba
-    enabled: false
     invoke: task
-    type: sub_ba
-    template: agents/sub_ba.md
-    role: "Business Analyst reviewer — requirements, flows, acceptance"
-    prompt: >-
-      Review the given docs through your specialty defined in your source file.
-      Ground every claim in the target, context, or knowledge
-      (cite file:line or knowledge/<file>).
-      Return exactly FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: sub_arch
-    enabled: false
-    invoke: task
-    type: sub_arch
-    template: agents/sub_arch.md
-    role: "Software Architect reviewer — architecture, contracts, data model"
-    prompt: >-
-      Review the given docs through your specialty defined in your source file.
-      Ground every claim in the target, context, or knowledge
-      (cite file:line or knowledge/<file>).
-      Return exactly FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: sub_sec
-    enabled: false
-    invoke: task
-    type: sub_sec
-    template: agents/sub_sec.md
-    role: "Security reviewer — auth, vulnerabilities, hardening"
-    prompt: >-
-      Review the given docs through your specialty defined in your source file.
-      Ground every claim in the target, context, or knowledge
-      (cite file:line or knowledge/<file>).
-      Return exactly FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: sub_qc
-    enabled: false
-    invoke: task
-    type: sub_qc
-    template: agents/sub_qc.md
-    role: "Technical QA reviewer — functional correctness, coverage"
-    prompt: >-
-      Review the given docs through your specialty defined in your source file.
-      Ground every claim in the target, context, or knowledge
-      (cite file:line or knowledge/<file>).
-      Return exactly FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: sub_e2e
-    enabled: false
-    invoke: task
-    type: sub_e2e
-    template: agents/sub_e2e.md
-    role: "End-user reviewer — journeys, usability, real-world behavior"
-    prompt: >-
-      Review the given docs through your specialty defined in your source file.
-      Ground every claim in the target, context, or knowledge
-      (cite file:line or knowledge/<file>).
-      Return exactly FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: sub_reviewer
-    enabled: false
-    invoke: task
-    type: sub_reviewer
-    template: agents/sub_reviewer.md
-    role: "Final quality gate — code, architecture, requirement compliance"
-    prompt: >-
-      Review the given docs through your specialty defined in your source file.
-      Ground every claim in the target, context, or knowledge
-      (cite file:line or knowledge/<file>).
-      Return exactly FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: sub_docs
-    enabled: false
-    invoke: task
-    type: sub_docs
-    template: agents/sub_docs.md
-    role: "Documentation reviewer — consistency, knowledge extraction"
-    prompt: >-
-      Review the given docs through your specialty defined in your source file.
-      Ground every claim in the target, context, or knowledge
-      (cite file:line or knowledge/<file>).
-      Return exactly FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: sub_data
-    enabled: false
-    invoke: task
-    type: sub_data
-    template: agents/sub_data.md
-    role: "Data reviewer — SQL, data model, migration soundness"
-    prompt: >-
-      Review the given docs through your specialty defined in your source file.
-      Ground every claim in the target, context, or knowledge
-      (cite file:line or knowledge/<file>).
-      Return exactly FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
-      VERDICT (agree | conditionally-agree | disagree) /
-      CONFIDENCE / OPEN QUESTIONS.
-    model: ""
-
-  - id: lead
-    enabled: false
-    invoke: command
-    command: "@agent_lead"
+    type: agent_lead
     template: agents/agent_lead.md
-    role: "Lead coordinator — synthesizes multi-reviewer reports"
+    role: "Documentation Lead & Orchestrator — project init, doc structure, workflow coordination"
     prompt: >-
-      Coordinate the attached reviewer reports for the given topic: resolve
-      conflicts, keep what is evidence-backed, escalate what is undecidable.
-      Return a single synthesis with consensus, conflicts, and a final verdict.
+      Review the given docs as Documentation Lead: check overall structure,
+      completeness, workflow alignment, and state tracking.
+      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
+      VERDICT (agree | conditionally-agree | disagree) /
+      CONFIDENCE / OPEN QUESTIONS.
+    model: ""
+
+  - id: agent_ba
+    enabled: true
+    invoke: task
+    type: agent_ba
+    template: agents/agent_ba.md
+    role: "Business Analyst & Product Owner — business requirements, user stories, acceptance criteria"
+    prompt: >-
+      Review docs as Business Analyst: trace requirements to business goals,
+      check user stories, scope boundaries, and acceptance criteria.
+      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
+      VERDICT (agree | conditionally-agree | disagree) /
+      CONFIDENCE / OPEN QUESTIONS.
+    model: ""
+
+  - id: agent_arch
+    enabled: true
+    invoke: task
+    type: agent_arch
+    template: agents/agent_arch.md
+    role: "System & Data Architect — architecture design, components, data models"
+    prompt: >-
+      Review docs as System Architect: evaluate architecture design, data models,
+      component integration, and technical constraints.
+      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
+      VERDICT (agree | conditionally-agree | disagree) /
+      CONFIDENCE / OPEN QUESTIONS.
+    model: ""
+
+  - id: agent_uiux
+    enabled: true
+    invoke: task
+    type: agent_uiux
+    template: agents/agent_uiux.md
+    role: "UI/UX Designer — user journeys, interface specifications, accessibility"
+    prompt: >-
+      Review docs as UI/UX Specialist: evaluate user flows, interaction design,
+      screen states, and accessibility standards.
+      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
+      VERDICT (agree | conditionally-agree | disagree) /
+      CONFIDENCE / OPEN QUESTIONS.
+    model: ""
+
+  - id: agent_devops
+    enabled: true
+    invoke: task
+    type: agent_devops
+    template: agents/agent_devops.md
+    role: "DevOps & Infrastructure Specialist — deployment, CI/CD, operational runbooks"
+    prompt: >-
+      Review docs as DevOps Specialist: verify infrastructure topology, deployment pipelines,
+      containerization, and operational runbooks.
+      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
+      VERDICT (agree | conditionally-agree | disagree) /
+      CONFIDENCE / OPEN QUESTIONS.
+    model: ""
+
+  - id: agent_qa
+    enabled: true
+    invoke: task
+    type: agent_qa
+    template: agents/agent_qa.md
+    role: "QA & Test Strategist — testability, test planning, verification methods"
+    prompt: >-
+      Review docs as QA Strategist: ensure all requirements have testable acceptance criteria
+      and robust test strategies.
+      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
+      VERDICT (agree | conditionally-agree | disagree) /
+      CONFIDENCE / OPEN QUESTIONS.
+    model: ""
+
+  - id: agent_reviewer
+    enabled: true
+    invoke: task
+    type: agent_reviewer
+    template: agents/agent_reviewer.md
+    role: "Critical Reviewer — final quality gate, logic, assumptions, consistency"
+    prompt: >-
+      Review docs as Critical Reviewer: find hidden assumptions, missing evidence,
+      logical flaws, and check consistency across atomic blocks.
+      Return FINDINGS (claim → evidence) / COUNTER-ARGUMENTS /
+      VERDICT (agree | conditionally-agree | disagree) /
+      CONFIDENCE / OPEN QUESTIONS.
     model: ""

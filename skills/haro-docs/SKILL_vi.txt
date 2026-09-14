@@ -716,8 +716,7 @@ Quản lý cấu hình `.haro-docs/config/agents.yaml`:
      (default theo preset) → copy file mẫu vào `.haro-docs/agents/` khi thiếu → confirm rồi ghi index + registry.
    - thêm custom (trắng): đặt tên → tạo `.haro-docs/agents/<tên>.md` từ `agents/_blank.md`
      để user tự điền → confirm rồi ghi.
-   - gắn sẵn có: chọn nguồn — Task runtime type (catalog: sub_reviewer, sub_qc, sub_sec, sub_ba,
-     sub_e2e, sub_uiux, sub_data, sub_arch, explore), hoặc `@command` (gõ tay, hoặc pick từ
+   - gắn sẵn có: chọn nguồn — Task runtime type (catalog: agent_lead, agent_ba, agent_arch, agent_uiux, agent_devops, agent_qa, agent_reviewer), hoặc `@command` (gõ tay, hoặc pick từ
      `.claude/agents/*.md` / `.agents/**` khi tìm thấy), hoặc file project có sẵn → đặt tên → confirm.
    - chỉnh model: chỉ sửa dòng `model:` trong frontmatter bản copy project; confirm trước khi ghi.
    - export sang IDE: copy `.haro-docs/agents/<id>.md` sang `.claude/agents/` (Claude Code) hoặc
