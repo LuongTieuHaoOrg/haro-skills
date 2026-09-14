@@ -49,5 +49,5 @@ Set Part B of `00-common/01-conventions.md` (Part A is fixed by the skill):
 
 ### 11.4 Branch: language — Reply + Documentation Language
 
-1. Show current `language.response` + `language.documentation` from `.haro-docs/config/project.yaml` (with `vi` vs `vi-en` definitions from shared/authoring.md (§9)).
+1. Show current `language.response` + `language.documentation` from `.haro-docs/config/project.yaml` (with `vi` vs `vi-en` definitions from shared/writing-rules.md (§9)).
 2. Offer values `en | vi | vi-en` as applicable; confirm before writing back to `.haro-docs/config/project.yaml`.

@@ -11,7 +11,7 @@ description: Manage project documentation structure using the Atomic Content Blo
 
 - **Standardization:** every project has an identical documentation structure.
 - **Atomicity:** each block is an independent object — easy to track and version.
-- **Flexibility:** output documents are just different "Views" over the same blocks (see `shared/structure.md`).
+- **Flexibility:** output documents are just different "Views" over the same blocks (see `shared/doc-structure.md`).
 - **Knowledge memory:** project facts live as small domain-scoped files under `.haro-docs/knowledge/` and are loaded selectively like RAG — no vector DB (see `commands/knowledge.md`).
 - **Two states:** every doc file is `UPDATING` (in progress, reference-only) or `RELEASED` (final, must-follow). Status lives only in `.haro-docs/config/status.yaml` — doc files carry no status themselves.
 
@@ -54,7 +54,7 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 
 > **Reviews:** `review` appends one entry per saved report to `.haro-docs/reviews/index.yaml` and reads it first to skip already-reviewed topics. See commands/review.md (§10).
 
-> **Language settings:** `config/project.yaml` also records the **reply language** (`language.response`) and the **documentation language** (`language.documentation`). These are the single source of truth for all communication and content decisions — see shared/authoring.md (§9). If they are empty or missing, ask the user before running any command.
+> **Language settings:** `config/project.yaml` also records the **reply language** (`language.response`) and the **documentation language** (`language.documentation`). These are the single source of truth for all communication and content decisions — see shared/writing-rules.md (§9). If they are empty or missing, ask the user before running any command.
 
 > ## MANDATORY ROUTING — READ BEFORE ACTING (no exceptions)
 >
@@ -78,8 +78,8 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 |---------|-------------|-----------------------------------|
 | `/haro-docs` (no args) | Scan project, show dashboard, pick next action | — (runs from §3 below) |
 | `/haro-docs init <description>` | Initialize the documentation structure for a new project | `commands/init.md` |
-| `/haro-docs generate` | Build next doc (guided Q&A) | `commands/generate.md` + `shared/authoring.md` when writing |
-| `/haro-docs generate <file>` | Focus on a specific file | `commands/generate.md` + `shared/authoring.md` when writing |
+| `/haro-docs generate` | Build next doc (guided Q&A) | `commands/generate.md` + `shared/writing-rules.md` when writing |
+| `/haro-docs generate <file>` | Focus on a specific file | `commands/generate.md` + `shared/writing-rules.md` when writing |
 | `/haro-docs review <topic\|file>` | Critically review a problem/file via subagent reviewer(s) | `commands/review.md` |
 | `/haro-docs remember <free text>` | Record knowledge (analyze → confirm → save) | `commands/knowledge.md` |
 | `/haro-docs knowledge` | Open hub picker (list / remember / reindex / clean) | `commands/knowledge.md` |
@@ -87,13 +87,13 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 | `/haro-docs knowledge --clean` | List stale/irrelevant knowledge, confirm per row, then remove | `commands/knowledge.md` |
 | `/haro-docs config [agents\|conventions\|language]` | Manage config via hub picker | `commands/config.md` |
 
-## Authoring rules (summary — full text in `shared/authoring.md`)
+## Writing rules (summary — full text in `shared/writing-rules.md`)
 
 - Single Source of Truth: write once, assemble — never duplicate.
 - Conversation uses `language.response`, doc content uses `language.documentation` (`en` | `vi` | `vi-en`); if missing, ask first.
 - Write current state as the first version — no change-log phrasing, no version history in bodies (git owns versions).
 - `RELEASED` means final and must-follow; `UPDATING` means reference-only.
-- Proactive partner: assess first, propose with alternatives, counter-argue on conflict (shared/authoring.md §9.9).
+- Proactive partner: assess first, propose with alternatives, counter-argue on conflict (shared/writing-rules.md §9.9).
 - Chat first, picker second; natural option labels; declared single/multiple mode (§Presentation rule).
 
 ## 3. Command `/haro-docs` (no args) — Project Scan + Status Dashboard + Action Picker
@@ -102,7 +102,7 @@ When the user runs `/haro-docs` with no arguments, or with arguments that do not
 
 1. **Deep scan (read-only)** —
    - If `.haro-docs/config/project.yaml` and `.haro-docs/config/schema.yaml` exist: read `docroot`, `language.*`, `version`; list the actual folder tree under doc-root (for each of `00-common` → `99-assets` show exists/missing, file count, and UPDATING/RELEASED breakdown from `.haro-docs/config/status.yaml`; paths missing from the map count as UPDATING).
-   - If not initialized: show `Not initialized` and display the standard tree from shared/structure.md (§8) as preview.
+   - If not initialized: show `Not initialized` and display the standard tree from shared/doc-structure.md (§8) as preview.
    - Check knowledge: if `.haro-docs/knowledge/index.yaml` exists, show `Knowledge: N files` and the first 5 entries; otherwise show `Knowledge: (empty)`.
    - Check reviews: if `.haro-docs/reviews/index.yaml` exists, show `Reviews: N (latest verdict)`; otherwise show `Reviews: (none)`.
    - Check elicitation: if `.haro-docs/elicitation/index.yaml` exists, show `Elicitation: N open`; otherwise show `Elicitation: (none)`.
@@ -124,7 +124,7 @@ When the user runs `/haro-docs` with no arguments, or with arguments that do not
    | `/haro-docs knowledge --clean` | Remove stale/irrelevant knowledge | `/haro-docs knowledge --clean` |
    | `/haro-docs config [agents\|conventions\|language]` | Manage skill config via hub picker (subagents, conventions, language) | `/haro-docs config` |
 
-3. **Show Aggregation Matrix (compact)** — BRD/PRD/SAD/FSD source folders from shared/structure.md (§7).
+3. **Show Aggregation Matrix (compact)** — BRD/PRD/SAD/FSD source folders from shared/doc-structure.md (§7).
 4. **Action picker (popup)** — after the dashboard, always ask the user what to do next (use the agent's question/picker tool when available, otherwise a numbered list). Pre-suggest **2–3 smart recommendations** based on the scan, e.g.:
    - Not initialized → recommend `init`.
    - `01-overview` / `02-business` empty → recommend `generate <that file>`.

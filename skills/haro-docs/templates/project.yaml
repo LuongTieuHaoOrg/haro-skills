@@ -13,7 +13,7 @@ docroot: ""                   # "docs" or ".haro-docs/docs" — chosen during in
 
 language:
   response: ""                # Agent reply language: "en" | "vi"
-  documentation: ""           # Doc content language: "en" | "vi" | "vi-en" (see shared/authoring.md)
+  documentation: ""           # Doc content language: "en" | "vi" | "vi-en" (see shared/writing-rules.md)
 
 audience:
   primary: []                 # e.g. [engineers, project managers]

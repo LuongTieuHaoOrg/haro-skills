@@ -1,7 +1,7 @@
 # Generate (Haro Docs reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-docs generate`. Do not act, answer, edit, or call tools from memory: read every step below first. If in doubt at any point, re-read. The reference always wins over memory.
 > **Ground rules (apply to every action in this file):** read `docroot` from `.haro-docs/config/project.yaml` before operating — never guess it. Respect `language.response` (conversation) and `language.documentation` (doc content); if either is missing, ask the user first. Knowledge in `.haro-docs/knowledge/` is ground truth over scanned defaults (see `commands/knowledge.md`).
-> Content writing in this file must follow `shared/authoring.md`.
+> Content writing in this file must follow `shared/writing-rules.md`.
 
 ## 6. Command `/haro-docs generate` / `generate <file>` — Build Docs in Order (Guided Q&A)
 
@@ -12,7 +12,7 @@ Build documentation flexibly based on current state. Two modes:
 
 ### Ordered index
 
-Canonical order is `00-common → 01-overview → 02-business → 03-features → 04-architecture → 05-security → 06-implementation → 07-quality → 08-operations → 09-guides → 10-deliverables → 99-assets` as defined in `schema.yaml` and shared/structure.md (§8). Within each folder, files are ordered by numeric prefix. This order is the **reference**, not a rigid gate: use it to understand what is prerequisite for what, but do not block flexibly. If all files are `RELEASED`, reply `All done — every file is RELEASED.`.
+Canonical order is `00-common → 01-overview → 02-business → 03-features → 04-architecture → 05-security → 06-implementation → 07-quality → 08-operations → 09-guides → 10-deliverables → 99-assets` as defined in `schema.yaml` and shared/doc-structure.md (§8). Within each folder, files are ordered by numeric prefix. This order is the **reference**, not a rigid gate: use it to understand what is prerequisite for what, but do not block flexibly. If all files are `RELEASED`, reply `All done — every file is RELEASED.`.
 
 ### Elicitation storage
 
@@ -42,7 +42,7 @@ The single source of status is `.haro-docs/config/status.yaml`. Doc files carry 
    - Analyze: check which required sections of the target file (per schema) are still missing. If incomplete, ask another 3–5 follow-up questions, append to the elicitation file, repeat until sufficient. Re-ask `deferred` questions once at the end; still-deferred items stay open gaps.
    - **Mandatory pushback** — when an answer conflicts with knowledge / RELEASED files / scan evidence, stop and use exactly this frame: `You said X → but evidence Y shows Z → keep X or change? (keep / change / skip this one)`. Never write a conflicting answer silently. A kept-conflicting answer is recorded with a `contested` flag in elicitation and never lands in the doc.
 4. **Propose outline with alternatives** — render the full outline **in chat first**, then pick. Present `Recommended option A (section structure + why it fits)` → `Alternative option B (different structure + one-line tradeoff each side)` → open gaps. Mark sections depending on `unsure`/`skipped` answers as `[CHƯA XÁC NHẬN]` and list open gaps. Mode: single — picker options are `Choose A (recommended)` / `Choose B (alternative)` / `Revise outline`, each ≤1 line (detail lives in chat per the Presentation rule).
-5. **Write** — create the target file in its canonical folder (kebab-case + numeric prefix, shared/authoring.md (§9)) in current-state first-version style (shared/authoring.md (§9)). Follow `00-common/01-conventions.md` Part B (diagram tool, API format, tone & depth, locked terms); when conventions lack guidance for this file, use the sensible default and note it in one line without writing to conventions. Write the new status into `.haro-docs/config/status.yaml` (`UPDATING`). When new facts surfaced, also record them in `knowledge/` when needed.
+5. **Write** — create the target file in its canonical folder (kebab-case + numeric prefix, shared/writing-rules.md (§9)) in current-state first-version style (shared/writing-rules.md (§9)). Follow `00-common/01-conventions.md` Part B (diagram tool, API format, tone & depth, locked terms); when conventions lack guidance for this file, use the sensible default and note it in one line without writing to conventions. Write the new status into `.haro-docs/config/status.yaml` (`UPDATING`). When new facts surfaced, also record them in `knowledge/` when needed.
 6. **Auto 00-common** — immediately after writing, scan the new content for glossary terms, abbreviations, and references not yet in `00-common/`. Append them to the corresponding living file without requiring another command:
    - New term → append to `00-common/04-glossary.md` with one-line definition inferred from context; if `vi-en` mode, add English gloss.
    - New abbreviation → append to `00-common/03-abbreviations.md`.

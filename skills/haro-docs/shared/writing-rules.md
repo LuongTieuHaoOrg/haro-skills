@@ -1,8 +1,8 @@
-# Authoring rules (Haro Docs reference)
+# Writing rules (Haro Docs reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative rules for writing any doc content. Do not act, answer, edit, or call tools from memory: read every step below first. If in doubt at any point, re-read. The reference always wins over memory.
 > **Ground rules (apply to every action in this file):** read `docroot` from `.haro-docs/config/project.yaml` before operating — never guess it. Respect `language.response` (conversation) and `language.documentation` (doc content); if either is missing, ask the user first. Knowledge in `.haro-docs/knowledge/` is ground truth over scanned defaults.
 
-## 9. Authoring Rules
+## 9. Writing Rules
 
 1. **Single Source of Truth:** each piece of content is written once in one file only; aggregated documents only assemble content, never duplicate it.
 2. **Language configuration** — read from `project.yaml` (`language.response`, `language.documentation`):
