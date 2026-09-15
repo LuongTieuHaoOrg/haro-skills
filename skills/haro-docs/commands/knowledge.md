@@ -64,7 +64,7 @@ Knowledge is ground truth: when a knowledge file conflicts with scanned code/REA
 
 ### Hub (no subcommand)
 
-`/haro-docs knowledge` with no subcommand opens a picker (Mode: single; picker tool when available, otherwise numbered list) — same hub pattern as `/haro-docs config`:
+`/haro-docs knowledge` with no subcommand first sends a chat-only hub overview (no tool call), then opens a picker (Mode: single; picker tool when available, otherwise numbered list) — same hub pattern as `/haro-docs config`:
 
 1. `List (list)` — show every fact in store with its UID (read-only, see table below)
 2. `Ingest (ingest)` — take new content in: bare call proposes candidate facts from the current discussion plus free input; call with content runs the direct flow below

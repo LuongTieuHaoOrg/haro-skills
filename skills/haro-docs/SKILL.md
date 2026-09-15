@@ -54,6 +54,7 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 3. Order is mandatory: chat message(s) first, **then** invoke the picker tool — never merged.
 4. Every option uses natural communication language (`language.response`): a plain name plus its consequence in one line. Internal tokens (`UPDATING/RELEASED`, `unsure/defer/skip`, `save/skip`, `keep/remove`, `yes/no`) appear only in parentheses, never as bare labels.
 5. Every picker declares its mode: `single` by default; `multiple` only for reviewer selection and file-candidate queues (queued files run sequentially in picked order; `stop` ends the queue anytime).
+6. Turn discipline (hard rule, no exceptions): the chat message and the picker are **two separate turns**. Turn 1 sends the full message text with NO tool call attached. Only after turn 1 is sent may turn 2 invoke the picker/question tool. FORBIDDEN: placing message content inside the picker payload. FORBIDDEN: calling any tool in the same turn as the presentation message. Anti-pattern (violation): opening a picker whose options the user cannot judge because no chat message was sent before it (e.g. asking to choose an outline with no outline shown above).
 
 ## Command index
 
