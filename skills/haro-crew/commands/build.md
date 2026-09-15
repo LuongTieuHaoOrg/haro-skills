@@ -11,12 +11,12 @@
 ### Workflow
 
 1. **Pre-check:** read `tasks.yaml` + `docs/` pointers. Empty queue → offer: `Generate docs first` / `Add tasks manually (guided)`.
-2. **Pick next task:** show the queue (id | title | status) in chat + picker (Mode: single): next `pending` task (recommended) / specific task / `stop`.
+2. **Pick next task — two turns, chat first (Turn discipline, `shared/qa-rules.md` §2b):** (a) chat-only message with the queue (id | title | status, no tool call); (b) picker (Mode: single): next `pending` task (recommended) / specific task / `stop`.
 3. **Implement:** set task `doing`, update `staffing.yaml` (`agent_dev: busy`). Dispatch `agent_dev` with the task brief (description + acceptance criteria + relevant docs pointers). Collect `IMPLEMENTED / TESTS / NOTES`.
 4. **Review:** set task `review`, update staffing (`agent_qa: busy`, `agent_dev: ready`). Dispatch `agent_qa` with task + diff + test evidence. Collect `VERDICT / COVERAGE / GAPS / FOLLOW-UPS`; write `review_note` into `tasks.yaml`.
    - `pass` / `pass-with-notes` → `done`.
    - `fail` → back to `doing` with the notes appended; re-run implement once, then report to the user instead of looping forever (max 2 implement attempts per report cycle).
-5. **Report per task (chat, in `language.response`):** what was built, test evidence, QA verdict, files changed. Then picker: `Next task (recommended)` / `Fix notes now` / `Pause build` / `Stop`.
+5. **Report per task — two turns, chat first (Turn discipline, `shared/qa-rules.md` §2b):** (a) chat-only message in `language.response` (what was built, test evidence, QA verdict, files changed; no tool call); (b) picker: `Next task (recommended)` / `Fix notes now` / `Pause build` / `Stop`.
 6. Set `phase: build` at start. When all tasks are `done` → suggest `handover`.
 
 ### Examples

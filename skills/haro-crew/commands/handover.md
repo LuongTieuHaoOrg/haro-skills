@@ -12,5 +12,5 @@
    - How to run (prerequisites, env vars, seed, commands — from devops input).
    - Architecture + data model recap (pointers to `architecture.md`, `data-model.md`).
    - Open items: all remaining `[UNCONFIRMED]` decisions + tasks not `done` + QA `pass-with-notes`.
-3. **Present in chat** (summary, not full text) + picker: `Accept handover` / `Request fix (free-text)` / `Continue build`.
+3. **Present — two turns, chat first (Turn discipline, `shared/qa-rules.md` §2b):** (a) chat-only summary message (not the full pack text; no tool call); (b) picker: `Accept handover` / `Request fix` (free-text) / `Continue build`.
 4. On accept: set `phase: done` in `config/project.yaml`, set all crew `ready` in `staffing.yaml`.

@@ -13,6 +13,13 @@ Every question MUST ship with 2–4 proposed answers derived from context (proje
 2. Then invoke the question/picker tool: short option labels (≤1 line each, detail lives in chat) + free-text answer enabled (`type your answer`).
 3. Declare Mode: `single` by default, `multiple` only when the workflow says so.
 
+## 2b. Turn discipline — "chat first, picker second" (hard rule, no exceptions)
+
+- The chat message and the picker are **two separate turns**. Turn 1 sends the full message text with NO tool call attached. Only after turn 1 is sent may turn 2 invoke the question/picker tool.
+- FORBIDDEN: placing the message content inside the picker/question tool payload. FORBIDDEN: calling any tool in the same turn as the presentation message.
+- If a turn already contains a tool call, that turn must NOT carry presentation content — the content belongs in the preceding chat-only turn.
+- Anti-pattern (violation): calling the picker with the interpretation written into the question text while no chat message was sent before it — the user then sees options with nothing to judge them by (e.g. asking "Is the above correct?" with no "above").
+
 ## 3. Handling unsure / skip
 
 - `unsure` / `skip` are always valid implicit options — never force the user to guess.

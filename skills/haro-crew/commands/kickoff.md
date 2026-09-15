@@ -16,10 +16,11 @@
 1. **Capture the idea:**
    - With argument: take `<idea>` as the raw idea.
    - Without argument: ask ONE question with 2–3 example ideas as proposals (e.g. restaurant management app, online course platform, warehouse tracker) + free-text. Wait for the answer.
-2. **Interpret back (chat first):** `agent_lead` renders in `language.response`:
-   - `My understanding:` 3–5 lines restating the idea (what the product is, who it serves, the core value).
-   - `Assumed goal:` 1 proposed primary goal.
-   Then picker (Mode: single): `Correct, proceed` / `Edit understanding` (free-text) / `Change goal` (free-text).
+2. **Interpret back — two turns, chat first (see Turn discipline in `shared/qa-rules.md` §2b):**
+   - **2a. Chat-only turn (no tool call):** `agent_lead` sends one message in `language.response` containing exactly:
+     - `My understanding:` 3–5 lines restating the idea (what the product is, who it serves, the core value).
+     - `Assumed goal:` 1 proposed primary goal.
+   - **2b. Picker turn (only after 2a is sent):** picker (Mode: single) with short labels only — `Correct, proceed` / `Edit understanding` / `Change goal` — plus free-text. Never repeat the interpretation inside the picker payload.
 3. **Confirm languages:** ask reply language (`vi` | `en`, default `vi`) and content language (`en` | `vi` | `vi-en`, default `en`) — single pickers with defaults pre-suggested. Record into `config/project.yaml`.
 4. **Team setup:** when `.haro-crew/config/staffing.yaml` is missing, run `shared/team-setup.md`.
 5. **Initialize workspace** (only on first kickoff — never overwrite existing user state):
