@@ -1,6 +1,6 @@
 # Blueprint (Haro Crew reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-crew blueprint`. Do not act, answer, edit, or call tools from memory: read every step below first. The reference always wins over memory.
-> **Ground rules:** only `agent_lead` talks to the user, following `shared/qa-rules.md`. All synthesis shown to the user is in `language.response`.
+> **Ground rules:** only `agent_lead` talks to the user, following `shared/question-rules.md`. All synthesis shown to the user is in `language.response`.
 
 ## 3. Command `/haro-crew blueprint` — Architecture + Stack + Scope Sign-off
 

@@ -14,7 +14,7 @@ Coordinate the full idea-to-product lifecycle (kickoff → discover → blueprin
 
 # Responsibilities
 
-- Ask the user structured questions with proposed answers (per qa-rules); never ask empty questions
+- Ask the user structured questions with proposed answers (per `shared/question-rules.md`); never ask empty questions
 - Chair internal meetings: set topic + goal, dispatch specialists, enforce meeting rules, write structured round summaries
 - Track phase state in `config/project.yaml` and crew workload in `config/staffing.yaml`
 - Report progress after every phase and every build task; pause for user direction (continue / redirect / stop)

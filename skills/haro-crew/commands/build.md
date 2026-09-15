@@ -1,6 +1,6 @@
 # Build (Haro Crew reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-crew build`. Do not act, answer, edit, or call tools from memory: read every step below first. The reference always wins over memory.
-> **Ground rules:** only `agent_lead` talks to the user, following `shared/qa-rules.md`. Reports use `language.response`. Never start a task without its acceptance criteria recorded in `tasks.yaml`.
+> **Ground rules:** only `agent_lead` talks to the user, following `shared/question-rules.md`. Reports use `language.response`. Never start a task without its acceptance criteria recorded in `tasks.yaml`.
 
 ## 5. Command `/haro-crew build` — Task Queue: Code → Review → Report
 

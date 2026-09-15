@@ -1,6 +1,6 @@
 # Handover (Haro Crew reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-crew handover`. Do not act, answer, edit, or call tools from memory: read every step below first. The reference always wins over memory.
-> **Ground rules:** only `agent_lead` talks to the user, following `shared/qa-rules.md`. The handover pack uses `language.documentation` for docs and `language.response` for the chat summary.
+> **Ground rules:** only `agent_lead` talks to the user, following `shared/question-rules.md`. The handover pack uses `language.documentation` for docs and `language.response` for the chat summary.
 
 ## 6. Command `/haro-crew handover` — Docs + Code + Run Guide
 

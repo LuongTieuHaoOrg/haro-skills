@@ -1,6 +1,6 @@
 # Meeting (Haro Crew reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-crew meeting`. Do not act, answer, edit, or call tools from memory: read every step below first. The reference always wins over memory.
-> **Ground rules:** only `agent_lead` talks to the user (in `language.response`), following `shared/qa-rules.md`. Specialists communicate in English. Specialists never read raw history — the chair injects targeted context per turn.
+> **Ground rules:** only `agent_lead` talks to the user (in `language.response`), following `shared/question-rules.md`. Specialists communicate in English. Specialists never read raw history — the chair injects targeted context per turn.
 
 ## 2. Command `/haro-crew meeting [<topic>]` — Internal Crew Debate
 

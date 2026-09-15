@@ -47,14 +47,14 @@ Single-file YAMLs live together in `config/`; each multi-file feature (`knowledg
 > 2. Read that workflow file **fully, before any other tool call or answer** — this file itself runs no workflow.
 > 3. If you notice you are about to act, answer, or create anything without the workflow open, **STOP and read it first**. Acting from memory, habit, or a previous session instead of the workflow is a workflow violation: **the workflow always wins over memory**, even when you are confident. This applies equally to small/weak models — when in doubt, re-read.
 
-## Presentation rule — chat first, picker second (all commands)
+## Presentation rule — Question Rules & Anti-Drop Text Mechanism (see `shared/question-rules.md`)
 
-1. Render every content (assessment, outlines A/B, ingest preview, review synthesis, dashboard) **fully in chat text first**.
-2. Pickers hold **choice options only** — short labels (≤1 line each, pointing "see details above"). Never compress content into options to save context.
-3. Order is mandatory: chat message(s) first, **then** invoke the picker tool — never merged.
-4. Every option uses natural communication language (`language.response`): a plain name plus its consequence in one line. Internal tokens (`UPDATING/RELEASED`, `unsure/defer/skip`, `save/skip`, `keep/remove`, `yes/no`) appear only in parentheses, never as bare labels.
-5. Every picker declares its mode: `single` by default; `multiple` only for reviewer selection and file-candidate queues (queued files run sequentially in picked order; `stop` ends the queue anytime).
-6. Turn discipline (hard rule, no exceptions): an asking step is **one response with ordered blocks — chat text block(s) first, question/picker tool call as the FINAL block**. The harness renders text first, popup second: the user gets both content and popup. Never split asking into two separate responses (the second one may never run). The tool call is MANDATORY at the end of every asking step (or a numbered list when the runtime has no tool) — presenting content and stopping without it is a violation. Two-level payload policy: **SHORT** (whole payload ≤ ~200 characters, each label ≤1 line, self-explanatory — hub navigation, confirmations, save/skip) may carry its content in the payload with no extra chat text; **LONG** (explanation, evidence, multi-line structure — assessments, outlines, reports, summaries) MUST put full content in chat text first, with only a one-line pointer (e.g. `Details above. Your call:`) + short labels in the payload. Anti-patterns (violations): (1) LONG content stuffed into the payload; (2) chat text with no tool call after it.
+1. **Read `shared/question-rules.md`:** All user-facing interactions must follow the SHORT vs LONG routing rules.
+2. **SHORT content (≤ ~200 chars):** Embed directly in the picker payload (`question` parameter).
+3. **LONG content (detailed explanations, reviews, outlines):** Execute the 3-step robust presentation flow:
+   - `<render text>`: Render full content in text block first.
+   - `<write file>`: Write detailed content to `.haro-docs/output/<step>.md`.
+   - `<render popup>`: Popup title points directly to the file path (`Đã ghi lại nội dung chi tiết vào file...`), followed by short option labels.
 
 ## Command index
 

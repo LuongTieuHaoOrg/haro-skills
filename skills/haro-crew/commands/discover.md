@@ -1,6 +1,6 @@
 # Discover (Haro Crew reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-crew discover`. Do not act, answer, edit, or call tools from memory: read every step below first. The reference always wins over memory.
-> **Ground rules:** only `agent_lead` talks to the user, always following `shared/qa-rules.md`. Every question ships with 2–4 proposed answers + free-text. `unsure`/`skip` → agent default recorded as `unconfirmed` (`[UNCONFIRMED]`), never blocks.
+> **Ground rules:** only `agent_lead` talks to the user, always following `shared/question-rules.md`. Every question ships with 2–4 proposed answers + free-text. `unsure`/`skip` → agent default recorded as `unconfirmed` (`[UNCONFIRMED]`), never blocks.
 
 ## 1. Command `/haro-crew discover` — Deep-Dive the 5 Axes
 

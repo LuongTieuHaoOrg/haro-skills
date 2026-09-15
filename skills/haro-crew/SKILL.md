@@ -10,7 +10,7 @@ description: Turn a one-sentence product idea into a running application with a 
 `haro-crew` operates a crew of specialist agents like real employees: they receive requirements, analyze, debate in meetings, build, review quality, and report. The user never types commands or drafts content proactively — the crew asks structured questions with proposed answers, and the user only picks an option or types a short answer.
 
 - **Five phases:** KICKOFF → DISCOVER → BLUEPRINT → DOCS → BUILD → LAUNCH/Handover.
-- **Single voice:** only `agent_lead` talks to the user, always via question/picker with proposed options plus free-text answer. All specialist agents communicate internally in English.
+- **Single voice:** only `agent_lead` talks to the user, always via question/picker with proposed options plus free-text answer (following `shared/question-rules.md`). All specialist agents communicate internally in English.
 - **State:** all runtime state lives in `.haro-crew/` at the project root (YAML-first). Markdown payloads carry the content; YAML files are the single source the agents look up.
 - **Web viewer:** a view-only static web dashboard under `.haro-crew/web/`, served on localhost so the user can watch progress, agents, tasks, meetings, and docs.
 

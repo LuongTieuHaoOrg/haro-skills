@@ -1,6 +1,6 @@
 # Kickoff (Haro Crew reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-crew kickoff` and for `/haro-crew` with no args (status section only). Do not act, answer, edit, or call tools from memory: read every step below first. The reference always wins over memory.
-> **Ground rules:** only `agent_lead` talks to the user, always following `shared/qa-rules.md`. Respect `language.response` (chat) and `language.documentation` (docs/code); if either is missing, ask the user first.
+> **Ground rules:** only `agent_lead` talks to the user, always following `shared/question-rules.md`. Respect `language.response` (chat) and `language.documentation` (docs/code); if either is missing, ask the user first.
 
 ## 0. Command `/haro-crew kickoff <idea>` — Start From One Sentence
 
