@@ -1,0 +1,19 @@
+# .haro-crew/config/project.yaml
+
+# Project profile — created by /haro-crew kickoff.
+# Every command reads this file first. Single source for idea + phase + language.
+
+version: 1
+updated_at: ""                # YYYY-MM-DD
+
+name: ""                      # Product/project name
+idea: ""                      # Original one-sentence idea from the user
+goal: ""                      # Confirmed primary goal
+
+phase: "kickoff"              # kickoff | discover | blueprint | docs | build | handover | done
+
+stack: ""                     # Chosen stack (default: Next.js + PostgreSQL unless user changes)
+
+language:
+  response: "vi"              # Chat language with the user: "en" | "vi"
+  documentation: "en"         # Docs + code language: "en" | "vi" | "vi-en"

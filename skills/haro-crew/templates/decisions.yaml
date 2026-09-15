@@ -1,0 +1,16 @@
+# .haro-crew/decisions.yaml
+
+# Confirmed decisions + unconfirmed defaults — written by discover/blueprint,
+# read by every later phase as ground truth.
+# Entries flagged [UNCONFIRMED] are agent-proposed defaults the user has NOT
+# confirmed: use them to keep moving, never present them as final.
+
+version: 1
+updated_at: ""                # YYYY-MM-DD
+
+decisions: []
+  # - axis: "goal"            # goal | users | scale | scope | constraints | stack | architecture
+  #   question: "..."         # what was asked
+  #   answer: "..."           # user answer or agent default
+  #   status: "confirmed"     # confirmed | unconfirmed ([UNCONFIRMED])
+  #   decided_at: ""          # YYYY-MM-DD
