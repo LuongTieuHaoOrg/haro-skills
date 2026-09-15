@@ -15,7 +15,7 @@
 ### Workflow
 
 1. **Load context** — read `config/project.yaml` + `decisions.yaml` (skip axes already `confirmed`).
-2. **Per axis — two turns, chat first (Turn discipline, `shared/qa-rules.md` §2b):** (a) send one chat-only message with the axis context + the 2–4 proposals (no tool call); (b) only after it is sent, open the picker/question (Mode: single, or multiple for scope features). Record each answer immediately into `decisions.yaml` (`axis | question | answer | status: confirmed|unconfirmed | decided_at`).
+2. **Per axis — one response, chat text then tool call last (Turn discipline, `shared/qa-rules.md` §2b):** block 1 = chat text with the axis context + the 2–4 proposals; block 2 (FINAL, same response) = the picker/question (Mode: single, or multiple for scope features). Record each answer immediately into `decisions.yaml` (`axis | question | answer | status: confirmed|unconfirmed | decided_at`).
 3. **Defaults for `unsure`/`skip`:** pick the most standard option for the domain (defaults: efficiency goal, single-location scale, MVP timeline, Next.js + PostgreSQL stack later at blueprint), flag `[UNCONFIRMED]`.
 4. **Wrap-up (chat):** render the full decision table (axis | answer | confirmed/[UNCONFIRMED]) + open items count.
 5. **Next-step popup** (Mode: single): `Run blueprint meeting (recommended)` / `Re-answer an axis` / `Open web viewer` / `Stop`. On blueprint, read `commands/blueprint.md` fully first.

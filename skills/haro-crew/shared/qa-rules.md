@@ -15,10 +15,12 @@ Every question MUST ship with 2–4 proposed answers derived from context (proje
 
 ## 2b. Turn discipline — "chat first, picker second" (hard rule, no exceptions)
 
-- The chat message and the picker are **two separate turns**. Turn 1 sends the full message text with NO tool call attached. Only after turn 1 is sent may turn 2 invoke the question/picker tool.
-- FORBIDDEN: placing the message content inside the picker/question tool payload. FORBIDDEN: calling any tool in the same turn as the presentation message.
-- If a turn already contains a tool call, that turn must NOT carry presentation content — the content belongs in the preceding chat-only turn.
-- Anti-pattern (violation): calling the picker with the interpretation written into the question text while no chat message was sent before it — the user then sees options with nothing to judge them by (e.g. asking "Is the above correct?" with no "above").
+- **One response, ordered blocks, tool call LAST.** A step that asks the user is a single response containing N blocks in strict order: `[chat text block(s) first ...] → [question/picker tool call as the FINAL block]`. The harness renders text first, popup second — the user gets both content and popup. Never split asking into two separate responses (the second one may never run).
+- **The tool call is MANDATORY.** Every asking step MUST end with one picker/question tool call (or a numbered list when the runtime has no tool). Presenting content and stopping without calling the tool is a violation — equal to stuffing everything into the payload.
+- **Two-level payload policy:**
+  - **SHORT (content allowed in payload):** the whole payload (question + all options) fits in ~200 characters, each label ≤1 line, self-explanatory with nothing to add — e.g. confirmations, hub navigation, save/skip, next-step with nothing to report. No separate chat text required.
+  - **LONG (chat text required):** needs explanation, evidence, or multi-line structure (interpretations, assessments, outlines, reports, summaries, sign-off packs). Full content goes in chat text block(s) FIRST; the picker payload carries only a one-line pointer (e.g. `Details above. Your call:`) + short labels + free-text. Never compress LONG content into the payload.
+- Anti-patterns (violations): (1) picker with long content stuffed into its payload; (2) chat text sent with no tool call after it — the user reads but can never answer.
 
 ## 3. Handling unsure / skip
 

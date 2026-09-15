@@ -20,7 +20,7 @@ Generates the internal docs the build phase implements against. Small, sufficien
 
 1. **Pre-check:** read `decisions.yaml` + completed meetings. Missing blueprint sign-off → offer: `Run blueprint first (recommended)` / `Draft docs with [UNCONFIRMED] gaps`.
 2. **Draft each file** from decisions + meeting conclusions (no new user questions unless a gap blocks everything — then ask with proposals per qa-rules).
-3. **Present per file — two turns, chat first (Turn discipline, `shared/qa-rules.md` §2b):** (a) chat-only message with the short brief (not full text; no tool call); (b) picker: `Accept` / `Edit` (free-text) / `Skip file`.
+3. **Present per file — one response, chat text then tool call last (Turn discipline, `shared/qa-rules.md` §2b):** block 1 = chat text with the short brief (not full text); block 2 (FINAL, same response) = picker `Accept` / `Edit` (free-text) / `Skip file`.
 4. **Write** accepted files to `.haro-crew/docs/`; seed `.haro-crew/tasks.yaml` from the task breakdown (each task: id, title, description + acceptance criteria, owner `agent_dev`, `status: pending`).
 5. Set `phase: docs` at start, `phase: build` when moving on.
 6. **Next-step popup:** `Start build (recommended)` / `Edit a doc` / `Open web viewer` / `Stop`. On build, read `commands/build.md` fully first.
