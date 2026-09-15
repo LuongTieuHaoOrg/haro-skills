@@ -1,0 +1,15 @@
+# .haro-crew/tasks.yaml
+
+# Build task queue — created by /haro-crew docs, consumed by /haro-crew build.
+# Status per task: pending → doing → review → done. Never skip review.
+
+version: 1
+updated_at: ""                # YYYY-MM-DD
+
+tasks: []
+  # - id: "T-01"
+  #   title: "..."            # short task title
+  #   description: "..."      # what to implement + acceptance criteria
+  #   owner: "agent_dev"      # agent_dev implements, agent_qa reviews
+  #   status: "pending"       # pending | doing | review | done
+  #   review_note: ""         # filled by agent_qa in review state
