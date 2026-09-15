@@ -71,5 +71,5 @@ description: Turn a one-sentence product idea into a running application with a 
 - `agent_arch` — System architecture, data model, stack selection.
 - `agent_uiux` — User journeys, screen flows, interface specs.
 - `agent_devops` — Environments, CI/CD, run configuration.
-- `agent_dev` — Implements code per task, follows chốt docs.
+- `agent_dev` — Implements code per task, follows approved docs.
 - `agent_qa` — Test strategy, code/doc review, release gate.

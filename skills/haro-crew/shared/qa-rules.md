@@ -15,7 +15,7 @@ Every question MUST ship with 2–4 proposed answers derived from context (proje
 
 ## 3. Handling unsure / skip
 
-- `unsure` (not sure) / `skip` (bỏ qua) are always valid implicit options — never force the user to guess.
+- `unsure` / `skip` are always valid implicit options — never force the user to guess.
 - On `unsure`/`skip`: the agent fills the best default, records it in `decisions.yaml` with `status: unconfirmed`, and marks it `[UNCONFIRMED]` wherever shown. The flow NEVER blocks on an unanswered question.
 - Re-surface all `[UNCONFIRMED]` items at blueprint sign-off and at handover.
 
