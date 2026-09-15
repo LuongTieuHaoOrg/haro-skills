@@ -27,8 +27,9 @@
    - `.haro-crew/config/project.yaml` from `templates/project.yaml` (`name`, `idea`, `goal`, `phase: kickoff`, languages).
    - `.haro-crew/config/staffing.yaml` (from team setup; all `ready`).
    - `.haro-crew/decisions.yaml` from template (empty `decisions: []`).
+   - `.haro-crew/knowledge/index.yaml` from template (empty `facts: []`).
    - `.haro-crew/tasks.yaml` from template (empty `tasks: []`).
-   - `.haro-crew/meetings/`, `.haro-crew/docs/`, `.haro-crew/agents/` directories.
+   - `.haro-crew/meetings/`, `.haro-crew/docs/`, `.haro-crew/knowledge/`, `.haro-crew/agents/` directories.
 6. **Next-step popup** (Mode: single): `Start discover (recommended)` / `Open web viewer` / `Stop`. On `discover`, read `commands/discover.md` fully first — never act from memory.
 
 ## Status — Command `/haro-crew` (no args)

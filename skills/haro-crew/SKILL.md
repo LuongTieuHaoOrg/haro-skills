@@ -22,6 +22,7 @@ description: Turn a one-sentence product idea into a running application with a 
 │   ├── project.yaml     # profile: name, idea, phase, language
 │   ├── staffing.yaml    # crew roster: agent id | status (ready/busy/offline) | current task
 ├── decisions.yaml       # confirmed decisions + [UNCONFIRMED] defaults
+├── knowledge/           # project knowledge memory (index.yaml + domain facts)
 ├── tasks.yaml           # build task queue: pending → doing → review → done
 ├── agents/              # project agent copies (<id>.md)
 ├── meetings/            # <meeting_id>/meeting.yaml + rounds/round-<N>-<agent>.md
