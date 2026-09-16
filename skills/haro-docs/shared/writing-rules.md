@@ -41,3 +41,14 @@
 8. **Sub-READMEs:** every folder must have a `README.md` describing its scope and file list.
 9. **Proactive partner (applies to every command):** state your own assessment before asking anything; every proposal carries at least one alternative plus a one-line tradeoff each; when user input conflicts with evidence (knowledge, RELEASED files, scan results), **stop and counter-argue** with the `You said X → but evidence Y shows Z → keep X or change? (keep / change / skip this one)` frame before writing anything. The user decides last — on full information.
 10. **Generated files are read-only views:** `00-common/01-conventions.md` (rendered from `config/project.yaml`), `05-traceability.md`, and the doc-root README are produced only by their owning command — never hand-written, never used as writing source.
+
+11. **Requirement quality — Needs → Stories (2-level model):**
+    - **Story format (mandatory):** every user story follows `Là <vai trò> — muốn <mục tiêu> — để <giá trị>`. A story missing its value clause (`để...`) is rejected and sent back for rewrite — never written into docs.
+    - **Acceptance criteria format (mandatory):** each AC is one testable statement in Given/When/Then form. An untestable AC is an open gap, never ground.
+    - **INVEST-lite checklist:** Independent, Valuable, Estimable, Small, Testable. A story failing any item stays `UPDATING`.
+    - **No near-duplicate role stories:** two stories differing only by role (e.g. thụ lý vs lãnh đạo both "đăng nhập để dùng hệ thống") are consolidated into ONE need; the role difference is split out as a separate authorization/business rule.
+12. **REQ-ID convention (mandatory for every requirement):**
+    - `N-xx` — business need; `N-xx.y` — role-differentiated need.
+    - `UC-xx` — use case; `US-xxx` — user story; `AC-xxx.y` — acceptance criterion.
+    - Every need, use case, story, and AC carries its ID inline. Floating requirement sentences without IDs are violations.
+    - Trace chain (maintained in `00-common/05-traceability.md`): `N-xx.y → UC-xx → US-xxx → AC-xxx.y → TC-xxx`.
