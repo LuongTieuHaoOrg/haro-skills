@@ -123,9 +123,19 @@ function vGuide(el) {
     <p>This viewer is <b>read-only</b>. All answers and decisions happen in chat with <code>agent_lead</code>.</p>
     <ul>
       <li>Served from the <code>.haro-crew/</code> workspace root on <code>127.0.0.1</code> — refresh (F5) after the crew finishes a task to see fresh state.</li>
-      <li>Source files: <code>config/project.yaml</code>, <code>config/staffing.yaml</code>, <code>decisions.yaml</code>, <code>tasks.yaml</code>, <code>meetings/</code>, <code>docs/</code>.</li>
+      <li>Source files: <code>config/project.yaml</code>, <code>config/staffing.yaml</code>, <code>decisions.yaml</code>, <code>knowledge/</code>, <code>tasks.yaml</code>, <code>meetings/</code>, <code>docs/</code>.</li>
       <li>Stop the server with <code>/haro-crew web --stop</code>.</li>
-    </ul></div>`;
+    </ul>
+    <h3>Command Flow</h3>
+    <ol>
+      <li><code>/haro-crew kickoff &lt;idea&gt;</code> — Start project from a one-sentence idea.</li>
+      <li><code>/haro-crew discover</code> — Deep-dive the 5 project axes (Goal, Users, Scale, Scope, Constraints).</li>
+      <li><code>/haro-crew meeting [&lt;topic&gt;]</code> — Open an internal crew debate.</li>
+      <li><code>/haro-crew blueprint</code> — Synthesize architecture, stack, and scope sign-off.</li>
+      <li><code>/haro-crew docs</code> — Generate minimal internal documentation set.</li>
+      <li><code>/haro-crew build</code> — Run the task queue (Code → Review → Report).</li>
+      <li><code>/haro-crew handover</code> — Deliver docs, code, and run guide.</li>
+    </ol></div>`;
 }
 
 (async function init() {
