@@ -8,7 +8,7 @@
 
 1. **Pre-check:** read `decisions.yaml`. If the 5 discover axes are not all recorded, warn in chat and offer: `Back to discover` / `Proceed with gaps as [UNCONFIRMED]`.
 2. **Run the debate:** ensure one completed meeting covering at minimum: scope boundaries, architecture + data model, stack choice. If no such meeting exists, run `commands/meeting.md` (topics: `product scope`, `architecture and stack`) and return here after conclusion.
-3. **Synthesize sign-off pack — one response, chat text then tool call last (Turn discipline, `shared/qa-rules.md` §2b; LONG content):**
+3. **Synthesize sign-off pack — one response, chat text then tool call last (Turn discipline, `shared/question-rules.md` §2b; LONG content):**
    - **Block 1 — chat text:** render the full pack:
      - `Scope:` in/out lists + open scope questions.
      - `Architecture:` components, data entities, key API boundaries (5–10 lines).

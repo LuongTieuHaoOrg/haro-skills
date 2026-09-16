@@ -1,6 +1,6 @@
 # Web (Haro Crew reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-crew web` and `/haro-crew web --stop`. Do not act, answer, edit, or call tools from memory: read every step below first. The reference always wins over memory.
-> **Ground rules:** the web viewer is strictly view-only. No answers, decisions, or state changes ever happen in the browser — everything flows through chat with `agent_lead` per `shared/qa-rules.md`.
+> **Ground rules:** the web viewer is strictly view-only. No answers, decisions, or state changes ever happen in the browser — everything flows through chat with `agent_lead` per `shared/question-rules.md`.
 
 ## 7. Command `/haro-crew web` / `/haro-crew web --stop` — View-Only Progress Viewer
 

@@ -48,7 +48,7 @@ description: Turn a one-sentence product idea into a running application with a 
 2. Pickers hold **choice options only** — short labels (≤1 line each, pointing "see details above"). Never compress content into options to save context.
 3. Order is mandatory: chat message(s) first, **then** invoke the picker/question tool — never merged.
 4. Every picker declares its mode: `single` by default; `multiple` only where the workflow says so.
-5. Every question offers 2–4 proposed answers plus free-text (`type your answer`). Never ask an empty question. See `shared/qa-rules.md`.
+5. Every question offers 2–4 proposed answers plus free-text (`type your answer`). Never ask an empty question. See `shared/question-rules.md`.
 
 ## Command index
 

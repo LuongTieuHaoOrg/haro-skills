@@ -16,7 +16,7 @@
 1. **Capture the idea:**
    - With argument: take `<idea>` as the raw idea.
    - Without argument: ask ONE question with 2–3 example ideas as proposals (e.g. restaurant management app, online course platform, warehouse tracker) + free-text. Wait for the answer.
-2. **Interpret back — one response, chat text then tool call last (Turn discipline, `shared/qa-rules.md` §2b; LONG content):**
+2. **Interpret back — one response, chat text then tool call last (Turn discipline, `shared/question-rules.md` §2b; LONG content):**
    - **Block 1 — chat text:** `agent_lead` writes one message in `language.response` containing exactly:
      - `My understanding:` 3–5 lines restating the idea (what the product is, who it serves, the core value).
      - `Assumed goal:` 1 proposed primary goal.

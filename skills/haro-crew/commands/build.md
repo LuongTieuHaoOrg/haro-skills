@@ -11,12 +11,12 @@
 ### Workflow
 
 1. **Pre-check:** read `tasks.yaml` + `docs/` pointers. Empty queue → offer: `Generate docs first` / `Add tasks manually (guided)`.
-2. **Pick next task — one response, chat text then tool call last (Turn discipline, `shared/qa-rules.md` §2b):** block 1 = chat text with the queue (id | title | status); block 2 (FINAL, same response) = picker (Mode: single): next `pending` task (recommended) / specific task / `stop`.
+2. **Pick next task — one response, chat text then tool call last (Turn discipline, `shared/question-rules.md` §2b):** block 1 = chat text with the queue (id | title | status); block 2 (FINAL, same response) = picker (Mode: single): next `pending` task (recommended) / specific task / `stop`. **AC gate:** a task without recorded acceptance criteria is skipped — route it back for requirements instead of implementing.
 3. **Implement:** set task `doing`, update `staffing.yaml` (`agent_dev: busy`). Dispatch `agent_dev` with the task brief (description + acceptance criteria + relevant docs pointers). Collect `IMPLEMENTED / TESTS / NOTES`.
 4. **Review:** set task `review`, update staffing (`agent_qa: busy`, `agent_dev: ready`). Dispatch `agent_qa` with task + diff + test evidence. Collect `VERDICT / COVERAGE / GAPS / FOLLOW-UPS`; write `review_note` into `tasks.yaml`.
    - `pass` / `pass-with-notes` → `done`.
    - `fail` → back to `doing` with the notes appended; re-run implement once, then report to the user instead of looping forever (max 2 implement attempts per report cycle).
-5. **Report per task — one response, chat text then tool call last (Turn discipline, `shared/qa-rules.md` §2b):** block 1 = chat text in `language.response` (what was built, test evidence, QA verdict, files changed); block 2 (FINAL, same response) = picker: `Next task (recommended)` / `Fix notes now` / `Pause build` / `Stop`.
+5. **Report per task — one response, chat text then tool call last (Turn discipline, `shared/question-rules.md` §2b):** block 1 = chat text in `language.response` (what was built, test evidence, QA verdict, files changed); block 2 (FINAL, same response) = picker: `Next task (recommended)` / `Fix notes now` / `Pause build` / `Stop`.
 6. Set `phase: build` at start. When all tasks are `done` → suggest `handover`.
 
 ### Examples

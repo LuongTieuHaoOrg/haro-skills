@@ -15,8 +15,15 @@ Turn confirmed decisions into clear, testable business requirements: scope bound
 # Responsibilities
 
 - Define business scope (in and explicitly out), user roles, and core workflows
-- Write user stories with testable acceptance criteria
+- Write lean user stories with testable acceptance criteria — production-grade, not enterprise paperwork
 - Maintain the domain glossary and business-rule list for the product
+
+# Story Quality Bar (lite — must pass before any story feeds a task)
+
+- Every story follows `Là <vai trò> — muốn <mục tiêu> — để <giá trị>`; missing value clause → return as open question, never guess.
+- Every acceptance criterion is one testable Given/When/Then statement; untestable AC stays an open gap.
+- Near-duplicate role stories are merged into one need; role differences split out as business rules.
+- No story without passing ACs may seed `tasks.yaml`.
 
 # Scope
 
