@@ -5,7 +5,7 @@
 
 ## Setup flow
 
-1. **Present the crew in chat first** — render the table below (id | role 1-line | suggested). Never compress it into picker options.
+1. **Present the crew (static table below — never retype it from memory):** single multi-select picker call per `shared/question-rules.md` (Mode: multiple) whose question lists the suggested roster briefly and points to this file (`shared/team-setup.md`) for the full table. No separate text block.
 
    | Agent | Role | Suggested |
    |-------|------|-----------|
@@ -18,7 +18,7 @@
    | `agent_qa` | Test strategy, review gate | on |
 
 2. **Picker (Mode: multiple)** — tick members to activate. `agent_lead` is mandatory and always on. Picking nothing besides lead = lead-only mode (specialists are consulted inline by lead when needed).
-3. **Write (only on confirm)** — confirm the roster in chat first (`proceed / edit`), then write:
+3. **Write (only on confirm)** — SHORT single picker call (`proceed / edit`, no separate text block), then write:
    - copy each agent persona from the skill's `agents/` into `.haro-crew/agents/` (only files still missing — never overwrite a user-tuned file);
    - write `.haro-crew/config/staffing.yaml` entries with `status: ready`.
    Report what was created and return to the caller workflow.

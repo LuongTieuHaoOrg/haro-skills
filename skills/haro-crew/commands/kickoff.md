@@ -16,20 +16,21 @@
 1. **Capture the idea:**
    - With argument: take `<idea>` as the raw idea.
    - Without argument: ask ONE question with 2–3 example ideas as proposals (e.g. restaurant management app, online course platform, warehouse tracker) + free-text. Wait for the answer.
-2. **Interpret back — one response, chat text then tool call last (Turn discipline, `shared/question-rules.md` §2b; LONG content):**
-   - **Block 1 — chat text:** `agent_lead` writes one message in `language.response` containing exactly:
-     - `My understanding:` 3–5 lines restating the idea (what the product is, who it serves, the core value).
-     - `Assumed goal:` 1 proposed primary goal.
-   - **Block 2 — tool call (FINAL, same response):** picker (Mode: single) with short labels only — `Correct, proceed` / `Edit understanding` / `Change goal` — plus free-text, and a one-line pointer such as `Details above. Your call:`. Never compress the interpretation into the picker payload, and never end block 1 without block 2.
-3. **Confirm languages:** ask reply language (`vi` | `en`, default `vi`) and content language (`en` | `vi` | `vi-en`, default `en`) — single pickers with defaults pre-suggested. Record into `config/project.yaml`.
-4. **Team setup:** when `.haro-crew/config/staffing.yaml` is missing, run `shared/team-setup.md`.
-5. **Initialize workspace** (only on first kickoff — never overwrite existing user state):
+2. **Initialize workspace FIRST** (only on first kickoff — never overwrite existing user state; must complete before any LONG content is presented):
    - `.haro-crew/config/project.yaml` from `templates/project.yaml` (`name`, `idea`, `goal`, `phase: kickoff`, languages).
    - `.haro-crew/config/staffing.yaml` (from team setup; all `ready`).
    - `.haro-crew/decisions.yaml` from template (empty `decisions: []`).
    - `.haro-crew/knowledge/index.yaml` from template (empty `facts: []`).
    - `.haro-crew/tasks.yaml` from template (empty `tasks: []`).
-   - `.haro-crew/meetings/`, `.haro-crew/docs/`, `.haro-crew/knowledge/`, `.haro-crew/agents/` directories.
+   - `.haro-crew/meetings/`, `.haro-crew/docs/`, `.haro-crew/output/`, `.haro-crew/knowledge/`, `.haro-crew/agents/` directories.
+3. **Interpret back (LONG content — 3-step flow per `shared/question-rules.md`):**
+   - **`<render text>`:** `agent_lead` writes exactly this content in `language.response` — and nothing else (anti-narration rule: no planning notes, no meta-commentary):
+     - `My understanding:` 3–5 lines restating the idea (what the product is, who it serves, the core value).
+     - `Assumed goal:` 1 proposed primary goal.
+   - **`<write file>`:** save the same interpretation to `.haro-crew/output/kickoff-interpretation.md`.
+   - **`<render popup>`:** picker (Mode: single) with short labels only — `Correct, proceed` / `Edit understanding` / `Change goal` — plus free-text. The question carries the file pointer (e.g. the interpretation just saved, your decision:). Never point "above"; never compress the interpretation into the payload.
+4. **Confirm languages:** ask reply language (`vi` | `en`, default `vi`) and content language (`en` | `vi` | `vi-en`, default `en`) — single pickers with defaults pre-suggested. Record into `config/project.yaml`.
+5. **Team setup:** when `.haro-crew/config/staffing.yaml` is missing, run `shared/team-setup.md`.
 6. **Next-step popup** (Mode: single): `Start discover (recommended)` / `Open web viewer` / `Stop`. On `discover`, read `commands/discover.md` fully first — never act from memory.
 
 ## Status — Command `/haro-crew` (no args)
@@ -37,5 +38,4 @@
 When run with no args (or when kickoff finds an existing workspace):
 
 1. Read `config/project.yaml` → `config/staffing.yaml` → `decisions.yaml` → `tasks.yaml` (read-only).
-2. Render in chat: product name + idea (1 line), current phase, decisions count (confirmed vs `[UNCONFIRMED]`), tasks count by status, crew statuses.
-3. Picker (Mode: single) with the valid next actions for the current phase (e.g. in `discover` → `Continue discover` / `Open web viewer` / `Stop`). Read the picked command's workflow file fully before acting.
+2. SHORT single picker call per `shared/question-rules.md` (Mode: single, no separate text block): question payload carries the status (product name + idea 1 line, current phase, decisions confirmed vs `[UNCONFIRMED]`, tasks by status, crew statuses) + the valid next actions for the current phase (e.g. in `discover` → `Continue discover` / `Open web viewer` / `Stop`). Read the picked command's workflow file fully before acting.

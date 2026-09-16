@@ -18,7 +18,7 @@
 
 ### Workflow
 
-1. **No-args case:** scan `.haro-crew/meetings/*/meeting.yaml` for `status: in-progress`. If found — one response, chat text then tool call last (Turn discipline, `shared/question-rules.md` §2b): block 1 = chat text listing the in-progress meetings (id | topic | current round); block 2 (FINAL) = picker with `Resume <id>` options plus `New meeting`. If none (or user picks new), ask topic (1 question + free-text) then goal (1 question + free-text), each as its own chat-then-tool pair. SHORT lists may live in the picker payload directly (SHORT level).
+1. **No-args case:** scan `.haro-crew/meetings/*/meeting.yaml` for `status: in-progress`. If found — SHORT content per `shared/question-rules.md`: single picker call with the in-progress list (id | topic | current round) embedded in the question payload — `Resume <id>` options plus `New meeting`. No separate text block. If none (or user picks new), ask topic (1 question + free-text) then goal (1 question + free-text), each as its own single picker call.
    **With-arg case:** confirm interpretation: `Discuss '<topic>'? [Confirm / Edit]` then `Goal '<goal>'? [Confirm / Enter goal]`.
 2. **Participants:** list active crew from `config/staffing.yaml` for multi-pick (default: ba + arch + uiux + devops + qa). If staffing is missing, run `shared/team-setup.md` first. Confirm the chair (default `agent_lead`).
 3. **Init artifact:** create `.haro-crew/meetings/MT-YYYYMMDD-HHmmss-<slug>/` from `templates/meeting.yaml` (`status: in-progress`) + `rounds/` subdir. For resume: load the file, verify rounds, continue at the next round number.
@@ -27,5 +27,5 @@
    - Chair opens the round with the brief + meeting rules (structured points/arguments/examples; no raw code dumps; stay on profession).
    - Each participant writes its analysis; chair saves it verbatim to `rounds/round-<N>-<agent>.md` and records a 1–2 line English `recap` + `raw_file` pointer in `meeting.yaml`.
    - Chair writes the structured `summary_of_round` in English (`consensus | conflicts_or_disputes | key_takeaways | open_questions_for_next_round`).
-   - Chair translates the summary into `language.response` as the chat text block, then closes the SAME response with the picker tool call (FINAL): `Next round` / `Redirect` (free-text instruction) / `Conclude meeting`, with a one-line pointer such as `Summary above. Your call:`. On conclude: write `conclusion`, set `status: completed`.
+   - Chair writes the structured summary into `meeting.yaml` (+ verbatim raw files), then follows the LONG 3-step flow per `shared/question-rules.md`: `<render text>` with the translated summary in `language.response` (prescribed content only, anti-narration) → content already persisted, no extra file → `<render popup>` picker `Next round` / `Redirect` (free-text instruction) / `Conclude meeting`, whose question points to `.haro-crew/meetings/<meeting_id>/meeting.yaml`. Never point "above". On conclude: write `conclusion`, set `status: completed`.
 6. Next-step popup per question-rules. Set `phase: blueprint` in `config/project.yaml` when the meeting serves blueprint.

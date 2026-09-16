@@ -12,5 +12,5 @@
    - How to run (prerequisites, env vars, seed, commands — from devops input).
    - Architecture + data model recap (pointers to `architecture.md`, `data-model.md`).
    - Open items: all remaining `[UNCONFIRMED]` decisions + tasks not `done` + QA `pass-with-notes`.
-3. **Present — one response, chat text then tool call last (Turn discipline, `shared/question-rules.md` §2b):** block 1 = chat text summary (not the full pack text); block 2 (FINAL, same response) = picker: `Accept handover` / `Request fix` (free-text) / `Continue build`.
+3. **Present (LONG content — 3-step flow per `shared/question-rules.md`; pack already persisted in `.haro-crew/docs/handover.md`):** `<render text>` with the summary in `language.response` (prescribed content only, anti-narration) → no extra file → `<render popup>` picker `Accept handover` / `Request fix` (free-text) / `Continue build`, whose question points to `.haro-crew/docs/handover.md`. Never point "above".
 4. On accept: set `phase: done` in `config/project.yaml`, set all crew `ready` in `staffing.yaml`.

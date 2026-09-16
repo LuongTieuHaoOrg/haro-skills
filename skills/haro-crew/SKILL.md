@@ -42,13 +42,12 @@ description: Turn a one-sentence product idea into a running application with a 
 > 2. Read that workflow file **fully, before any other tool call or answer** — this file itself runs no workflow.
 > 3. If you notice you are about to act, answer, or create anything without the workflow open, **STOP and read it first**. Acting from memory, habit, or a previous session instead of the workflow is a workflow violation: **the workflow always wins over memory**. This applies equally to small/weak models — when in doubt, re-read.
 
-## Presentation rule — chat first, picker second (all commands)
+## Presentation rule — content routing per `shared/question-rules.md` (all commands)
 
-1. Render every content (interpretation, questions context, meeting summaries, task reports) **fully in chat text first**.
-2. Pickers hold **choice options only** — short labels (≤1 line each, pointing "see details above"). Never compress content into options to save context.
-3. Order is mandatory: chat message(s) first, **then** invoke the picker/question tool — never merged.
-4. Every picker declares its mode: `single` by default; `multiple` only where the workflow says so.
-5. Every question offers 2–4 proposed answers plus free-text (`type your answer`). Never ask an empty question. See `shared/question-rules.md`.
+1. **SHORT content** (confirmations, navigation, save/skip — whole payload ≤ ~200 chars): single picker call with the content embedded in the question payload. No separate text block.
+2. **LONG content** (interpretation, questions context, meeting summaries, task reports): 3-step flow — `<render text>` (prescribed content only, anti-narration) → `<write file>` under `.haro-crew/output/` (or the owning workspace path) → `<render popup>` whose question points to the **file path**. Never point "above"; never compress LONG content into options.
+3. Every picker declares its mode: `single` by default; `multiple` only where the workflow says so.
+4. Every question offers 2–4 proposed answers plus free-text (`type your answer`). Never ask an empty question.
 
 ## Command index
 
