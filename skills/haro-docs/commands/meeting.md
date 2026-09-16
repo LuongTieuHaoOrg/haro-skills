@@ -23,25 +23,20 @@ Initiate or resume a structured multi-agent collaborative meeting where speciali
 1. **Initialize & Check Unfinished Meetings (Case 1 vs Case 2):**
    - **Case 1 (No argument `/haro-docs meeting`):**
      - Scan `.haro-docs/meetings/*/meeting.yaml` for any meetings with `status: "in-progress"`.
-     - **If unfinished meetings found:** Display them in chat and present options:
-       1. *Resume an existing meeting:* Select from the list.
-       2. *Create a new meeting:* Proceed to prompt for topic and goal.
-     - **If no unfinished meetings found (or user chooses new):** Ask the user:
-       1. *"What topic or problem would you like to discuss in this meeting?"* (Capture input).
-       2. *"What is the primary goal you want to achieve from this meeting?"* (Capture input).
-   - **Case 2 (With argument `/haro-docs meeting <topic>`):**
-     - Read the provided topic.
-     - Confirm with user: *"You want to discuss: '<topic>'? [Confirm / Edit]"*.
-     - Confirm goal: *"The primary goal is: '<goal>'? [Confirm / Enter goal]"*.
-     - Create a new meeting.
+      - **If unfinished meetings found** (SHORT content per `shared/question-rules.md`): single picker call with the in-progress list embedded in the question payload — *Resume an existing meeting* (select from the list) / *Create a new meeting*. No separate text block.
+      - **If no unfinished meetings found (or user chooses new):** two SHORT single picker calls (free-text each, no separate text blocks) — 1. *"What topic or problem would you like to discuss in this meeting?"* 2. *"What is the primary goal you want to achieve from this meeting?"*.
+    - **Case 2 (With argument `/haro-docs meeting <topic>`):**
+      - Read the provided topic.
+      - Two SHORT single picker calls (no separate text blocks): *"You want to discuss: '<topic>'? [Confirm / Edit]"*, then *"The primary goal is: '<goal>'? [Confirm / Enter goal]"*.
+      - Create a new meeting.
 
 2. **Select Participants (for New Meetings):**
    - Scan `.haro-docs/agents/` or read `.haro-docs/agents/index.yaml` to list available agents (e.g., `agent_ba`, `agent_arch`, `agent_uiux`, `agent_devops`, `agent_qa`, `agent_reviewer`).
-   - Present the list to the user for multi-selection (Mode: multiple).
+   - SHORT single multi-select picker call (Mode: multiple) with the agent list embedded in the question payload. No separate text block.
    - *If no agents exist or list is empty:* Notify the user and offer assistance to create new agents from `agents/_blank.md`.
 
 3. **Select Lead (MC / Coordinator):**
-   - Prompt the user to select **1 agent** from the chosen participant list to act as the Meeting Lead (default suggestion: `agent_lead` if present, else the first participant).
+   - SHORT single picker call: select **1 agent** from the chosen participant list to act as the Meeting Lead (default suggestion: `agent_lead` if present, else the first participant). No separate text block.
 
 4. **Initialize or Resume Meeting Directory & Artifact:**
    - **For New Meeting:** Create directory `.haro-docs/meetings/MT-YYYYMMDD-HHmmss-<slug>/` and instantiate `meeting.yaml` from `templates/meeting.yaml` with `status: "in-progress"`, populating metadata. Also create `rounds/` subdirectory.
@@ -68,7 +63,7 @@ Initiate or resume a structured multi-agent collaborative meeting where speciali
        key_takeaways: [...]
        open_questions_for_next_round: [...]
      ```
-   - **Human-in-the-loop Interruption:** Translate and present the structured summary in `language.response` (e.g. Vietnamese) to the user in chat. Wait for user instructions (continue, redirect, or conclude meeting with `status: "completed"`).
+   - **Human-in-the-loop Interruption (LONG content — 3-step flow per `shared/question-rules.md`; summary already persisted in `meeting.yaml`):** `<render text>` with the translated summary in `language.response` (prescribed content only, anti-narration) → no extra file → `<render popup>` picker (continue / redirect with free-text / conclude meeting with `status: "completed"`) whose question points to `.haro-docs/meetings/<meeting_id>/meeting.yaml`. Never point "above".
 
 ### Examples
 

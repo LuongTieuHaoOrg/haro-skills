@@ -18,3 +18,9 @@
     1. **`<render text>`**: Send the full content in the standard text block first (kept for clients supporting text + tool rendering).
     2. **`<write file>`**: Write the complete detailed content into a workspace file under `.haro-docs/output/<step-name>.md` (or relevant workspace path).
     3. **`<render popup>`**: Trigger the question/picker tool call with a clear title pointing directly to the file (e.g., *"Đã ghi lại nội dung chi tiết vào file `...` tại <path>. Tiếp theo sẽ làm gì?"*) accompanied by concise action options.
+
+## 3. Anti-narration — chat blocks carry user-facing content ONLY
+
+- A text block MUST contain only the content the workflow step prescribes, written in `language.response`.
+- FORBIDDEN in chat: internal planning, tool-sequencing notes, conflict-resolution notes, file-deferral notes, or any English meta-commentary about what the agent is doing.
+- If a step cannot run as prescribed, STOP and fix the precondition per the workflow — never narrate the problem to the user as if it were content.

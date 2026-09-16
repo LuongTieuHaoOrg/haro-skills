@@ -4,7 +4,7 @@
 
 ## Setup flow
 
-1. **Present presets in chat first** — render the table below from the skill's `templates/agents.yaml` (id | lens 1-line | runs via | suggested). Never compress it into picker options.
+1. **Present presets (static table lives in `templates/agents.yaml` — never retype the full table into chat):** single multi-select picker call per `shared/question-rules.md` (Mode: multiple) whose question lists only the suggested (`on`) presets briefly and points to `templates/agents.yaml` for the full table. No separate text block.
 
    | Pick | Lens | Runs via | Suggested |
    |------|------|----------|-----------|

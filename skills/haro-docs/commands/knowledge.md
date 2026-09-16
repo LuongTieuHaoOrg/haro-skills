@@ -64,7 +64,7 @@ Knowledge is ground truth: when a knowledge file conflicts with scanned code/REA
 
 ### Hub (no subcommand)
 
-`/haro-docs knowledge` with no subcommand is SHORT content: the hub overview + picker may live in one response with the picker tool call last (Turn discipline, `SKILL.md` Presentation rule item 6) — same hub pattern as `/haro-docs config`:
+`/haro-docs knowledge` with no subcommand is SHORT content per `shared/question-rules.md`: single picker call with the hub overview + options embedded in the question payload, no separate text block — same hub pattern as `/haro-docs config`:
 
 1. `List (list)` — show every fact in store with its UID (read-only, see table below)
 2. `Ingest (ingest)` — take new content in: bare call proposes candidate facts from the current discussion plus free input; call with content runs the direct flow below

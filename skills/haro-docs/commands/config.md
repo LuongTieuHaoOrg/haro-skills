@@ -18,7 +18,7 @@ Central hub for skill configuration. Three branches; doc-root lives only in `.ha
 Workflow:
 
 1. Read state: `agents.yaml` (exists? N enabled, default?), `conventions:` + `audience.technical_depth` + `deliverables` from `.haro-docs/config/project.yaml` (or `missing`), `language.response/documentation` from the same file.
-2. Hub overview is SHORT content: render it as the chat text block, then close the SAME response with the picker (Mode: single; picker tool when available, otherwise numbered list), each row with a one-line status (Turn discipline, `SKILL.md` Presentation rule item 6):
+2. Hub overview is SHORT content per `shared/question-rules.md`: single picker call (Mode: single; picker tool when available, otherwise numbered list) with each row + one-line status embedded in the question payload. No separate text block:
    - `1. agents — reviewer subagents (N enabled, default: <id>)`
    - `2. conventions — project-specific conventions (diagram, API format, tone, approver...)`
    - `3. language — reply + documentation language`

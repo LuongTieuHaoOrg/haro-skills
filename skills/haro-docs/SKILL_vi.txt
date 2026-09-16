@@ -106,18 +106,21 @@ File YAML là nguồn duy nhất cho mọi tra cứu của agent; file Markdown 
 > Nếu trống hoặc thiếu, phải hỏi user trước khi chạy lệnh nào.
 
 ================================================================================
-QUY TẮC TRÌNH BÀY — CHAT TRƯỚC, PICKER SAU (mọi lệnh)
+QUY TẮC TRÌNH BÀY — PHÂN LUỒNG NỘI DUNG THEO `shared/question-rules.md` (mọi lệnh)
 ================================================================================
+(Không bao giờ gửi 2 khối text + tool_call cùng lúc — runtime sẽ nuốt text.
+Không bao giờ kể quá trình nội bộ ra chat — chỉ hiện nội dung đúng format bước đó.)
 
-1. Mọi nội dung (nhận định, outline A/B, preview ingest, synthesis review,
-   dashboard) render **đầy đủ trong chat trước**.
-2. Picker chỉ chứa **option lựa chọn** — nhãn ngắn (≤1 dòng, trỏ "xem chi tiết ở trên").
-   Không bao giờ nén nội dung vào option để tiết kiệm context.
-3. Thứ tự bắt buộc: message chat trước, **rồi mới** gọi picker — không gộp chung.
-4. Mọi option dùng ngôn ngữ giao tiếp (`language.response`): tên gọi thường + hậu quả
+1. **SHORT (≤ ~200 ký tự):** 1 lệnh picker duy nhất, nhét nội dung vào payload `question`.
+   Không có text block riêng.
+2. **LONG (diễn giải, outline, review, báo cáo):** 3 bước — `<render text>` (đúng nội
+   dung quy định, cấm narration) → `<write file>` vào `.haro-docs/output/` (hoặc
+   đường dẫn workspace sở hữu) → `<render popup>` trỏ thẳng **đường dẫn file**.
+   Cấm trỏ "ở tin nhắn trên"; cấm nén nội dung LONG vào option.
+3. Mọi option dùng ngôn ngữ giao tiếp (`language.response`): tên gọi thường + hậu quả
    1 dòng. Token nội bộ (`UPDATING/RELEASED`, `unsure/defer/skip`, `save/skip`,
    `keep/remove`, `yes/no`) chỉ đứng trong ngoặc, không bao giờ làm nhãn trần.
-5. Mọi picker khai báo mode: `single` mặc định; `multiple` chỉ cho chọn reviewer và
+4. Mọi picker khai báo mode: `single` mặc định; `multiple` chỉ cho chọn reviewer và
    hàng đợi file (chạy lần lượt theo thứ tự đã chọn; `dừng` kết thúc bất cứ lúc nào).
 
 ================================================================================
