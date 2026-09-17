@@ -1,6 +1,6 @@
 # .haro-crew/config/project.yaml
 
-# Project profile — created by /haro-crew kickoff.
+# Project profile — created by /haro-crew (index).
 # Every command reads this file first. Single source for idea + phase + language.
 
 version: 1
@@ -10,7 +10,9 @@ name: ""                      # Product/project name
 idea: ""                      # Original one-sentence idea from the user
 goal: ""                      # Confirmed primary goal
 
-phase: "kickoff"              # kickoff | discover | blueprint | docs | build | handover | done
+project_type: ""              # outsource | freelance | personal (empty = ask in index)
+
+phase: "index"                # index | plan | docs | build | done
 
 stack: ""                     # Chosen stack (default: Next.js + PostgreSQL unless user changes)
 

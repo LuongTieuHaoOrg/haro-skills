@@ -1,6 +1,6 @@
 # .haro-crew/decisions.yaml
 
-# Confirmed decisions + unconfirmed defaults — written by discover/blueprint,
+# Confirmed decisions + unconfirmed defaults — written by plan (collect/debate/blueprint),
 # read by every later phase as ground truth.
 # Entries flagged [UNCONFIRMED] are agent-proposed defaults the user has NOT
 # confirmed: use them to keep moving, never present them as final.

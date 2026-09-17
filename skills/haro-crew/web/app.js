@@ -81,7 +81,7 @@ function vAgents(el) {
 
 function vTasks(el) {
   const tasks = (state.tasks && state.tasks.tasks) || [];
-  if (!tasks.length) { el.innerHTML = `<div class="card"><p class="dim">No tasks yet — they appear after Phase 3 (docs).</p></div>`; return; }
+  if (!tasks.length) { el.innerHTML = `<div class="card"><p class="dim">No tasks yet — they appear after <code>/haro-crew docs</code> (or are created at the start of <code>/haro-crew build</code>).</p></div>`; return; }
   el.innerHTML = tasks.map((t) => `
     <div class="card"><h3><code>${esc(t.id)}</code> — ${esc(t.title)} ${badge(t.status)}</h3>
       <p>${esc(t.description)}</p>
@@ -99,21 +99,56 @@ function vDecisions(el) {
 }
 
 async function vMeetings(el) {
-  // Meeting list is derived from known meeting.yaml files — the viewer tries
-  // the meetings index convention; missing files render as empty state.
-  el.innerHTML = `<div class="card"><h3>Meetings</h3>
-    <p class="dim">Meeting transcripts live under <code>.haro-crew/meetings/&lt;id&gt;/</code>.
-    Open this viewer alongside the chat — the chair reports each round summary in chat.</p>
-    <div id="mt-list"><p class="dim">Listing meetings requires a meetings index. See Run guide tab.</p></div></div>`;
+  // Meeting list comes from GET /api/meetings (served by server.js);
+  // each meeting.yaml is fetched + parsed here (vendored js-yaml).
+  let list = null;
+  try {
+    const res = await fetch("/api/meetings");
+    if (res.ok) list = await res.json();
+  } catch (e) { /* fall through to empty state */ }
+  if (!list || !list.length) {
+    el.innerHTML = `<div class="card"><h3>Meetings</h3>
+      <p class="dim">No meetings yet — they appear after the debate step of <code>/haro-crew plan</code>.</p></div>`;
+    return;
+  }
+  const cards = [];
+  for (const m of list) {
+    let meta = null;
+    try { meta = await fetchYaml("../" + m.meetingYaml); } catch (e) { /* raw file missing */ }
+    const topic = (meta && (meta.topic || meta.title)) || m.id;
+    const status = (meta && meta.status) || "?";
+    const rounds = (m.rounds && m.rounds.length) || 0;
+    const conclusion = meta && meta.conclusion ? `<p>${esc(meta.conclusion)}</p>` : "";
+    cards.push(`<div class="card"><h3><code>${esc(m.id)}</code> — ${esc(topic)} ${badge(status)}</h3>
+      <p class="dim">${rounds} round file(s) under <code>.haro-crew/${esc(m.meetingYaml).replace("meeting.yaml", "")}</code></p>
+      ${conclusion}</div>`);
+  }
+  el.innerHTML = `<div class="card"><h3>Meetings (${list.length})</h3>
+    <p class="dim">Full transcripts live under <code>.haro-crew/meetings/&lt;id&gt;/</code>.
+    Summaries are reported in chat by <code>agent_lead</code>.</p></div>` + cards.join("");
 }
 
 async function vDocs(el) {
-  const KNOWN = ["overview.md", "features.md", "architecture.md", "data-model.md", "tasks.md", "handover.md"];
+  // Doc list comes from GET /api/docs (served by server.js) so the viewer
+  // never hardcodes file names. Falls back to the atomic layout when offline.
+  const FALLBACK = [
+    "01-proposal/problem.md", "01-proposal/scope.md", "01-proposal/timeline.md",
+    "02-requirements/users.md", "02-requirements/features.md", "02-requirements/open-items.md",
+    "03-design/architecture.md", "03-design/data-model.md",
+    "_views/01-proposal.md", "_views/02-pricing.md", "_views/03-business.md",
+    "_views/04-technical.md", "_views/05-progress.md", "_views/06-handover.md",
+  ];
+  let names = null;
+  try {
+    const res = await fetch("/api/docs");
+    if (res.ok) names = await res.json();
+  } catch (e) { /* fall through to fallback */ }
+  if (!names) names = FALLBACK;
   const found = [];
-  for (const f of KNOWN) {
+  for (const f of names) {
     try { found.push([f, await fetchText("../docs/" + f)]); } catch (e) { /* not yet generated */ }
   }
-  if (!found.length) { el.innerHTML = `<div class="card"><p class="dim">No docs yet — they appear after Phase 3 (docs).</p></div>`; return; }
+  if (!found.length) { el.innerHTML = `<div class="card"><p class="dim">No docs yet — they appear after <code>/haro-crew docs</code>.</p></div>`; return; }
   el.innerHTML = found.map(([f, md]) =>
     `<div class="card"><h3><code>${esc(f)}</code></h3><div>${marked.parse(md)}</div></div>`).join("");
 }
@@ -123,18 +158,15 @@ function vGuide(el) {
     <p>This viewer is <b>read-only</b>. All answers and decisions happen in chat with <code>agent_lead</code>.</p>
     <ul>
       <li>Served from the <code>.haro-crew/</code> workspace root on <code>127.0.0.1</code> — refresh (F5) after the crew finishes a task to see fresh state.</li>
-      <li>Source files: <code>config/project.yaml</code>, <code>config/staffing.yaml</code>, <code>decisions.yaml</code>, <code>knowledge/</code>, <code>tasks.yaml</code>, <code>meetings/</code>, <code>docs/</code>.</li>
+      <li>Source files: <code>config/project.yaml</code>, <code>config/staffing.yaml</code>, <code>decisions.yaml</code>, <code>knowledge/</code>, <code>tasks.yaml</code>, <code>meetings/</code>, <code>docs/</code> (atomic docs + <code>_views/</code> client exports), <code>temp/</code> (throwaway).</li>
       <li>Stop the server with <code>/haro-crew web --stop</code>.</li>
     </ul>
     <h3>Command Flow</h3>
     <ol>
-      <li><code>/haro-crew kickoff &lt;idea&gt;</code> — Start project from a one-sentence idea.</li>
-      <li><code>/haro-crew discover</code> — Deep-dive the 5 project axes (Goal, Users, Scale, Scope, Constraints).</li>
-      <li><code>/haro-crew meeting [&lt;topic&gt;]</code> — Open an internal crew debate.</li>
-      <li><code>/haro-crew blueprint</code> — Synthesize architecture, stack, and scope sign-off.</li>
-      <li><code>/haro-crew docs</code> — Generate minimal internal documentation set.</li>
-      <li><code>/haro-crew build</code> — Run the task queue (Code → Review → Report).</li>
-      <li><code>/haro-crew handover</code> — Deliver docs, code, and run guide.</li>
+      <li><code>/haro-crew</code> — Index the project, pick the reply language first, get the next action.</li>
+      <li><code>/haro-crew plan [&lt;idea|topic&gt;]</code> — Collect requirements, debate them, sign off the blueprint.</li>
+      <li><code>/haro-crew docs</code> — Write the atomic docs, regen the <code>_views/</code> client exports.</li>
+      <li><code>/haro-crew build</code> — Create tasks if empty, run the queue (Code → Review → Report), hand over at the end.</li>
     </ol></div>`;
 }
 

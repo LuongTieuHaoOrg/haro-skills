@@ -35,6 +35,12 @@ const MIME = {
 const server = http.createServer((req, res) => {
   try {
     const urlPath = decodeURIComponent(req.url.split("?")[0]);
+    // JSON directory-listing APIs so app.js never hardcodes file lists.
+    if (urlPath === "/api/docs" || urlPath === "/api/meetings") {
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(urlPath === "/api/docs" ? listDocs() : listMeetings()));
+      return;
+    }
     let filePath = path.normalize(path.join(ROOT, urlPath === "/" ? "/web/index.html" : urlPath));
     if (!filePath.startsWith(ROOT)) {
       res.writeHead(403);
@@ -57,6 +63,62 @@ const server = http.createServer((req, res) => {
     res.end("Server error");
   }
 });
+
+// Recursively list *.md files under <ROOT>/docs, returned as paths
+// relative to docs/ (e.g. "01-proposal/scope.md", "_views/01-proposal.md").
+function listDocs() {
+  const out = [];
+  const walk = (dir, rel) => {
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (err) {
+      return;
+    }
+    entries.sort((a, b) => (a.isDirectory() === b.isDirectory() ? (a.name < b.name ? -1 : 1) : (a.isDirectory() ? -1 : 1)));
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (!full.startsWith(ROOT)) continue;
+      if (e.isDirectory()) walk(full, path.join(rel, e.name));
+      else if (/\.md$/i.test(e.name)) out.push(rel ? rel + "/" + e.name : e.name);
+    }
+  };
+  walk(path.join(ROOT, "docs"), "");
+  return out;
+}
+
+// List meetings: [{ id, meetingYaml, rounds: [<md paths>] }].
+// app.js fetches + parses each meeting.yaml itself (vendored js-yaml).
+function listMeetings() {
+  const out = [];
+  const base = path.join(ROOT, "meetings");
+  let ids;
+  try {
+    ids = fs.readdirSync(base).sort();
+  } catch (err) {
+    return out;
+  }
+  for (const id of ids) {
+    const dir = path.join(base, id);
+    let st;
+    try {
+      st = fs.statSync(dir);
+    } catch (err) {
+      continue;
+    }
+    if (!st.isDirectory()) continue;
+    const roundsDir = path.join(dir, "rounds");
+    let rounds = [];
+    try {
+      rounds = fs.readdirSync(roundsDir).filter((f) => /\.md$/i.test(f)).sort()
+        .map((f) => "meetings/" + id + "/rounds/" + f);
+    } catch (err) { /* no rounds yet */ }
+    const yamlPath = "meetings/" + id + "/meeting.yaml";
+    if (!fs.existsSync(path.join(ROOT, yamlPath))) continue;
+    out.push({ id, meetingYaml: yamlPath, rounds });
+  }
+  return out;
+}
 
 server.listen(PORT, "127.0.0.1", () => {
   const url = `http://127.0.0.1:${PORT}/web/`;

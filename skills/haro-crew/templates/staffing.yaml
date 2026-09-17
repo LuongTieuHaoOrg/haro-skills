@@ -1,6 +1,6 @@
 # .haro-crew/config/staffing.yaml
 
-# Crew roster — created by /haro-crew kickoff from templates.
+# Crew roster — created by /haro-crew (index) from templates.
 # Status per agent: ready | busy | offline. Updated by agent_lead as work progresses.
 
 version: 1
@@ -9,7 +9,7 @@ updated_at: ""                # YYYY-MM-DD
 crew:
   - id: "agent_lead"
     status: "ready"           # ready | busy | offline
-    current_task: ""          # free-text, e.g. "Phase 1 discover"
+    current_task: ""          # free-text, e.g. "plan step 1 collect"
   - id: "agent_ba"
     status: "ready"
     current_task: ""

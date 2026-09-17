@@ -1,6 +1,6 @@
 # Team setup (shared flow)
 
-> Called by `/haro-crew kickoff` when `.haro-crew/config/staffing.yaml` is missing.
+> Called by `/haro-crew` (index) when `.haro-crew/config/staffing.yaml` is missing.
 > Read `shared/question-rules.md` before acting — all questions follow those rules.
 
 ## Setup flow

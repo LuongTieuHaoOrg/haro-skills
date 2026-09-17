@@ -1,28 +1,47 @@
 # Docs (Haro Crew reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the normative workflow for `/haro-crew docs`. Do not act, answer, edit, or call tools from memory: read every step below first. The reference always wins over memory.
-> **Ground rules:** only `agent_lead` talks to the user, following `shared/question-rules.md`. Doc content uses `language.documentation`.
+> **Ground rules:** only `agent_lead` talks to the user, following `shared/question-rules.md`. Doc content uses `language.documentation`. Docs are regen views over state — fix the state (`decisions.yaml`, meetings), then regen; never hand-edit a `_views/` file.
 
-## 4. Command `/haro-crew docs` — Minimal Internal Docs Set
+## Command `/haro-crew docs` — Atomic docs + client exports
 
-Generates the internal docs the build phase implements against. Small, sufficient, no ceremony.
+Generates the internal atomic docs the build phase implements against, then regens the `_views/` client exports. Small, sufficient, no ceremony.
 
-> **Lean stop-rule:** docs exist to feed production — stop when dev can code and QA can test from them. No use cases, no formal SAD/FSD, no enterprise paperwork. Depth goes into stories/features/ACs, not documents.
+> **Lean stop-rule:** docs exist to feed production — stop when dev can code and QA can test from them. No use cases, no formal SAD/FSD, no enterprise paperwork. Depth goes into features/ACs, not documents.
 
-### Files (under `.haro-crew/docs/`)
+### Files (under `.haro-crew/docs/` — one fact in exactly one place)
 
-1. `overview.md` — product, goal, users, success criteria (from decisions + kickoff).
-2. `features.md` — feature areas with user stories + acceptance criteria (BA output, meeting-backed).
-3. `architecture.md` — components, data entities, API boundaries, stack (arch output, meeting-backed).
-4. `data-model.md` — entities, key fields, relationships.
-5. `tasks.md` — human-readable task list mirroring `tasks.yaml`.
+Internal atomic docs (SSOT):
 
-(`handover.md` is added later by `/haro-crew handover` — see `commands/handover.md`.)
+1. `01-proposal/problem.md` — problem, goal, success criteria (from plan step 1).
+2. `01-proposal/scope.md` — in/out lists — SSOT for scope. Everything else points here, never retypes it.
+3. `01-proposal/timeline.md` — milestones + schedule (from constraints).
+4. `02-requirements/users.md` — roles + needs (from plan step 1).
+5. `02-requirements/features.md` — features with short acceptance criteria (from plan step 2) — SSOT for acceptance.
+6. `02-requirements/open-items.md` — auto-regenerated `[UNCONFIRMED]` + open questions (never hand-written).
+7. `03-design/architecture.md` — components, main flows, API/page boundaries, stack + why (from plan step 3).
+8. `03-design/data-model.md` — entities, key fields, relationships (from plan step 3).
+
+Client exports (regen-only, under `.haro-crew/docs/_views/` — never hand-edited):
+
+1. `01-proposal.md` — deal view: problem, solution, scope summary, milestones, terms (no price). Regen from `01-proposal/*`.
+2. `02-pricing.md` — optional, only when the project needs a quote (outsource/freelance; personal skips): items | price | payment milestones | warranty.
+3. `03-business.md` — non-tech view: problem + scope + users + lean features + timeline. Regen, no tech detail.
+4. `04-technical.md` — dev/tech view: architecture + data model + features with AC + scope. Regen.
+5. `05-progress.md` — tracking view: regen from `tasks.yaml` (feature | status | demo link | note, filtered — no secrets, no internal task detail).
+6. `06-handover.md` — written at the end of build (see `commands/build.md`), surfaced here for delivery.
 
 ### Workflow
 
-1. **Pre-check:** read `decisions.yaml` + completed meetings. Missing blueprint sign-off → offer: `Run blueprint first (recommended)` / `Draft docs with [UNCONFIRMED] gaps`.
-2. **Draft each file** from decisions + meeting conclusions (no new user questions unless a gap blocks everything — then ask with proposals per question-rules).
-3. **Present per file (SHORT content per `shared/question-rules.md`):** single picker call `Accept` / `Edit` (free-text) / `Skip file`, with the short brief (not full text) embedded in the question payload plus the path to the draft under `.haro-crew/docs/`. No separate text block.
-4. **Write** accepted files to `.haro-crew/docs/`; seed `.haro-crew/tasks.yaml` from the task breakdown (each task: id, title, description + acceptance criteria, owner `agent_dev`, `status: pending`).
-5. Set `phase: docs` at start, `phase: build` when moving on.
-6. **Next-step popup:** `Start build (recommended)` / `Edit a doc` / `Open web viewer` / `Stop`. On build, read `commands/build.md` fully first.
+1. **Pre-check:** read `decisions.yaml` + completed meetings + `config/project.yaml` (`project_type`). Missing plan sign-off → offer: `Back to plan (recommended)` / `Draft docs with [UNCONFIRMED] gaps`.
+2. **Draft the 8 atomic files** from decisions + meeting conclusions (no new user questions unless a gap blocks everything — then ask with proposals per question-rules). Keep each file ≤ ~150 lines; if a file outgrows that, split it (e.g. `features/<name>.md`), never bloat. Other files reference by pointer (`See scope.md`), never by copying long passages.
+3. **Pricing gate:** if `project_type` is `personal` (or the user says no quote is needed) → skip `02-pricing.md`. Otherwise ask ONE picker: `Create pricing view? Yes / No`. On yes, draft it from scope + timeline.
+4. **Present once (SHORT content per `shared/question-rules.md`):** single picker call `Accept all` / `Edit` (free-text, names the file) / `Regen a view`, with the file list + one-line briefs embedded in the question payload plus the paths under `.haro-crew/docs/`. No separate text block, no per-file popups.
+5. **Write** accepted files; regen all `_views/` from the atomic sources; seed `.haro-crew/tasks.yaml` from the feature breakdown (each task: id, title, description + acceptance criteria, owner `agent_dev`, `status: pending`).
+6. Set `phase: docs` at start, `phase: build` when moving on.
+7. **Next-step popup:** `Start build (recommended)` / `Edit a doc` / `Open web viewer` / `Stop`. On build, read `commands/build.md` fully first.
+
+### Examples
+
+```
+/haro-crew docs
+```
