@@ -64,9 +64,8 @@ description: Turn a one-sentence product idea into a running application with a 
 
 ## Presentation rule — content routing per `shared/question-rules.md` (all commands)
 
-1. **SHORT content** (confirmations, navigation, save/skip — whole payload ≤ ~200 chars): single picker call with the content embedded in the question payload. No separate text block.
-2. **LONG content** (interpretation, questions context, meeting summaries, task reports — whole payload > ~800 chars or an irreversible sign-off): 3-step flow — `<render text>` (prescribed content only, anti-narration) → `<write file>` under `.haro-crew/temp/` (or the owning workspace path) → `<render popup>` whose question points to the **file path**. Never point "above"; never compress LONG content into options. Between ~200 and ~800 chars, prefer SHORT unless the workflow says otherwise.
-3. Every picker declares its mode: `single` by default; `multiple` only where the workflow says so.
+1. **Every question runs the unified 3-step flow** — `<render text>` (full content in chat, prescribed content only, anti-narration) → `<write history file>` (append the round to `.haro-crew/temp/history.md`; never mentioned to the user) → `<render popup>` focused ONLY on the question + options. Never compress content into options; never point a popup at a file.
+2. Every picker declares its mode: `single` by default; `multiple` only where the workflow says so.
 4. Every question offers 2–4 proposed answers plus free-text (`type your answer`). Never ask an empty question.
 5. Never re-ask anything already `confirmed` in `decisions.yaml` unless a new concrete contradiction forces it — and then the question must name the contradiction.
 

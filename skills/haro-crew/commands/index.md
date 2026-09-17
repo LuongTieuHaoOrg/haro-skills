@@ -16,7 +16,7 @@
    - `.haro-crew/tasks.yaml` from template (empty `tasks: []`).
    - Directories: `.haro-crew/meetings/`, `.haro-crew/docs/01-proposal/`, `.haro-crew/docs/02-requirements/`, `.haro-crew/docs/03-design/`, `.haro-crew/docs/_views/`, `.haro-crew/temp/`, `.haro-crew/knowledge/`, `.haro-crew/agents/`.
    - Then ask for the product idea: ONE question with 2–3 example ideas as proposals (e.g. restaurant management app, online course platform, warehouse tracker) + free-text. Record it into `config/project.yaml` and propose `Run plan (recommended)` — on pick, read `commands/plan.md` fully first.
-4. **Existing workspace (read-only status):** read `config/project.yaml` → `config/staffing.yaml` → `decisions.yaml` → `tasks.yaml` (read-only). Then a SHORT single picker call per `shared/question-rules.md` (Mode: single, no separate text block): the question payload carries the status (product name + idea 1 line, project type, current phase, decisions confirmed vs `[UNCONFIRMED]`, tasks by status, crew statuses) + the valid next actions derived from state:
+4. **Existing workspace (read-only status):** read `config/project.yaml` → `config/staffing.yaml` → `decisions.yaml` → `tasks.yaml` (read-only). Then per `shared/question-rules.md`: `<render text>` with the status (product name + idea 1 line, project type, current phase, decisions confirmed vs `[UNCONFIRMED]`, tasks by status, crew statuses) → `<write history file>` → single picker (Mode: single) with the valid next actions derived from state:
    - No idea yet → `Run plan with idea` / `Open web viewer` / `Stop`.
    - Idea, no plan sign-off → `Continue plan (recommended)` / `Open web viewer` / `Stop`.
    - Plan signed off, no docs → `Generate docs (recommended)` / `Back to plan` / `Open web viewer` / `Stop`.

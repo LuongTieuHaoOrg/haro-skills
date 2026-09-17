@@ -10,18 +10,15 @@
 - **Never re-ask confirmed content:** Anything recorded `confirmed` in `decisions.yaml` is settled. A follow-up touching it must name the new concrete contradiction that forces the revisit — otherwise it is forbidden.
 - **Merge independent questions:** When the next question does not branch on the previous answer, merge them into one multi-form picker (Mode: multiple) instead of sequential popups. Split only on real branching (e.g. scope details branch on users; stack branches on constraints).
 
-## 2. Content Routing (Short vs Long)
-- **SHORT Content (≤ ~200 characters, confirmations, navigation, save/skip):**
-  - Embed the message directly inside the question/picker tool payload (`question` parameter).
-  - No separate text block. Single response containing only the tool call.
+## 2. Unified 3-step flow (every question, no exceptions)
 
-- **LONG Content (whole payload > ~800 characters, OR any irreversible sign-off such as blueprint approval or handover acceptance):**
-  - Execute the 3-step robust presentation flow:
-    1. **`<render text>`**: Send the full content in the standard text block first (kept for clients supporting text + tool rendering).
-    2. **`<write file>`**: Write the complete detailed content into a workspace file under `.haro-crew/temp/<step-name>.md` (kept during work — `agent_lead` lists `temp/` files for user cleanup when the command finishes; client deliverables live under `.haro-crew/docs/_views/`, never in `temp/`) or the relevant workspace path the workflow names.
-    3. **`<render popup>`**: Trigger the question/picker tool call with a clear title pointing directly to the file (e.g., *"Đã ghi lại nội dung chi tiết vào file `...` tại <path>. Tiếp theo sẽ làm gì?"*) accompanied by concise action options.
+Every question to the user — short confirmation or long sign-off alike — runs the same 3 steps in order:
 
-- **Between ~200 and ~800 characters:** prefer SHORT (embed in the picker) unless the workflow explicitly demands the 3-step flow. One payload gets at most ONE popup — never chain popups for the same content.
+1. **`<render text>`:** Send the full content in the standard text block first, in `language.response` (context, recap, and everything the question refers to — the popup never retypes it).
+2. **`<write history file>`:** Append the round to the single session file `.haro-crew/temp/history.md` (create it on the first question of the session): round/time, the question asked, and the user's previous answers if any (`pending` when unanswered). This file is a technical trick so the popup renders without error — never mention it to the user, never point a popup at it, never send it to clients. `agent_lead` lists it for user cleanup when the command finishes.
+3. **`<render popup>`:** Trigger the question/picker tool call focused ONLY on the question + concise action options (with 2–4 proposed answers + free-text per §1). No file paths, no pointers — the content is already in chat.
+
+One payload gets at most ONE popup — never chain popups for the same content.
 
 ## 3. Anti-narration — chat blocks carry user-facing content ONLY
 

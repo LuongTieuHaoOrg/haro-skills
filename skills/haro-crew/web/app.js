@@ -158,7 +158,7 @@ function vGuide(el) {
     <p>This viewer is <b>read-only</b>. All answers and decisions happen in chat with <code>agent_lead</code>.</p>
     <ul>
       <li>Served from the <code>.haro-crew/</code> workspace root on <code>127.0.0.1</code> — refresh (F5) after the crew finishes a task to see fresh state.</li>
-      <li>Source files: <code>config/project.yaml</code>, <code>config/staffing.yaml</code>, <code>decisions.yaml</code>, <code>knowledge/</code>, <code>tasks.yaml</code>, <code>meetings/</code>, <code>docs/</code> (atomic docs + <code>_views/</code> client exports), <code>temp/</code> (throwaway).</li>
+      <li>Source files: <code>config/project.yaml</code>, <code>config/staffing.yaml</code>, <code>decisions.yaml</code>, <code>knowledge/</code>, <code>tasks.yaml</code>, <code>meetings/</code>, <code>docs/</code> (atomic docs + <code>_views/</code> client exports), <code>temp/</code> (work files, kept for user cleanup).</li>
       <li>Stop the server with <code>/haro-crew web --stop</code>.</li>
     </ul>
     <h3>Command Flow</h3>
