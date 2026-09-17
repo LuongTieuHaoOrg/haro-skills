@@ -21,7 +21,7 @@ State-driven: read state first, then enter at the earliest unfinished step. Thre
 3. **No-args case:** enter at the earliest unfinished step — no plan records → Step 1; Step 1 done-checklist incomplete → Step 1 (only the missing axes); Step 1 done, no completed meeting → Step 2; meeting done, no blueprint sign-off → Step 3; sign-off recorded → report done and propose `Generate docs`.
 4. Set `phase: plan` in `config/project.yaml` at start.
 
-### Step 1 — Discover / Collect (business-sufficient for BRD, partial for PRD)
+### Step 1 — Discover / Collect (enough to write the business view)
 
 Goal: converge on the user's business requirements. The loop is `ask → answer → think → ask/suggest → answer → … → done → Step 2`. There is NO cap on rounds — ask until the coverage map is full or the user declares done.
 
@@ -30,9 +30,9 @@ Goal: converge on the user's business requirements. The loop is `ask → answer 
 3. **Think (mandatory, internal, never narrated in chat):** after every answer — (a) record immediately into `decisions.yaml` (`axis | question | answer | status: confirmed|unconfirmed | decided_at`); (b) update the coverage map; (c) choose exactly one next move: dig deeper into the current axis / open a newly inferred area / summarize and ask for done.
 4. **Progress line:** every round opens with one line of status in `language.response` (e.g. `Clear so far: 6/8 areas — still missing: payments, permissions.`). The user always knows where the loop stands.
 5. **Done:** ALL of (a) the 5 base axes have answers (confirmed, or unconfirmed with defaults), (b) the agent has no further inferred area to propose, (c) the user picks `Nothing more / Move to debate`. The user may declare done early at any time — never plead, just record the gaps as `[UNCONFIRMED]` for Step 2. Hard gate: Goal and Scope in/out must have answers (even unconfirmed) before Step 2 — everything else may stay open.
-6. **Write-through:** Step 1 maintains `.haro-crew/docs/01-proposal/problem.md`, `scope.md` (SSOT for scope — nothing else copies scope text, everything else points here), `timeline.md`, and `.haro-crew/docs/02-requirements/users.md` as it goes. LONG rounds (> ~800 chars) follow the 3-step flow per `shared/question-rules.md` into `.haro-crew/temp/discover-<axis>.md` (deleted after sign-off).
+6. **Write-through:** Step 1 maintains `.haro-crew/docs/01-proposal/problem.md`, `scope.md` (SSOT for scope — nothing else copies scope text, everything else points here), `timeline.md`, and `.haro-crew/docs/02-requirements/users.md` as it goes (start each file from its skeleton in the skill's `templates/docs/`). LONG rounds (> ~800 chars) follow the 3-step flow per `shared/question-rules.md` into `.haro-crew/temp/discover-<axis>.md` (kept; listed for user cleanup when plan finishes).
 
-### Step 2 — Discuss / Debate (PRD-sufficient, partial for SAD)
+### Step 2 — Discuss / Debate (enough to close features + draft the technical view)
 
 Goal: challenge, counter-argue, and close every Step 1 record. Runs ALWAYS in full — including personal projects — because this is where "user remembered 5, system needs 10" gets fixed.
 
@@ -40,7 +40,7 @@ Goal: challenge, counter-argue, and close every Step 1 record. Runs ALWAYS in fu
 2. **Artifacts:** each meeting lives at `.haro-crew/meetings/MT-YYYYMMDD-HHmmss-<slug>/` from `templates/meeting.yaml` (`status: in-progress`) + `rounds/` subdir. Resuming an `in-progress` meeting: SHORT picker with the list (id | topic | current round) — `Resume <id>` / `New meeting`. Chair saves each participant's analysis verbatim to `rounds/round-<N>-<agent_id>.md`, records a 1–2 line English `recap` + `raw_file` pointer plus the structured `summary_of_round` (`consensus | conflicts_or_disputes | key_takeaways | open_questions_for_next_round`) in `meeting.yaml`. Inter-round context is prior summaries + recaps only — never full raw history.
 3. **Debate loop (round-robin, capped):** max 2 rounds per topic. Each round ends with the LONG 3-step flow per `shared/question-rules.md`: `<render text>` with the translated summary in `language.response` → content already persisted, no extra file → `<render popup>` picker `Next round` / `Redirect` (free-text) / `Conclude`. On conclude: write `conclusion`, set `status: completed`.
 4. **Step 1 revision rule:** Step 2 MAY send records back to Step 1 (mark decision `unconfirmed` + reason) — max ONE revert per decision; the second touch of the same decision requires an explicit user pick. No B1↔B2 ping-pong without the user.
-5. **Done:** scope boundaries + architecture direction + stack direction all closed (or explicitly `[UNCONFIRMED]` with owner), or the user picks `Close and move to blueprint`. Write-through: `.haro-crew/docs/02-requirements/features.md` (features + short AC — SSOT for acceptance) and `open-items.md` (auto-regenerated `[UNCONFIRMED]` list).
+5. **Done:** scope boundaries + architecture direction + stack direction all closed (or explicitly `[UNCONFIRMED]` with owner), or the user picks `Close and move to blueprint`. Write-through: `.haro-crew/docs/02-requirements/features.md` (features + short AC — SSOT for acceptance) and `open-items.md` (auto-regenerated `[UNCONFIRMED]` list), each started from its skeleton in the skill's `templates/docs/`.
 
 ### Step 3 — Blueprint (business + technical sufficient for docs)
 
@@ -54,9 +54,9 @@ Goal: validate the design frame and sign it off once — the output must carry e
      - `Architecture:` components, data entities, key API/page boundaries (5–10 lines).
      - `Stack:` choice + one-line trade-off (default Next.js + PostgreSQL unless constraints decided otherwise).
      - `[UNCONFIRMED] items:` every default never confirmed, each with its `Confirm` / `Change` path.
-   - **`<write file>`:** save the full pack to `.haro-crew/temp/blueprint-signoff.md` (deleted after sign-off).
+   - **`<write file>`:** save the full pack to `.haro-crew/temp/blueprint-signoff.md` (kept; listed for user cleanup when plan finishes).
    - **`<render popup>`:** single batch picker — `Approve all` / `Fix step 1` (free-text) / `Fix step 2` (free-text) / `Re-meet one topic`. One popup for the whole pack, never per-item popups.
-3. **Record:** write approvals into `decisions.yaml` (`axis: scope|architecture|stack`, `status: confirmed`), write `.haro-crew/docs/03-design/architecture.md` + `data-model.md`, set `phase: docs`.
+3. **Record:** write approvals into `decisions.yaml` (`axis: scope|architecture|stack`, `status: confirmed`), write `.haro-crew/docs/03-design/architecture.md` + `data-model.md` (start each file from its skeleton in the skill's `templates/docs/`), set `phase: docs`. Then list the `temp/` files created during plan in chat so the user can delete them if wanted.
 4. **Next-step popup:** `Generate docs (recommended)` / `Re-meet a topic` / `Open web viewer` / `Stop`. On docs, read `commands/docs.md` fully first.
 
 ### Examples

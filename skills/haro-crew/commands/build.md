@@ -20,13 +20,13 @@ State-driven: read state first, then propose. Creates tasks when empty, runs the
 4. **Review:** set task `review`, update staffing (`agent_qa: busy`, `agent_dev: ready`). Dispatch `agent_qa` with task + diff + test evidence. Collect `VERDICT / COVERAGE / GAPS / FOLLOW-UPS`; write `review_note` into `tasks.yaml`.
    - `pass` / `pass-with-notes` → `done`.
    - `fail` → back to `doing` with the notes appended; re-run implement once, then report to the user instead of looping forever (max 2 implement attempts per report cycle — one cycle is one task from pick to report).
-5. **Report per task (LONG content — 3-step flow per `shared/question-rules.md`):** `<render text>` in `language.response` (what was built, test evidence, QA verdict, files changed; prescribed content only, anti-narration) → `<write file>` to `.haro-crew/temp/build-report-<task-id>.md` (deleted after the report is accepted) → `<render popup>` picker `Next task (recommended)` / `Fix notes now` / `Pause build` / `Stop`, whose question points to the file path. Never point "above".
+5. **Report per task (LONG content — 3-step flow per `shared/question-rules.md`):** `<render text>` in `language.response` (what was built, test evidence, QA verdict, files changed; prescribed content only, anti-narration) → `<write file>` to `.haro-crew/temp/build-report-<task-id>.md` (kept; listed for user cleanup when build finishes) → `<render popup>` picker `Next task (recommended)` / `Fix notes now` / `Pause build` / `Stop`, whose question points to the file path. Never point "above".
 6. **After every task:** regen `.haro-crew/docs/_views/05-progress.md` from `tasks.yaml` (feature | status | demo link | note, filtered — no secrets, no internal detail). This is the only progress file — there is no `docs/progress.md` and no hand-written `tasks.md`.
 7. Set `phase: build` at start. When all tasks are `done` → write the handover (no separate command):
    - Collect `config/project.yaml`, `decisions.yaml`, `tasks.yaml`, `.haro-crew/docs/`, meeting conclusions, and the built source tree.
    - Write `.haro-crew/docs/_views/06-handover.md` (the ONLY handover file — there is no `docs/handover.md`): what was built (features ↔ tasks `done`), how to run (prerequisites, env vars, seed, commands — from devops input), architecture + data model recap (pointers to `03-design/*`, never retyped), open items (remaining `[UNCONFIRMED]` + tasks not `done` + QA `pass-with-notes`).
    - Present LONG 3-step (pack already persisted): `<render text>` summary in `language.response` → no extra file → `<render popup>` picker `Accept handover` / `Request fix` (free-text) / `Continue build`, whose question points to `06-handover.md`.
-   - On accept: set `phase: done`, set all crew `ready` in `staffing.yaml`.
+   - On accept: set `phase: done`, set all crew `ready` in `staffing.yaml`, then list the `temp/` files created during build in chat so the user can delete them if wanted.
 
 ### Examples
 

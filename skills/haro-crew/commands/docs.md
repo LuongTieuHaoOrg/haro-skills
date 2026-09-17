@@ -33,10 +33,10 @@ Client exports (regen-only, under `.haro-crew/docs/_views/` — never hand-edite
 ### Workflow
 
 1. **Pre-check:** read `decisions.yaml` + completed meetings + `config/project.yaml` (`project_type`). Missing plan sign-off → offer: `Back to plan (recommended)` / `Draft docs with [UNCONFIRMED] gaps`.
-2. **Draft the 8 atomic files** from decisions + meeting conclusions (no new user questions unless a gap blocks everything — then ask with proposals per question-rules). Keep each file ≤ ~150 lines; if a file outgrows that, split it (e.g. `features/<name>.md`), never bloat. Other files reference by pointer (`See scope.md`), never by copying long passages.
+2. **Draft the 8 atomic files** from decisions + meeting conclusions (no new user questions unless a gap blocks everything — then ask with proposals per question-rules). Start each file from its skeleton in the skill's `templates/docs/` (same base name); keep each file ≤ ~150 lines; if a file outgrows that, split it (e.g. `features/<name>.md`), never bloat. Other files reference by pointer (`See scope.md`), never by copying long passages.
 3. **Pricing gate:** if `project_type` is `personal` (or the user says no quote is needed) → skip `02-pricing.md`. Otherwise ask ONE picker: `Create pricing view? Yes / No`. On yes, draft it from scope + timeline.
 4. **Present once (SHORT content per `shared/question-rules.md`):** single picker call `Accept all` / `Edit` (free-text, names the file) / `Regen a view`, with the file list + one-line briefs embedded in the question payload plus the paths under `.haro-crew/docs/`. No separate text block, no per-file popups.
-5. **Write** accepted files; regen all `_views/` from the atomic sources; seed `.haro-crew/tasks.yaml` from the feature breakdown (each task: id, title, description + acceptance criteria, owner `agent_dev`, `status: pending`).
+5. **Write** accepted files; regen all `_views/` from the atomic sources; seed `.haro-crew/tasks.yaml` from the feature breakdown (each task: id, title, description + acceptance criteria, owner `agent_dev`, `status: pending`). Then list any `temp/` files in chat so the user can delete them if wanted.
 6. Set `phase: docs` at start, `phase: build` when moving on.
 7. **Next-step popup:** `Start build (recommended)` / `Edit a doc` / `Open web viewer` / `Stop`. On build, read `commands/build.md` fully first.
 

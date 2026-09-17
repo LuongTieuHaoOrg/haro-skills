@@ -18,7 +18,7 @@
 - **LONG Content (whole payload > ~800 characters, OR any irreversible sign-off such as blueprint approval or handover acceptance):**
   - Execute the 3-step robust presentation flow:
     1. **`<render text>`**: Send the full content in the standard text block first (kept for clients supporting text + tool rendering).
-    2. **`<write file>`**: Write the complete detailed content into a workspace file under `.haro-crew/temp/<step-name>.md` (throwaway — deleted after sign-off; client deliverables live under `.haro-crew/docs/_views/`, never in `temp/`) or the relevant workspace path the workflow names.
+    2. **`<write file>`**: Write the complete detailed content into a workspace file under `.haro-crew/temp/<step-name>.md` (kept during work — `agent_lead` lists `temp/` files for user cleanup when the command finishes; client deliverables live under `.haro-crew/docs/_views/`, never in `temp/`) or the relevant workspace path the workflow names.
     3. **`<render popup>`**: Trigger the question/picker tool call with a clear title pointing directly to the file (e.g., *"Đã ghi lại nội dung chi tiết vào file `...` tại <path>. Tiếp theo sẽ làm gì?"*) accompanied by concise action options.
 
 - **Between ~200 and ~800 characters:** prefer SHORT (embed in the picker) unless the workflow explicitly demands the 3-step flow. One payload gets at most ONE popup — never chain popups for the same content.

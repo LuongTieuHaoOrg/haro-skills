@@ -5,7 +5,7 @@ A collection of agent skills built by Haro. Each skill lives in its own folder u
 | Skill | What it does | Path |
 |-------|--------------|------|
 | Haro Docs | Manage project documentation (PLM docs for software) using the Atomic Content Blocks model: init structure, generate docs, critical review via subagents, knowledge memory | `skills/haro-docs/` |
-| Haro Crew | Turn a one-sentence product idea into a running app with a crew of specialist agents (kickoff → discover → blueprint → docs → build → handover) plus a view-only localhost web viewer | `skills/haro-crew/` |
+| Haro Crew | Turn a one-sentence product idea into a running app with a crew of specialist agents (index → plan → docs → build, atomic docs + client views) plus a view-only localhost web viewer | `skills/haro-crew/` |
 
 ## Adding a new skill
 

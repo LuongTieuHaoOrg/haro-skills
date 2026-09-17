@@ -10,7 +10,7 @@
 2. **Language first (only when missing):** if `language.response` (or `language.documentation`) is empty or missing, ask it BEFORE anything else — single picker call(s) with defaults pre-suggested: reply language (`vi` | `en`, default `vi`), content language (`en` | `vi` | `vi-en`, default `en`). Record into `config/project.yaml` and lock — later commands read this value and never ask again.
 3. **First-time init (only when `.haro-crew/` is missing):** create the workspace without overwriting anything (there is nothing to overwrite):
    - `.haro-crew/config/project.yaml` from `templates/project.yaml` (`name`, `idea` empty, `phase: index`, locked languages, `project_type` empty: `outsource | freelance | personal`).
-   - `.haro-crew/config/staffing.yaml` via `shared/team-setup.md` (all `ready`; default crew: `lead + ba + dev`, add `arch + qa` for outsource).
+   - `.haro-crew/config/staffing.yaml` via `shared/team-setup.md` (all `ready`; default crew: `lead + ba + arch + dev`, add `qa` for outsource).
    - `.haro-crew/decisions.yaml` from template (empty `decisions: []`).
    - `.haro-crew/knowledge/index.yaml` from template (empty `facts: []`).
    - `.haro-crew/tasks.yaml` from template (empty `tasks: []`).

@@ -27,7 +27,7 @@ description: Turn a one-sentence product idea into a running application with a 
 ├── tasks.yaml           # build task queue: pending → doing → review → done (SSOT for progress)
 ├── agents/              # project agent copies (<id>.md)
 ├── meetings/            # <meeting_id>/meeting.yaml + rounds/round-<N>-<agent>.md
-├── temp/                # throwaway LONG-content files (deleted after sign-off, never sent to clients)
+├── temp/                # LONG-content work files (kept; agent_lead lists them for user cleanup when each command finishes — never sent to clients)
 ├── docs/                # atomic internal docs (one fact, one place)
 │   ├── 01-proposal/
 │   │   ├── problem.md   # problem + goal (plan step 1)
@@ -91,4 +91,4 @@ description: Turn a one-sentence product idea into a running application with a 
 - `agent_dev` — Implements code per task, follows approved docs.
 - `agent_qa` — Test strategy, code/doc review, release gate.
 
-Default crew for small projects: `lead + ba + dev` (personal) or `lead + ba + arch + dev + qa` (small outsource). Other agents stay off until needed — enable via team setup in `commands/index.md`.
+Default crew for small projects: `lead + ba + arch + dev` (personal) or `lead + ba + arch + dev + qa` (small outsource). Other agents stay off until needed — enable via team setup in `commands/index.md`.

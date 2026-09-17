@@ -1,0 +1,28 @@
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Skill runtime workspaces (created when testing skills locally)
+.haro-crew/
+.haro-docs/
+
+# Local temp / verify artifacts
+*.tmp
+*.log
