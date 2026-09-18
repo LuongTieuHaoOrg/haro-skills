@@ -5,23 +5,24 @@ description: Turn a one-sentence product idea into a running application with a 
 
 # Haro Crew — Idea-to-Product Agent Crew Skill
 
-## Harness (runs before every command, in order — no exceptions)
+## Harness (runs before and during every command, in order — no exceptions)
 
-1. Workspace: if `.haro-crew/config/project.yaml` is missing → run first-time init exactly as `commands/index.md` (create workspace from templates, ask reply + content language per question-rules, record + lock, ask product idea), then continue to step 3. Never create workspace any other way.
-2. Language: if `language.response` or `language.documentation` is empty/missing → ask BEFORE anything else (single picker with defaults `vi`/`en` per `shared/question-rules.md`), record into `project.yaml` and lock, then continue. If present → only read, never re-ask.
-3. Dispatch: match the user's command to exactly one row in Command index, read that workflow file fully, then run it. Never act from memory.
+1. Response loop: every turn after a user input runs `shared/question-rules.md` §1 (`<respond>` → `<decide>` → `<ask>` via `temp/q-*.md` file first, picker second). Only `agent_lead` talks to the user. Exception: short confirmations (`OK`, `Stop`, `Next`, verbatim option pick) may skip `<respond>`.
+2. Workspace: if `.haro-crew/config/project.yaml` is missing → run first-time init exactly as `commands/index.md` (create workspace from templates, ask reply + content language per question-rules, record + lock, ask product idea), then continue to step 4. Never create workspace any other way.
+3. Language: if `language.response` or `language.documentation` is empty/missing → ask BEFORE anything else (single picker with defaults `vi`/`en` per `shared/question-rules.md`), record into `project.yaml` and lock, then continue. If present → only read, never re-ask.
+4. Dispatch: match the user's command to exactly one row in Command index, read that workflow file fully, then run it. Never act from memory.
 
 ## Rules (must follow — details in `shared/question-rules.md`)
 
-4. Read order every command (after harness): `config/project.yaml` → `config/staffing.yaml` → `decisions.yaml` → `tasks.yaml`, then load only needed meetings/docs. `decisions.yaml` wins over guesses; `[UNCONFIRMED]` = default not confirmed, never present as final.
-5. Language: chat uses `language.response`; docs/code use `language.documentation`. Locked at first run, later commands only read.
-6. Presentation: every question runs `<render text>` → `<write history file>` (`.haro-crew/temp/history.md`, never mention to user) → `<render popup>` (question + options only). 2–4 proposed answers + free-text; Mode `single` by default; never re-ask `confirmed` unless a new concrete contradiction is named.
+5. Read order every command (after harness): `config/project.yaml` → `config/staffing.yaml` → `decisions.yaml` → `tasks.yaml`, then load only needed meetings/docs. `decisions.yaml` wins over guesses; `[UNCONFIRMED]` = default not confirmed, never present as final.
+6. Language: chat uses `language.response`; docs/code use `language.documentation`. Locked at first run, later commands only read.
+7. Presentation: every question runs the Response Loop — `<respond>` in chat, then write `temp/q-<NN>-<slug>.md` FIRST, then `<render popup>` (question + options only). 2–4 proposed answers + free-text; Mode `single` by default; never re-ask `confirmed` unless a new concrete contradiction is named.
 
 > ## MANDATORY ROUTING — READ BEFORE ACTING (no exceptions)
 >
 > This file is the harness + router. No workflow runs here.
 >
-> 1. Run harness steps 1–2 first (workspace, then language) — before any other tool call or answer.
+> 1. Run harness steps 1–3 first (response loop governs every turn; workspace, then language) — before any other tool call or answer.
 > 2. Match the user's command to exactly one table row.
 > 3. Read that workflow file **fully** — this file itself runs no workflow.
 > 4. If you notice you are about to act, answer, or create anything without the workflow open, **STOP and read it first**. Acting from memory, habit, or a previous session instead of the workflow is a workflow violation: **the workflow always wins over memory**. This applies equally to small/weak models — when in doubt, re-read.
