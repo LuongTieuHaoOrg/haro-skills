@@ -17,5 +17,5 @@ phase: "index"                # index | plan | docs | build | done
 stack: ""                     # Chosen stack (default: Next.js + PostgreSQL unless user changes)
 
 language:
-  response: "vi"              # Chat language with the user: "en" | "vi"
-  documentation: "en"         # Docs + code language: "en" | "vi" | "vi-en"
+  response: ""              # Chat language with the user: "en" | "vi" (empty = ask at first run, default vi)
+  documentation: ""         # Docs + code language: "en" | "vi" | "vi-en" (empty = ask at first run, default en)

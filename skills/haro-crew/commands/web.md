@@ -14,6 +14,8 @@
 
 ### Workflow — open
 
+> Assumes SKILL harness steps 1–2 done (workspace + language). Viewer stays view-only; the gate only ensures workspace + chat language.
+
 1. Ensure `.haro-crew/web/` exists (copy from skill template if missing; never overwrite).
 2. Check `.haro-crew/web/.port`: if a server already answers on that port → reuse it, print the existing URL, stop here.
 3. Otherwise spawn detached: `node .haro-crew/web/server.js --root .haro-crew --port 8791`, write the port to `.haro-crew/web/.port`, print `http://127.0.0.1:8791/web/` in chat with one line: what the viewer shows + "refresh after each task".

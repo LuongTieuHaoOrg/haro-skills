@@ -16,6 +16,8 @@ State-driven: read state first, then enter at the earliest unfinished step. Thre
 
 ### Entry (read state, then route)
 
+> Assumes SKILL harness steps 1–2 done (workspace + language). If `project.yaml` is still missing → STOP, return to SKILL harness. This command is always allowed (creates the idea if none exists).
+
 1. Read `config/project.yaml` → `decisions.yaml` → scan `.haro-crew/meetings/*/meeting.yaml` (read-only).
 2. **With-arg case:** if the arg reads as a product idea (no plan exists yet) → treat as the idea, record into `config/project.yaml`, enter Step 1. If it reads as a debate topic (plan exists) → confirm interpretation per `shared/question-rules.md` (`<render text>` the interpretation → `<write history file>` → picker `Discuss '<topic>'? Confirm / Edit`), then enter Step 2 with that topic.
 3. **No-args case:** enter at the earliest unfinished step — no plan records → Step 1; Step 1 done-checklist incomplete → Step 1 (only the missing axes); Step 1 done, no completed meeting → Step 2; meeting done, no blueprint sign-off → Step 3; sign-off recorded → report done and propose `Generate docs`.

@@ -12,7 +12,9 @@ State-driven: read state first, then propose. Creates tasks when empty, runs the
 
 ### Workflow
 
-1. **Pre-check:** read `tasks.yaml` + `docs/02-requirements/features.md` + `docs/03-design/*` pointers.
+> Assumes SKILL harness steps 1–2 done (workspace + language). If `project.yaml` is still missing → STOP, return to SKILL harness.
+
+1. **Pre-check (entry requirement):** read `tasks.yaml` + `docs/02-requirements/features.md` + `docs/03-design/*` pointers.
    - Empty queue but features exist → seed `tasks.yaml` from the feature breakdown (each task: id, title, description + acceptance criteria, owner `agent_dev`, `status: pending`), then continue below.
    - Empty queue and no features → offer: `Generate docs first (recommended)` / `Add tasks manually (guided)`. Guided mode asks one multi-form (title + description + AC per task) and writes `tasks.yaml` directly.
 2. **Pick next task (per `shared/question-rules.md`):** `<render text>` with the queue (id | title | status) → `<write history file>` → single picker (Mode: single): next `pending` task (recommended) / specific task / `stop`. **AC gate:** a task without recorded acceptance criteria is skipped — route it back for requirements instead of implementing.

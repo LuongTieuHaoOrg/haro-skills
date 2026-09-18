@@ -32,7 +32,9 @@ Client exports (regen-only, under `.haro-crew/docs/_views/` — never hand-edite
 
 ### Workflow
 
-1. **Pre-check:** read `decisions.yaml` + completed meetings + `config/project.yaml` (`project_type`). Missing plan sign-off → offer: `Back to plan (recommended)` / `Draft docs with [UNCONFIRMED] gaps`.
+> Assumes SKILL harness steps 1–2 done (workspace + language). If `project.yaml` is still missing → STOP, return to SKILL harness.
+
+1. **Pre-check (entry requirement):** read `decisions.yaml` + completed meetings + `config/project.yaml` (`project_type`). Missing plan sign-off → not allowed to draft silently → offer: `Back to plan (recommended)` / `Draft docs with [UNCONFIRMED] gaps`.
 2. **Draft the 8 atomic files** from decisions + meeting conclusions (no new user questions unless a gap blocks everything — then ask with proposals per question-rules). Start each file from its skeleton in the skill's `templates/docs/` (same base name); keep each file ≤ ~150 lines; if a file outgrows that, split it (e.g. `features/<name>.md`), never bloat. Other files reference by pointer (`See scope.md`), never by copying long passages.
 3. **Pricing gate:** if `project_type` is `personal` (or the user says no quote is needed) → skip `02-pricing.md`. Otherwise ask ONE picker: `Create pricing view? Yes / No`. On yes, draft it from scope + timeline.
 4. **Present once (per `shared/question-rules.md`):** `<render text>` with the 8 atomic files + one-line brief each → `<write history file>` → single picker `Accept all` / `Edit` (free-text, names the file) / `Regen a view`. One popup for all files, never per-file popups.
