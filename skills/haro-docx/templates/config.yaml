@@ -1,0 +1,28 @@
+# Công ty / Giải pháp mẫu — sửa các trường này trong .haro-docx/config.yaml
+company_name: "CÔNG TY TNHH MẪU VIỆT NAM"
+solution_name: "Giải pháp Quản lý Dự án HARO"
+document_name: "Tài liệu Đặc tả Yêu cầu Kỹ thuật (SAD)"
+document_title: "TÀI LIỆU ĐẶC TẢ KỸ THUẬT PHẦN MỀM"
+version: "1.0"
+date: "23/09/2026"
+status: "Ban hành"
+authors:
+  - "Nguyễn Văn A — Biên soạn"
+reviewers:
+  - "Trần Thị B — Kiểm tra"
+approvers:
+  - "Lê Văn C — Phê duyệt"
+header:
+  # Đường dẫn logo (png/jpg). Để trống "" = không logo, ô header trái bỏ trống.
+  logo_path: ""
+styles:
+  # Chuẩn mặc định: Times New Roman + đen duy nhất (000000).
+  # H1 14 đậm / H2 13 đậm / H3 12 đậm / body 12 / code Consolas 11.
+  body_font: "Times New Roman"
+  heading_color: "000000"
+  code_font: "Consolas"
+  body_size: 12
+  h1_size: 14
+  h2_size: 13
+  h3_size: 12
+  code_size: 11

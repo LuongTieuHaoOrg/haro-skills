@@ -22,6 +22,7 @@ __pycache__/
 # Skill runtime workspaces (created when testing skills locally)
 .haro-crew/
 .haro-docs/
+.haro-docx/
 
 # Local temp / verify artifacts
 *.tmp
