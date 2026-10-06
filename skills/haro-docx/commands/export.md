@@ -1,36 +1,41 @@
 # Export (Haro Docx reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
-> `/haro-docx export`. Do not act from memory: read every step first.
-> **Ground rules:** config values are ground truth (see `commands/config.md`).
-> NEVER hand-craft `.docx` — ALWAYS call `scripts/build_docx.py`. Reply to the
-> user in Vietnamese with full diacritics.
+> `/haro-docx --export:<id>`. Do not act from memory: read every step first.
+> **Ground rules:** template values are ground truth (resolved local-first).
+> NEVER hand-craft `.docx` — ALWAYS call `scripts/build_docx.py` with
+> `--template-id`. Reply to the user in Vietnamese with full diacritics.
 
-## Command `/haro-docx export <input> [-o out.docx] [--template name]`
+## Command `/haro-docx --export:<id> <file hoặc đường dẫn file>`
+
+Renders the chosen input file to `.docx` using template `<id>`.
 
 ### 1. Parse args (no guessing)
 
-- `<input>` — required path (except bare `--template` picker mode): `.md`,
-  `.txt`, or `.pdf`. It is the user-mentioned source — accept any
-  user-mentioned file of these types.
+- Syntax: `/haro-docx --export:<id> <input> [-o out.docx]`.
+  Id glued with `:` — e.g. `--export:congty-a docs/sad.md`.
+- `<id>` — required. Unknown id → STOP with
+  `LỖI: không tìm thấy mẫu '<id>'.` + hint `/haro-docx --list`.
+- `<input>` — required path: `.md`, `.txt`, or `.pdf`. It is the
+  user-mentioned source — accept any user-mentioned file of these types.
 - `-o / --output` — optional. Default:
-  `.haro-docx/output/<basename>-<YYYYMMDD-HHmm>.docx`.
-- `--template` — optional:
-  - `--template` with NO value → picker mode: list `resources/templates/*.docx`
-    in the skill folder PLUS `*.docx` under `.haro-docx/` (user templates),
-    let the user pick one, then STOP and wait for the real export call with
-    the chosen name.
-  - `--template <name>` → use that template's styles as the base (passed as
-    `--base-template` to the script). Missing name = error listing available
-    names, no fallback guessing.
+  `.haro-docx/output/<basename>-<id>-<YYYYMMDD-HHmm>.docx`.
 
-### 2. Resolve config (ground truth, then ask)
+### 2. Resolve template (ground truth, then ask)
 
-1. Load `.haro-docx/config.yaml` if present, else `templates/config.yaml`
-   defaults. Missing company/solution/document fields → ask the user for the
-   missing values (SHORT picker/free-text, allow skip → uses `(Chưa xác định)`).
-2. Logo: `header.logo_path` — if the file doesn't exist, continue WITHOUT logo
-   (leave the left header cell empty) and note it in the final summary. Never
-   web-search a logo.
+The script resolves `--template-id` itself (local wins over global),
+loading the template's `template.yaml` as `--config` and its
+`template.docx` (styles only — content/headers stripped) as `--base-template`.
+Headings render H1–H6, TOC follows `toc_levels`, page geometry/cover/header
+sizes all come from the template. Missing company/solution/document
+fields → ask the user for the missing values (SHORT picker/free-text,
+allow skip → uses `(Chưa xác định)`), then apply via
+`/haro-docx --update:<id>` BEFORE exporting (never export with guessed names).
+Also surface any params still at defaults (user skipped the purpose review
+at `--create`) and offer to fill them first.
+
+Logo: `header.logo_path` — if the file doesn't exist, continue WITHOUT logo
+(leave the left header cell empty) and note it in the final summary. Never
+web-search a logo.
 
 ### 3. Validate input by extension
 
@@ -40,15 +45,14 @@
   `PDF này không trích xuất được chữ (file scan/ảnh). Hãy cung cấp bản .md/.txt.`
 - Anything else (`.docx`, `.xlsx`, ...) → refuse with supported-type message:
   `Định dạng chưa hỗ trợ. Hãy dùng .md / .txt / .pdf.`
-  A `.docx` the user wants as STYLE goes to `--template`, not `<input>`.
+  A `.docx` the user wants as STYLE is a `--create:<id>` source, not an input.
 
 ### 4. Run the generator (the only way to produce .docx)
 
 ```bash
 python skills/haro-docx/scripts/build_docx.py \
   --input <input> --output <out.docx> \
-  --config <resolved-config.yaml> \
-  [--base-template <template.docx>]
+  --template-id <id> --project-root .
 ```
 
 - Run from the project root so relative paths resolve.
@@ -58,16 +62,14 @@ python skills/haro-docx/scripts/build_docx.py \
 ### 5. Verify + report (SHORT, Vietnamese with diacritics)
 
 1. Confirm the output file exists and opens (size > 0).
-2. Report 5 lines max: output path, input source, template used (or `mặc định`),
-   config source (`.haro-docx/config.yaml` vs `mặc định`), reminder:
+2. Report 5 lines max: output path, input source, template `<id>` + scope
+   (local/global), reminder:
    `Mở file → chuột phải vào Mục lục → Update Field để hiện menu danh mục.`
 
 ### Examples
 
-```
-/haro-docx export docs/sad.md
-/haro-docx export specs/auth.txt -o dist/auth-spec.docx
-/haro-docx export "tài liệu/yêu cầu.pdf" -o dist/yeucau.docx
-/haro-docx export --template
-/haro-docx export docs/sad.md --template congty-a
+```text
+/haro-docx --export:congty-a docs/sad.md
+/haro-docx --export:congty-a specs/auth.txt -o dist/auth-spec.docx
+/haro-docx --export:congty-a "tài liệu/yêu cầu.pdf" -o dist/yeucau.docx
 ```

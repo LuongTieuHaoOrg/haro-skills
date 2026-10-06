@@ -4,6 +4,8 @@
 Usage:
     python build_docx.py --input <file.md|txt|pdf> --output <out.docx>
                          --config <config.yaml> [--base-template <tpl.docx>]
+    python build_docx.py --input <file.md> --output <out.docx>
+                         --template-id <id> [--project-root .]
 
 Implements skills/haro-docx/shared/docx-style.md. This is the ONLY supported
 way to produce .docx in haro-docx — agents must call this script, never
@@ -21,6 +23,12 @@ import datetime
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+try:
+    from template_store import resolve as resolve_template
+except ImportError:  # script copied standalone — template-id unavailable
+    resolve_template = None  # type: ignore
 
 import yaml
 from docx import Document
@@ -60,8 +68,41 @@ DEFAULTS = {
         "h1_size": 14,
         "h2_size": 13,
         "h3_size": 12,
+        "h4_size": 12,
+        "h5_size": 11,
+        "h6_size": 11,
+        "body_line_spacing": 1.15,
+        "body_space_before": 0,
+        "body_space_after": 6,
+        "heading_space_before": 12,
+        "heading_space_after": 6,
+        "bullet_indent_cm": 0.75,
+        "bullet_space_after": 2,
         "code_size": 11,
     },
+    "page": {
+        "size": "A4",
+        "orientation": "portrait",
+        "margin_top_cm": 2.54,
+        "margin_bottom_cm": 2.54,
+        "margin_left_cm": 2.0,
+        "margin_right_cm": 2.0,
+        "header_distance_cm": 1.27,
+        "footer_distance_cm": 1.27,
+    },
+    "cover": {
+        "title_size": 24,
+        "solution_size": 14,
+        "company_size": 12,
+        "note_size": 9,
+    },
+    "header_footer": {
+        "doc_name_size": 9,
+        "company_size": 8,
+        "page_size": 8,
+        "solution_size": 8,
+    },
+    "toc_levels": "1-6",
 }
 
 
@@ -97,7 +138,7 @@ def _instr(run, text: str):
     run._r.append(inst)
 
 
-def add_toc_field(paragraph, levels: str = "1-3"):
+def add_toc_field(paragraph, levels: str = "1-6"):
     r = paragraph.add_run()
     _fld_char(r, "begin")
     r = paragraph.add_run()
@@ -180,15 +221,57 @@ def set_cell_text(cell, text: str, bold=False, size=None, color: str = BLACK,
 
 # ---------------------------------------------------------------- styles
 
+def strip_base_template(doc: Document) -> None:
+    """Keep a base template's STYLE definitions, drop everything else.
+
+    Registry template.docx files are full user documents (cover, body,
+    headers). The export builds its own cover/control/TOC/body plus
+    header/footer from template.yaml, so carried-over content, headers and
+    footers must go — otherwise the output would prepend the template's old
+    pages and show its header on the new cover. Style definitions
+    (Normal, Heading 1-3, Code Block, list styles, theme) live in the
+    styles part and are untouched.
+    """
+    body_el = doc.element.body
+    for child in list(body_el):
+        if child.tag.endswith("}p") or child.tag.endswith("}tbl"):
+            body_el.remove(child)
+    for section in doc.sections:
+        section.header.is_linked_to_previous = False
+        section.footer.is_linked_to_previous = False
+        for part in (section.header, section.footer):
+            for table in list(part.tables):
+                table._tbl.getparent().remove(table._tbl)
+            for p in part.paragraphs:
+                p.text = ""
+
+
+def _heading_hex(st_cfg: dict) -> str:
+    """Validated heading color hex (falls back to BLACK on bad input)."""
+    raw = str(st_cfg.get("heading_color", BLACK)).strip().lstrip("#")
+    if len(raw) == 6:
+        try:
+            RGBColor.from_string(raw)
+            return raw.upper()
+        except (ValueError, AttributeError, TypeError):
+            pass
+    return BLACK
+
+
 def ensure_styles(doc: Document, cfg: dict):
     st_cfg = cfg.get("styles", {})
     body_font = st_cfg.get("body_font", BODY_FONT)
     code_font = st_cfg.get("code_font", CODE_FONT)
     body_size = Pt(st_cfg.get("body_size", 12))
+    hcolor = _heading_hex(st_cfg)
+    h_rgb = RGBColor.from_string(hcolor)
     h_sizes = {
         "Heading 1": Pt(st_cfg.get("h1_size", 14)),
         "Heading 2": Pt(st_cfg.get("h2_size", 13)),
         "Heading 3": Pt(st_cfg.get("h3_size", 12)),
+        "Heading 4": Pt(st_cfg.get("h4_size", 12)),
+        "Heading 5": Pt(st_cfg.get("h5_size", 11)),
+        "Heading 6": Pt(st_cfg.get("h6_size", 11)),
     }
 
     normal = doc.styles["Normal"]
@@ -196,21 +279,34 @@ def ensure_styles(doc: Document, cfg: dict):
     normal.font.size = body_size
     normal.font.color.rgb = RGBColor.from_string(BLACK)
     pf = normal.paragraph_format
-    pf.line_spacing = 1.15
-    pf.space_after = Pt(6)
+    pf.line_spacing = float(st_cfg.get("body_line_spacing", 1.15))
+    pf.space_before = Pt(st_cfg.get("body_space_before", 0))
+    pf.space_after = Pt(st_cfg.get("body_space_after", 6))
     pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
     for name, size in h_sizes.items():
-        st = doc.styles[name]
+        try:
+            st = doc.styles[name]
+        except KeyError:
+            continue
         st.font.name = body_font
         st.font.size = size
         st.font.bold = True
         st.font.italic = False
-        st.font.color.rgb = RGBColor.from_string(BLACK)
+        st.font.color.rgb = h_rgb
         st.font.all_caps = False
         st.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        st.paragraph_format.space_before = Pt(12)
-        st.paragraph_format.space_after = Pt(6)
+        st.paragraph_format.space_before = Pt(st_cfg.get("heading_space_before", 12))
+        st.paragraph_format.space_after = Pt(st_cfg.get("heading_space_after", 6))
+
+    for list_name in ("List Bullet", "List Number"):
+        try:
+            lst = doc.styles[list_name]
+        except KeyError:
+            continue
+        lst.paragraph_format.left_indent = Cm(st_cfg.get("bullet_indent_cm", 0.75))
+        lst.paragraph_format.space_after = Pt(st_cfg.get("bullet_space_after", 2))
+        lst.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
     if "Code Block" not in doc.styles:
         code = doc.styles.add_style("Code Block", 1)  # paragraph style
@@ -253,10 +349,14 @@ def finalize_fonts(doc: Document, cfg: dict):
     body_font = st_cfg.get("body_font", BODY_FONT)
     code_font = st_cfg.get("code_font", CODE_FONT)
     code_size = Pt(st_cfg.get("code_size", 11))
+    hcolor = _heading_hex(st_cfg)
     h_sizes = {
         "Heading 1": Pt(st_cfg.get("h1_size", 14)),
         "Heading 2": Pt(st_cfg.get("h2_size", 13)),
         "Heading 3": Pt(st_cfg.get("h3_size", 12)),
+        "Heading 4": Pt(st_cfg.get("h4_size", 12)),
+        "Heading 5": Pt(st_cfg.get("h5_size", 11)),
+        "Heading 6": Pt(st_cfg.get("h6_size", 11)),
     }
     for p in iter_all_paragraphs(doc):
         if p.style.name == "Code Block":
@@ -265,7 +365,7 @@ def finalize_fonts(doc: Document, cfg: dict):
         elif p.style.name in h_sizes:
             for run in p.runs:
                 set_run_font(run, body_font, size=h_sizes[p.style.name],
-                             bold=True, italic=run.italic, color=BLACK)
+                             bold=True, italic=run.italic, color=hcolor)
         else:
             for run in p.runs:
                 set_run_font(run, body_font,
@@ -291,6 +391,7 @@ def shade_paragraph(paragraph, fill: str):
 # ---------------------------------------------------------------- front matter
 
 def build_cover(doc: Document, cfg: dict, base_dir: Path):
+    cover = cfg.get("cover", {}) or {}
     logo = (cfg.get("header") or {}).get("logo_path", "") or ""
     if logo:
         lp = (base_dir / logo).resolve() if not Path(logo).is_absolute() else Path(logo)
@@ -306,17 +407,17 @@ def build_cover(doc: Document, cfg: dict, base_dir: Path):
     t = doc.add_paragraph()
     t.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = t.add_run(cfg["document_title"])
-    set_run_font(r, BODY_FONT, size=Pt(24), bold=True)
+    set_run_font(r, BODY_FONT, size=Pt(cover.get("title_size", 24)), bold=True)
 
     s = doc.add_paragraph()
     s.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = s.add_run(cfg["solution_name"])
-    set_run_font(r, BODY_FONT, size=Pt(14))
+    set_run_font(r, BODY_FONT, size=Pt(cover.get("solution_size", 14)))
 
     c = doc.add_paragraph()
     c.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = c.add_run(cfg["company_name"])
-    set_run_font(r, BODY_FONT, size=Pt(12))
+    set_run_font(r, BODY_FONT, size=Pt(cover.get("company_size", 12)))
 
     doc.add_paragraph()
     meta = doc.add_table(rows=1, cols=2)
@@ -335,7 +436,7 @@ def build_cover(doc: Document, cfg: dict, base_dir: Path):
     note = doc.add_paragraph()
     note.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = note.add_run("Tài liệu lưu hành nội bộ.")
-    set_run_font(r, BODY_FONT, size=Pt(9), italic=True)
+    set_run_font(r, BODY_FONT, size=Pt(cover.get("note_size", 9)), italic=True)
     doc.add_page_break()
 
 
@@ -374,9 +475,9 @@ def build_control_pages(doc: Document, cfg: dict):
     doc.add_page_break()
 
 
-def build_toc(doc: Document):
+def build_toc(doc: Document, cfg: dict):
     add_heading_left(doc, "Mục lục", level=1)
-    add_toc_field(doc.add_paragraph())
+    add_toc_field(doc.add_paragraph(), levels=str(cfg.get("toc_levels", "1-6")))
     hint = doc.add_paragraph()
     r = hint.add_run("Mở file → chuột phải vào dòng trên → Update Field để hiện menu danh mục.")
     set_run_font(r, BODY_FONT, size=Pt(9), italic=True)
@@ -391,16 +492,25 @@ def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
     section.header.is_linked_to_previous = False
     section.footer.is_linked_to_previous = False
 
-    # A4 + margins on every section.
+    # Page size + margins on every section (from the page block).
+    pg = cfg.get("page", {}) or {}
+    size = str(pg.get("size", "A4")).upper()
+    orientation = str(pg.get("orientation", "portrait")).lower()
+    if size == "LETTER":
+        w_cm, h_cm = 21.59, 27.94
+    else:  # A4 (default) or anything unknown
+        w_cm, h_cm = 21.0, 29.7
+    if orientation == "landscape":
+        w_cm, h_cm = h_cm, w_cm
     for s in doc.sections:
-        s.page_width = Cm(21.0)
-        s.page_height = Cm(29.7)
-        s.top_margin = Cm(2.54)
-        s.bottom_margin = Cm(2.54)
-        s.left_margin = Cm(2.0)
-        s.right_margin = Cm(2.0)
-        s.header_distance = Cm(1.27)
-        s.footer_distance = Cm(1.27)
+        s.page_width = Cm(w_cm)
+        s.page_height = Cm(h_cm)
+        s.top_margin = Cm(pg.get("margin_top_cm", 2.54))
+        s.bottom_margin = Cm(pg.get("margin_bottom_cm", 2.54))
+        s.left_margin = Cm(pg.get("margin_left_cm", 2.0))
+        s.right_margin = Cm(pg.get("margin_right_cm", 2.0))
+        s.header_distance = Cm(pg.get("header_distance_cm", 1.27))
+        s.footer_distance = Cm(pg.get("footer_distance_cm", 1.27))
 
     # Header: left logo | right 2 lines (document name / company name).
     ht = section.header.add_table(rows=1, cols=2, width=Inches(6.5))
@@ -412,11 +522,12 @@ def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
             ht.cell(0, 0).paragraphs[0].add_run().add_picture(str(lp), height=Cm(1.2))
     right = ht.cell(0, 1).paragraphs[0]
     right.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    hf = cfg.get("header_footer", {}) or {}
     r1 = right.add_run(cfg["document_name"])
-    set_run_font(r1, BODY_FONT, size=Pt(9), bold=True)
+    set_run_font(r1, BODY_FONT, size=Pt(hf.get("doc_name_size", 9)), bold=True)
     right.add_run().add_break()
     r2 = right.add_run(cfg["company_name"])
-    set_run_font(r2, BODY_FONT, size=Pt(8))
+    set_run_font(r2, BODY_FONT, size=Pt(hf.get("company_size", 8)))
 
     # Footer: left page X/Y | right solution name.
     ft = section.footer.add_table(rows=1, cols=2, width=Inches(6.5))
@@ -424,11 +535,11 @@ def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
     left_p = ft.cell(0, 0).paragraphs[0]
     add_page_field(left_p)
     for run in left_p.runs:
-        set_run_font(run, BODY_FONT, size=Pt(8))
+        set_run_font(run, BODY_FONT, size=Pt(hf.get("page_size", 8)))
     right_p = ft.cell(0, 1).paragraphs[0]
     right_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     r = right_p.add_run(cfg["solution_name"])
-    set_run_font(r, BODY_FONT, size=Pt(8), italic=True)
+    set_run_font(r, BODY_FONT, size=Pt(hf.get("solution_size", 8)), italic=True)
     return section
 
 
@@ -552,7 +663,7 @@ def render_markdown(doc: Document, text: str, src_dir: Path):
         m = re.match(r"^(#{1,6})\s+(.*)", stripped)
         if m:
             flush_table()
-            level = min(len(m.group(1)), 3)
+            level = min(len(m.group(1)), 6)
             add_heading_left(doc, m.group(2).strip(), level=level)
             i += 1
             continue
@@ -594,7 +705,7 @@ def render_plain_text(doc: Document, text: str):
             continue
         first = block.splitlines()[0].strip()
         if re.match(r"^\d+(\.\d+)*\.?\s+\S+", first) and len(first) < 120:
-            level = min(first.count(".") + 1, 3)
+            level = min(first.count(".") + 1, 6)
             add_heading_left(doc, re.sub(r"^\d+(\.\d+)*\.?\s+", "", first), level=level)
             rest = "\n".join(block.splitlines()[1:]).strip()
             if rest:
@@ -614,8 +725,10 @@ def parse_args(argv=None):
     ap = argparse.ArgumentParser(description="haro-docx enterprise .docx builder")
     ap.add_argument("--input", required=True, help="source .md/.txt/.pdf")
     ap.add_argument("--output", required=True, help="output .docx path")
-    ap.add_argument("--config", default="", help="config yaml (.haro-docx/config.yaml or template default)")
-    ap.add_argument("--base-template", default="", help="base .docx style template (from --template picker)")
+    ap.add_argument("--config", default="", help="config yaml (.haro-docx template.yaml or legacy config)")
+    ap.add_argument("--base-template", default="", help="base .docx style template (template.docx of a registry entry)")
+    ap.add_argument("--template-id", default="", help="registry id (vd congty-a): resolves --config/--base-template automatically; local wins over global")
+    ap.add_argument("--project-root", default=".", help="project root for --template-id local scope")
     return ap.parse_args(argv)
 
 
@@ -632,6 +745,18 @@ def main(argv=None) -> int:
     if not src.exists():
         print(f"LỖI: không tìm thấy input '{src}'.", file=sys.stderr)
         return 2
+    if args.template_id:
+        if resolve_template is None:
+            print("LỖI: --template-id cần module template_store.py cùng thư mục scripts.", file=sys.stderr)
+            return 2
+        hit = resolve_template(args.template_id, Path(args.project_root))
+        if not hit:
+            print(f"LỖI: không tìm thấy mẫu '{args.template_id}'. Chạy /haro-docx --list.", file=sys.stderr)
+            return 2
+        if not args.config and hit["yaml"].exists():
+            args.config = str(hit["yaml"])
+        if not args.base_template and hit["docx"].exists():
+            args.base_template = str(hit["docx"])
     cfg = load_config(Path(args.config)) if args.config else dict(DEFAULTS)
     base_dir = Path(args.config).parent.resolve() if args.config and Path(args.config).exists() else Path.cwd()
 
@@ -641,13 +766,14 @@ def main(argv=None) -> int:
             print(f"LỖI: không tìm thấy template '{tpl}'.", file=sys.stderr)
             return 2
         doc = Document(str(tpl))
+        strip_base_template(doc)
     else:
         doc = Document()
 
     ensure_styles(doc, cfg)
     build_cover(doc, cfg, base_dir)
     build_control_pages(doc, cfg)
-    build_toc(doc)
+    build_toc(doc, cfg)
     setup_body_section(doc, cfg, base_dir)
 
     ext, text = read_source(src)

@@ -1,4 +1,6 @@
-# Công ty / Giải pháp mẫu — sửa các trường này trong .haro-docx/config.yaml
+# Param defaults merged at --create time into .haro-docx/templates/<id>/template.yaml
+# (và ~/.haro-docx/templates/<id>/template.yaml cho scope global).
+# Sửa giá trị thật trong template.yaml của từng mẫu, không sửa file này.
 company_name: "CÔNG TY TNHH MẪU VIỆT NAM"
 solution_name: "Giải pháp Quản lý Dự án HARO"
 document_name: "Tài liệu Đặc tả Yêu cầu Kỹ thuật (SAD)"
@@ -13,11 +15,12 @@ reviewers:
 approvers:
   - "Lê Văn C — Phê duyệt"
 header:
-  # Đường dẫn logo (png/jpg). Để trống "" = không logo, ô header trái bỏ trống.
+  # Đường dẫn logo (png/jpg), tương đối từ thư mục mẫu. Để trống "" = không logo.
+  # Khi --create bóc được ảnh từ file mẫu, ảnh nằm ở assets/ trong thư mục mẫu.
   logo_path: ""
 styles:
   # Chuẩn mặc định: Times New Roman + đen duy nhất (000000).
-  # H1 14 đậm / H2 13 đậm / H3 12 đậm / body 12 / code Consolas 11.
+  # H1 14 / H2 13 / H3 12 / H4 12 / H5 11 / H6 11 (đậm) / body 12 / code Consolas 11.
   body_font: "Times New Roman"
   heading_color: "000000"
   code_font: "Consolas"
@@ -25,4 +28,41 @@ styles:
   h1_size: 14
   h2_size: 13
   h3_size: 12
+  h4_size: 12
+  h5_size: 11
+  h6_size: 11
+  # Giãn dòng và cách đoạn body (pt). line_spacing là hệ số (1.0 = đơn).
+  body_line_spacing: 1.15
+  body_space_before: 0
+  body_space_after: 6
+  # Cách đoạn chung cho H1–H6 (pt).
+  heading_space_before: 12
+  heading_space_after: 6
+  # Bullet/danh sách: thụt đầu dòng (cm) và cách đoạn sau (pt).
+  bullet_indent_cm: 0.75
+  bullet_space_after: 2
   code_size: 11
+page:
+  # Khổ giấy: A4 | Letter. Hướng: portrait | landscape.
+  size: A4
+  orientation: portrait
+  margin_top_cm: 2.54
+  margin_bottom_cm: 2.54
+  margin_left_cm: 2.0
+  margin_right_cm: 2.0
+  header_distance_cm: 1.27
+  footer_distance_cm: 1.27
+cover:
+  # Cỡ chữ (pt) các dòng trang bìa.
+  title_size: 24
+  solution_size: 14
+  company_size: 12
+  note_size: 9
+header_footer:
+  # Cỡ chữ (pt) header/footer trang nội dung.
+  doc_name_size: 9
+  company_size: 8
+  page_size: 8
+  solution_size: 8
+# Mức heading đưa vào Mục lục Word (vd "1-3", "1-6").
+toc_levels: "1-6"

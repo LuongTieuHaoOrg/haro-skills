@@ -1,15 +1,16 @@
 ---
 name: haro-docx
-description: Render enterprise-standard .docx for technical specs (cover page, revision history, auto TOC, styled header/footer, page numbers). Use this skill whenever the user mentions xuat docx, xuất docx, file Word, trinh ky, trình ký, nop specs, nộp specs/BRD/PRD/SAD/FSD, in an, in ấn, company template, or needs a Word file from markdown/text/pdf — even if they don't say the word docx. Run /haro-docx with no args to pick an action. Before acting on any command, read its commands/*.md file fully — never act from memory.
+description: Render enterprise-standard .docx from markdown/text/pdf using named templates (cover page, revision history, auto TOC, styled header/footer, page numbers). Use this skill whenever the user mentions xuat docx, xuất docx, file Word, trinh ky, trình ký, nop specs, nộp specs/BRD/PRD/SAD/FSD, in an, in ấn, company template, mau docx, mẫu docx, or needs a Word file — even if they don't say the word docx. Run /haro-docx with no args to pick an action. Before acting on any command, read its commands/*.md file fully — never act from memory.
 ---
 
-# Haro Docx — Enterprise DOCX Export Skill
+# Haro Docx — Enterprise DOCX Export Skill (template registry)
 
 ## 1. Overview
 
 `haro-docx` turns user-provided sources (**markdown / text / pdf**) into a
-company-standard `.docx` for technical specs. It is a standalone skill like
-`haro-docs` / `haro-crew`, invoked via `/haro-docx ...`.
+company-standard `.docx` for technical specs, rendered through a **named
+template** (`<id>`). It is a standalone skill like `haro-docs` / `haro-crew`,
+invoked via `/haro-docx ...`.
 
 Enterprise layout (the "why": a sign-off document must identify itself on
 every page and carry its own audit trail):
@@ -27,35 +28,52 @@ every page and carry its own audit trail):
   in a monospace shaded style. Single ink only: Times New Roman, black
   (`000000`) — see `shared/docx-style.md`.
 
-## 2. Workspace `.haro-docx/`
+## 2. Workspace `.haro-docx/` + global `~/.haro-docx/`
 
-User configuration lives in `.haro-docx/` at the project root (created by
-`config`, never guessed). Skill defaults live in `templates/` + `resources/`.
+Every template is a folder holding exactly two files:
 
-```
-.haro-docx/
-├── config.yaml          # company, solution, document defaults, logo path
-└── output/              # generated .docx files (git-ignored recommended)
+```text
+<project>/.haro-docx/templates/<id>/
+├── template.docx   # the style source (copied verbatim from the user's .docx)
+└── template.yaml   # meta (id/name/description/created_at/updated_at)
+                    # + params (company/solution/document/header/styles...)
+
+~/.haro-docx/templates/<id>/        # same layout, global scope
+├── template.docx
+└── template.yaml
+
+.haro-docx/output/                 # generated .docx files (git-ignored recommended)
 
 skills/haro-docx/
 ├── commands/            # normative workflows (read fully before acting)
+│   ├── index.md         # /haro-docx dashboard
+│   ├── list.md          # /haro-docx --list
+│   ├── create.md        # /haro-docx --create:<id>
+│   ├── update.md        # /haro-docx --update:<id>
+│   ├── delete.md        # /haro-docx --delete:<id>
+│   ├── view.md          # /haro-docx --view:<id>
+│   ├── validate.md      # /haro-docx --validate:<id>
+│   └── export.md        # /haro-docx --export:<id>
 ├── shared/docx-style.md # the visual standard (normative)
-├── scripts/build_docx.py# the ONLY generator — never hand-craft .docx
-├── templates/config.yaml# default config shipped with the skill
-├── templates/sample-input.md  # default sample spec input
-└── resources/templates/ # user-supplied .docx style templates (picker source)
+├── scripts/build_docx.py       # the ONLY exporter — never hand-craft .docx
+├── scripts/template_store.py   # registry helpers (list/resolve/delete)
+├── scripts/extract_template.py # .docx -> template.yaml (used by --create)
+├── scripts/validate_template.py# yaml-vs-docx check (used by --validate)
+├── scripts/update_template.py  # patch yaml + push styles into .docx (used by --update)
+└── templates/config.yaml       # param defaults merged at --create time
 ```
 
-> **Read order (every command):** `.haro-docx/config.yaml` (if present, else
-> `templates/config.yaml` defaults) → `shared/docx-style.md` → the command's
-> workflow file. Config values are ground truth over guessed names.
+> **Read order (every command):** the template's `template.yaml` (resolved
+> local-first) → `shared/docx-style.md` → the command's workflow file.
+> Template values are ground truth over guessed names.
 
 > ## MANDATORY ROUTING — READ BEFORE ACTING (no exceptions)
 >
 > This file is only the router. The normative workflow for each command lives
 > in its workflow file (table below).
 >
-> 1. Match the user's command to exactly one table row.
+> 1. Match the user's command to exactly one table row (colon syntax:
+>    `--create:<id>` — the id is glued to the flag with `:`).
 > 2. Read that workflow file **fully, before any other tool call or answer**.
 > 3. If you notice you are about to act, answer, or create anything without
 >    the workflow open, **STOP and read it first**. The workflow always wins
@@ -66,24 +84,38 @@ skills/haro-docx/
 | Command | When to use | Read first (fully, before acting) | Example |
 |---------|-------------|-----------------------------------|---------|
 | `/haro-docx` (no args) | Show dashboard, pick next action | `commands/index.md` | `/haro-docx` |
-| `/haro-docx export <input> [-o out.docx] [--template name]` | Render md/txt/pdf to enterprise .docx | `commands/export.md` + `shared/docx-style.md` | `/haro-docx export docs/spec.md -o dist/spec.docx` |
-| `/haro-docx export --template` | List `resources/templates/` + user templates, pick style template | `commands/export.md` | `/haro-docx export --template` |
-| `/haro-docx config` | Show how to configure `.haro-docx/config.yaml` + `resources/` | `commands/config.md` | `/haro-docx config` |
+| `/haro-docx --list` | List all templates (id, name, description, location, created, updated) | `commands/list.md` | `/haro-docx --list` |
+| `/haro-docx --create:<id> <file.docx>` | Register a .docx file as a new template (asks local/global, checks duplicates, extracts yaml) | `commands/create.md` | `/haro-docx --create:congty-a DieuLe.docx` |
+| `/haro-docx --update:<id> <nội dung>` | Update a template's params/content per user request | `commands/update.md` | `/haro-docx --update:congty-a đổi company thành CTY X` |
+| `/haro-docx --delete:<id>` | Delete a template (asks confirm) | `commands/delete.md` | `/haro-docx --delete:congty-a` |
+| `/haro-docx --view:<id>` | Show a template's yaml + .docx paths and full config | `commands/view.md` | `/haro-docx --view:congty-a` |
+| `/haro-docx --validate:<id>` | Check yaml-vs-docx match (style-level) | `commands/validate.md` | `/haro-docx --validate:congty-a` |
+| `/haro-docx --export:<id> <input>` | Render md/txt/pdf to enterprise .docx with template `<id>` | `commands/export.md` + `shared/docx-style.md` | `/haro-docx --export:congty-a docs/sad.md` |
 
 ## 3. Hard rules
 
-- NEVER build `.docx` by hand or with another ad-hoc script. ALWAYS call
-  `scripts/build_docx.py`. If the script cannot do something, extend the
+- NEVER build `.docx` by hand or with another ad-hoc script. Export ALWAYS
+  calls `scripts/build_docx.py`; visual patches ALWAYS call
+  `scripts/update_template.py`. If a script cannot do something, extend the
   script — don't work around it.
-- NEVER invent company/solution/document names. Read them from config; if
-  missing, ask the user (see `commands/config.md`).
+- NEVER invent company/solution/document names or template ids. Ids match
+  `[a-z0-9][a-z0-9-_]{0,40}` (lowercase, 2–41 chars). Resolution order is
+  **local first, global second** — never guess which scope; `--list` shows it.
+- Colon syntax is normative: `--create:<id>`, `--update:<id>`,
+  `--delete:<id>`, `--view:<id>`, `--validate:<id>`, `--export:<id>`.
+  The id is glued to the flag with `:` (no space).
+- `--update` with vague content (`làm đẹp hơn`, `sửa giúp anh`, empty):
+  ask back with concrete options — never interpret freely.
+- `--validate` is style-level only (styles + header/footer presence +
+  logo-file existence). Run-level oddities are ignored to avoid false
+  positives — see `shared/docx-style.md` §9.
 - Input formats: `.md` and `.txt` are native. `.pdf` is best-effort text
   extraction (needs `pypdf` installed); scanned/image PDFs are refused with a
-  clear message. Existing `.docx` inputs are NOT merged — they belong in
-  `resources/templates/` as style templates via `--template`.
+  clear message. A `.docx` is NEVER an export input — it is a template
+  source for `--create`.
 - Language rules:
   - Skill instructions and code comments are in **English**.
   - Everything the user sees — chat replies, generated document content,
-    config values, console messages — is in **Vietnamese with full diacritics**.
+    template values, console messages — is in **Vietnamese with full diacritics**.
   - The skill formats source content, never translates it: code, endpoints,
     and parameters stay in their original English.
