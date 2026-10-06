@@ -1,42 +1,80 @@
 # Update (Haro Docx reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
-> `/haro-docx-writer --update:<id>`. Do not act from memory: read every step first.
-> **Ground rules:** NEVER hand-edit `template.docx` binary with tricks —
-> visual changes go through `scripts/update_template.py`. NEVER interpret a
+> `/haro-docx-writer --update` (no id) and `/haro-docx-writer --update:<id>`.
+> Do not act from memory: read every step first.
+> **Ground rules:** this command SUPPORTS the two sync commands — it never
+> syncs by itself. NEVER hand-edit `template.docx` binary with tricks —
+> yaml edits go through `scripts/update_template.py`. NEVER interpret a
 > vague request freely.
 
-## Command `/haro-docx-writer --update:<id> <nội dung>`
+## Command `/haro-docx-writer --update[:<id>]`
 
-Updates a template's params (yaml) and, when the request touches visual
-style, patches the `.docx` file to match.
+Guides the user to update a template, then stops so the user calls the
+matching sync manually: `--sync-docx:<id>` after yaml edits,
+`--sync-yaml:<id>` after docx edits.
 
-### 1. Parse args (no guessing)
+### 0. Parse args (no guessing)
 
-- Syntax: `/haro-docx-writer --update:<id> <nội dung>` — id glued with `:`,
-  then free-text content. Example:
-  `/haro-docx-writer --update:congty-a đổi company thành CTY X, H1 lên 15`.
-- Unknown id → STOP with `LỖI: không tìm thấy mẫu '<id>'.` + hint
-  `/haro-docx-writer --list`. Resolve with:
-  `python skills/haro-docx-writer/scripts/template_store.py --project-root . resolve <id>`
-  (local wins over global — show the winning scope).
+- `/haro-docx-writer --update` (no id) → go to Question 1.
+- `/haro-docx-writer --update:<id>` (id glued with `:`) → resolve the id
+  (unknown id → STOP with `LỖI: không tìm thấy mẫu '<id>'.` + hint
+  `/haro-docx-writer --list`; show the winning scope, local first), then
+  SKIP Question 1 and go straight to Question 2.
+- A trailing `<nội dung>` after the command (if any) is NOT applied directly —
+  keep it as a prefill suggestion for the YAML branch.
 
-### 2. Vague-content gate (mandatory — ask back, never guess)
+### 1. Question 1 — pick a template (only when no id)
 
-If `<nội dung>` is empty or vague (`làm đẹp hơn`, `sửa giúp anh`,
-`cập nhật đi`, single word with no target, ...), STOP and ask back with a
-concrete picker (multiple choice allowed):
+Run from the project root:
 
-- Đổi thông tin công ty / giải pháp / tài liệu (company/solution/document)
-- Đổi font / cỡ chữ (body/H1/H2/H3/code)
-- Đổi logo header
-- Đổi tên / mô tả mẫu
-- Khác (gõ yêu cầu cụ thể: trường nào → giá trị nào)
+```bash
+python skills/haro-docx-writer/scripts/template_store.py --project-root . list
+```
 
-Only proceed once at least one `trường → giá trị` pair is explicit.
+Render a single picker call (picker tool when available, otherwise numbered
+list) with one entry per template: `<id> — <tên mẫu> (<local|global>)`.
+Empty registry → STOP with `Chưa có mẫu nào.` + hint
+`/haro-docx-writer --import:<id> <file.docx>`. Once picked → Question 2.
 
-### 3. Apply (yaml first, then push visual into docx)
+### 2. Question 2 — yaml or docx (mandatory picker)
 
-Mappable `--set` keys for `scripts/update_template.py`:
+Ask which file to update (single picker, exactly one choice):
+
+- `yaml` — `.../<id>/template.yaml` (config thuộc tính)
+- `docx` — `.../<id>/template.docx` (file mẫu render)
+
+ALWAYS show both resolved file paths so the user can find them, whichever
+branch is picked.
+
+**YAML branch:**
+
+1. Ask what to change (free-text, multiple items allowed). If the command
+   carried `<nội dung>`, present it as the prefilled suggestion — still
+   confirm before applying.
+2. If the request is empty or vague (`làm đẹp hơn`, `sửa giúp anh`,
+   single word with no target, ...), ask back with the concrete picker
+   (multiple choice allowed): company/solution/document info, font/sizes,
+   logo header, name/description, page geometry, other
+   (`trường nào → giá trị nào`). Proceed only with explicit field → value pairs.
+3. Apply the edit FOR the user (fast path): via
+   `scripts/update_template.py --set` (repeatable, dot-paths) — see the key
+   list below. NEVER ask the user to hand-edit when the agent can do it.
+4. Show the before → after diff per key from script output.
+5. STOP here. Point to the manual next step:
+   run `/haro-docx-writer --sync-docx:<id>` to push into the docx.
+   NEVER auto-sync.
+
+**DOCX branch:**
+
+1. Show the `template.docx` path and tell the user to open it in Word and
+   edit (fonts, sizes, spacing, margins, header/footer...), then report back
+   when done.
+2. STOP here. Point to the manual next step:
+   run `/haro-docx-writer --sync-yaml:<id>` (warn: docx wins, yaml
+   styles/page overwritten with NO backup — suggest `--validate:<id>` first
+   if unsure). NEVER auto-sync.
+
+### Mappable `--set` keys (YAML branch)
 
 - Text/meta: `name`, `description`, `company_name`, `solution_name`,
   `document_name`, `document_title`, `version`, `date`, `status`,
@@ -62,33 +100,16 @@ Mappable `--set` keys for `scripts/update_template.py`:
   TOC behavior beyond levels) → explain it is fixed by `shared/docx-style.md`
   + script; offer the closest supported alternative instead of improvising.
 
-Run from the project root (repeatable `--set`, dot-paths):
-
 ```bash
 python skills/haro-docx-writer/scripts/update_template.py \
   --id <id> --project-root . \
   --set company_name="CTY X" --set styles.h1_size=15
 ```
 
-- The script saves `template.yaml`, bumps `updated_at`, and pushes
-  style-level keys (fonts, sizes, spacing, bullet, page geometry) into
-  `template.docx`. Pure text/meta/cover-size requests may pass
-  `--no-apply-visual` (docx untouched).
-- If the user already hand-edited `template.yaml` themselves, skip `--set`
-  for those keys and run with no `--set` to only refresh `updated_at` +
-  push current yaml styles into the docx.
-
-### 4. Confirm + close (SHORT)
-
-1. Show the before → after diff per key (from script output).
-2. Run `/haro-docx-writer --validate:<id>` workflow next (or its script) and
-   report `KHỚP/LỆCH` summary — never skip validation after an update.
-3. Close with file paths (yaml + docx).
-
 ### Examples
 
 ```text
-/haro-docx-writer --update:congty-a đổi company_name thành CÔNG TY X, version 2.0
-/haro-docx-writer --update:congty-a styles.h1_size=15, styles.body_font="Times New Roman"
-/haro-docx-writer --update:congty-a đổi logo header thành assets/logo-moi.png
+/haro-docx-writer --update
+/haro-docx-writer --update:congty-a
+/haro-docx-writer --update:congty-a đổi company_name thành CÔNG TY X
 ```

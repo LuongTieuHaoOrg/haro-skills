@@ -2,7 +2,8 @@
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
 > `/haro-docx-writer --validate:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** this command REPORTS mismatches — it never fixes them
-> by itself. Fixes go through `--update:<id>`.
+> by itself. Fixes go through `--sync-docx:<id>` / `--sync-yaml:<id>`
+> (or the `--update` guide).
 
 ## Command `/haro-docx-writer --validate:<id>`
 
@@ -39,12 +40,12 @@ python skills/haro-docx-writer/scripts/validate_template.py --id <id> --project-
 2. Render the `[KHỚP/LỆCH]` table from script output verbatim (one row per
    field: `yaml='...' | docx='...'`).
 3. For each LỆCH row, state the direction explicitly:
-   - User edited the `.docx` → update YAML to match (edit keys, or re-run
-     extraction flow) — or run `--update:<id>` with the docx values.
-   - User edited the `YAML` → run `/haro-docx-writer --update:<id> <nội dung>`
+   - User edited the `.docx` → run `/haro-docx-writer --sync-yaml:<id>`
+     (docx wins, yaml styles/page overwritten with NO backup).
+   - User edited the `YAML` → run `/haro-docx-writer --sync-docx:<id>`
      to push styles into the `.docx`.
-4. Never auto-fix. End with the two follow-ups:
-   `Sửa yaml: /haro-docx-writer --update:<id> ... | Xuất thử: /haro-docx-writer --export:<id> <file.md>`.
+4. Never auto-fix. End with the follow-ups:
+   `Đồng bộ: --sync-docx:<id> (yaml thắng) | --sync-yaml:<id> (docx thắng) | Xuất thử: --export:<id> <file.md>`.
 
 ### Example
 

@@ -95,7 +95,7 @@ skills/haro-docx-writer/
 | `/haro-docx-writer <file>` | Quick export: pick an existing template, render immediately | `commands/quick.md` | `/haro-docx-writer docs/sad.md` |
 | `/haro-docx-writer --list` | List all templates (id, name, description, location, created, updated) | `commands/list.md` | `/haro-docx-writer --list` |
 | `/haro-docx-writer --import:<id> <file.docx>` | Register a .docx file as a new template (asks local/global, checks duplicates, extracts yaml) | `commands/import.md` | `/haro-docx-writer --import:congty-a DieuLe.docx` |
-| `/haro-docx-writer --update:<id> <nội dung>` | Update a template's params/content per user request | `commands/update.md` | `/haro-docx-writer --update:congty-a đổi company thành CTY X` |
+| `/haro-docx-writer --update[:<id>]` | Guide a template update: pick template (if no id), pick yaml or docx, edit/route to manual sync | `commands/update.md` | `/haro-docx-writer --update:congty-a` |
 | `/haro-docx-writer --sync-docx:<id>` | Push yaml config into template.docx (after hand-editing yaml) | `commands/sync-docx.md` | `/haro-docx-writer --sync-docx:congty-a` |
 | `/haro-docx-writer --sync-yaml:<id>` | Pull template.docx styles into yaml, docx wins, no backup (after hand-editing docx) | `commands/sync-yaml.md` | `/haro-docx-writer --sync-yaml:congty-a` |
 | `/haro-docx-writer --delete:<id>` | Delete a template (asks confirm) | `commands/delete.md` | `/haro-docx-writer --delete:congty-a` |
@@ -116,8 +116,9 @@ skills/haro-docx-writer/
   `--sync-docx:<id>`, `--sync-yaml:<id>`,
   `--delete:<id>`, `--view:<id>`, `--validate:<id>`, `--export:<id>`.
   The id is glued to the flag with `:` (no space).
-- `--update` with vague content (`làm đẹp hơn`, `sửa giúp anh`, empty):
-  ask back with concrete options — never interpret freely.
+- `--update` YAML branch with vague content (`làm đẹp hơn`, `sửa giúp anh`,
+  empty): ask back with concrete options — never interpret freely.
+  `--update` never syncs by itself; sync is always a manual user call.
 - `--validate` is style-level only (styles + header/footer presence +
   logo-file existence). Run-level oddities are ignored to avoid false
   positives — see `shared/docx-style.md` §9.
