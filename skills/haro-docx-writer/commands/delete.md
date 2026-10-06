@@ -2,7 +2,7 @@
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
 > `/haro-docx-writer --delete:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** deletion is irreversible (no trash). NEVER delete without
-> explicit confirm. Reply to the user in Vietnamese with full diacritics.
+> explicit confirm.
 
 ## Command `/haro-docx-writer --delete:<id>`
 

@@ -2,8 +2,7 @@
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
 > `/haro-docx-writer --validate:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** this command REPORTS mismatches — it never fixes them
-> by itself. Fixes go through `--update:<id>`. Reply to the user in
-> Vietnamese with full diacritics.
+> by itself. Fixes go through `--update:<id>`.
 
 ## Command `/haro-docx-writer --validate:<id>`
 
@@ -34,7 +33,7 @@ python skills/haro-docx-writer/scripts/validate_template.py --id <id> --project-
 - Exit 0 = all match; exit 1 = mismatches (normal case, not an error);
   exit 2 = broken template (missing yaml/docx/unreadable) — relay stderr.
 
-### 3. Report (Vietnamese with diacritics)
+### 3. Report
 
 1. Show header: id, scope, yaml path, docx path.
 2. Render the `[KHỚP/LỆCH]` table from script output verbatim (one row per

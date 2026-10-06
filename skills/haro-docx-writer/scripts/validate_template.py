@@ -10,8 +10,6 @@ Usage:
     python validate_template.py --id <template-id> [--project-root .]
 
 Exit codes: 0 = all match, 1 = mismatches found, 2 = error.
-Language convention: code/comments in English; user-visible strings in
-Vietnamese with full diacritics.
 """
 from __future__ import annotations
 

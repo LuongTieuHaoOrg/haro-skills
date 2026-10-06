@@ -4,7 +4,7 @@
 > for `help` / `--help` / `-h`. A bare FILE argument routes to
 > `commands/quick.md` (not this file); an unknown `--flag` falls back here.
 > Do not act from memory: the reference always wins over memory.
-> **Ground rules:** reply to the user in Vietnamese with full diacritics.
+> **Ground rules:**
 > This workflow is strictly read-only: never create or write any file.
 
 ## Index — Introduce + List Commands + Suggest
@@ -14,7 +14,7 @@ through named templates (cover page, revision history, TOC, header/footer,
 page numbers). Templates live in `.haro-docx-writer/templates/<id>/` (local) and
 `~/.haro-docx-writer/templates/<id>/` (global). Full concept: `SKILL.md` §1–2.
 
-1. **Introduce (chat, 3–4 lines, Vietnamese with diacritics)** — what the
+1. **Introduce (chat, 3–4 lines)** — what the
    skill does + the single rule that matters: every template has an id; every
    command's workflow lives in its own file; generated files go to
    `.haro-docx-writer/output/`.
@@ -28,7 +28,7 @@ page numbers). Templates live in `.haro-docx-writer/templates/<id>/` (local) and
    numbered list) with `--list`, `--import:<id>`, `--update:<id>`,
    `--delete:<id>`, `--view:<id>`, `--validate:<id>`, `--export:<id>`,
    `quick <file>` (quick-export, runs `commands/quick.md`), `stop` and a
-   one-line Vietnamese "when to use" for each. When no templates
+   one-line "when to use" for each. When no templates
    exist, pre-suggest `--import:<id>`. Once picked, follow MANDATORY ROUTING
    in `SKILL.md`.
 5. **Fallback (unknown `--flag` only):** prefix with

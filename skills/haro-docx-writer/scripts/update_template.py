@@ -19,9 +19,6 @@ styles.bullet_space_after, styles.code_font, styles.code_size,
 styles.heading_color, page.size/orientation/margins/distances,
 cover.*_size, header_footer.*_size, toc_levels.
 authors/reviewers/approvers accept comma-separated lists.
-
-Language convention: code/comments in English; user-visible strings in
-Vietnamese with full diacritics.
 """
 from __future__ import annotations
 

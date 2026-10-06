@@ -3,7 +3,7 @@
 > `/haro-docx-writer --export:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** template values are ground truth (resolved local-first).
 > NEVER hand-craft `.docx` — ALWAYS call `scripts/build_docx.py` with
-> `--template-id`. Reply to the user in Vietnamese with full diacritics.
+> `--template-id`.
 
 ## Command `/haro-docx-writer --export:<id> <file hoặc đường dẫn file>`
 
@@ -59,7 +59,7 @@ python skills/haro-docx-writer/scripts/build_docx.py \
 - On script failure: show stderr verbatim + one-line hint, do NOT retry with a
   different hand-rolled method.
 
-### 5. Verify + report (SHORT, Vietnamese with diacritics)
+### 5. Verify + report (SHORT)
 
 1. Confirm the output file exists and opens (size > 0).
 2. Report 5 lines max: output path, input source, template `<id>` + scope

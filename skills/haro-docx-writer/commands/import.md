@@ -2,8 +2,7 @@
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
 > `/haro-docx-writer --import:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** NEVER hand-craft `template.yaml` — the generator script
-> creates it. NEVER overwrite an existing id silently. Reply to the user in
-> Vietnamese with full diacritics.
+> creates it. NEVER overwrite an existing id silently.
 
 ## Command `/haro-docx-writer --import:<id> <file.docx hoặc đường dẫn>`
 
@@ -71,7 +70,7 @@ tells the agent which information the template should carry to make future
 content creation convenient.
 
 1. Read `.../<id>/content.txt` fully (plus the yaml style block for context).
-2. **Case A — template has discernible content:** state in chat, in Vietnamese:
+2. **Case A — template has discernible content:** state in chat:
    - (a) *Mục đích mẫu* — 1–2 free-form sentences inferred from the content,
      each claim cited (`tiêu đề "..."`, `bảng ...`, `header ...`). Never force
      it into a fixed category.

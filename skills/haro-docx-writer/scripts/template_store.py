@@ -6,9 +6,6 @@ Layout:
     ~/.haro-docx-writer/templates/<id>/template.docx + template.yaml
 
 Resolution order: local wins over global when both exist.
-
-Language convention: code/comments in English; user-visible strings in
-Vietnamese with full diacritics.
 """
 from __future__ import annotations
 

@@ -12,9 +12,6 @@ Usage:
     python extract_template.py --source <file.docx> --id <template-id>
         --location local|global [--project-root .]
         [--name "Ten mau"] [--description "Mo ta"]
-
-Language convention: code/comments in English; user-visible strings in
-Vietnamese with full diacritics.
 """
 from __future__ import annotations
 

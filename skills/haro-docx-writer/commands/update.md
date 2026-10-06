@@ -3,7 +3,7 @@
 > `/haro-docx-writer --update:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** NEVER hand-edit `template.docx` binary with tricks —
 > visual changes go through `scripts/update_template.py`. NEVER interpret a
-> vague request freely. Reply to the user in Vietnamese with full diacritics.
+> vague request freely.
 
 ## Command `/haro-docx-writer --update:<id> <nội dung>`
 
@@ -78,7 +78,7 @@ python skills/haro-docx-writer/scripts/update_template.py \
   for those keys and run with no `--set` to only refresh `updated_at` +
   push current yaml styles into the docx.
 
-### 4. Confirm + close (SHORT, Vietnamese with diacritics)
+### 4. Confirm + close (SHORT)
 
 1. Show the before → after diff per key (from script output).
 2. Run `/haro-docx-writer --validate:<id>` workflow next (or its script) and

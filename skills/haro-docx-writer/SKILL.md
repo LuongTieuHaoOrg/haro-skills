@@ -119,9 +119,5 @@ skills/haro-docx-writer/
   extraction (needs `pypdf` installed); scanned/image PDFs are refused with a
   clear message. A `.docx` is NEVER an export input — it is a template
   source for `--import`.
-- Language rules:
-  - Skill instructions and code comments are in **English**.
-  - Everything the user sees — chat replies, generated document content,
-    template values, console messages — is in **Vietnamese with full diacritics**.
-  - The skill formats source content, never translates it: code, endpoints,
-    and parameters stay in their original English.
+- The skill formats source content, never translates it: code, endpoints,
+  and parameters stay in their original language.

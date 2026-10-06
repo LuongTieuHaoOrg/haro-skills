@@ -2,7 +2,7 @@
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
 > `/haro-docx-writer --view:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** this command is read-only — never create, edit, or
-> delete anything. Reply to the user in Vietnamese with full diacritics.
+> delete anything.
 
 ## Command `/haro-docx-writer --view:<id>`
 

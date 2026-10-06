@@ -2,7 +2,7 @@
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
 > `/haro-docx-writer --list`. Do not act from memory: read every step first.
 > **Ground rules:** this command is read-only — never create, copy, or edit
-> any file. Reply to the user in Vietnamese with full diacritics.
+> any file.
 
 ## Command `/haro-docx-writer --list`
 
@@ -26,7 +26,7 @@ python skills/haro-docx-writer/scripts/template_store.py --project-root . list
 - Local scope = `<project>/.haro-docx-writer/templates/<id>/`.
   Global scope = `~/.haro-docx-writer/templates/<id>/`.
 
-### 3. Render (Vietnamese with diacritics)
+### 3. Render
 
 Render one table with exactly these columns:
 

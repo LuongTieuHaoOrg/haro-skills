@@ -11,10 +11,6 @@ Implements skills/haro-docx-writer/shared/docx-style.md. This is the ONLY suppor
 way to produce .docx in haro-docx-writer — agents must call this script, never
 hand-craft documents.
 Requires: python-docx, pyyaml. Optional: pypdf (only for .pdf input).
-
-Language convention: code, comments and docstrings are in English; every
-string the user sees (document content, console messages, errors) is in
-Vietnamese with full diacritics.
 """
 from __future__ import annotations
 
