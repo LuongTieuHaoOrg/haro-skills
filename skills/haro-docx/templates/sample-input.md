@@ -1,12 +1,12 @@
 # Hệ thống Quản lý Kho — Đặc tả Kỹ thuật (bản mẫu)
 
-Tài liệu mẫu dùng để thử `/haro-docx export`. Chạy thử:
+Tài liệu mẫu dùng để thử `/haro-docx --export:<id>`. Chạy thử:
 
 ```bash
 python skills/haro-docx/scripts/build_docx.py \
   --input skills/haro-docx/templates/sample-input.md \
   --output .haro-docx/output/mau-sad.docx \
-  --config skills/haro-docx/templates/config.yaml
+  --template-id <id> --project-root .
 ```
 
 ## 1. Tổng quan
