@@ -1,8 +1,9 @@
 # Index (Haro Docx reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** This file is the `/haro-docx-writer`
-> landing and fallback: it runs for `/haro-docx-writer` with no arguments, for
-> `help` / `--help` / `-h`, and for any unknown first token. Do not act from
-> memory: the reference always wins over memory.
+> landing and fallback: it runs for `/haro-docx-writer` with no arguments and
+> for `help` / `--help` / `-h`. A bare FILE argument routes to
+> `commands/quick.md` (not this file); an unknown `--flag` falls back here.
+> Do not act from memory: the reference always wins over memory.
 > **Ground rules:** reply to the user in Vietnamese with full diacritics.
 > This workflow is strictly read-only: never create or write any file.
 
@@ -26,9 +27,11 @@ page numbers). Templates live in `.haro-docx-writer/templates/<id>/` (local) and
 4. **Action picker:** single picker call (picker tool when available, otherwise
    numbered list) with `--list`, `--import:<id>`, `--update:<id>`,
    `--delete:<id>`, `--view:<id>`, `--validate:<id>`, `--export:<id>`,
-   `stop` and a one-line Vietnamese "when to use" for each. When no templates
+   `quick <file>` (quick-export, runs `commands/quick.md`), `stop` and a
+   one-line Vietnamese "when to use" for each. When no templates
    exist, pre-suggest `--import:<id>`. Once picked, follow MANDATORY ROUTING
    in `SKILL.md`.
-5. **Fallback (unknown token):** prefix with
+5. **Fallback (unknown `--flag` only):** prefix with
    `Lệnh 'foo' không hợp lệ. Các lệnh hợp lệ: --list, --import:<id>, --update:<id>, --delete:<id>, --view:<id>, --validate:<id>, --export:<id>.`
-   Suggest the closest match. Case-insensitive, trim whitespace.
+   Suggest the closest match. Case-insensitive, trim whitespace. A bare file
+   path is NOT invalid — it routes to `commands/quick.md`.

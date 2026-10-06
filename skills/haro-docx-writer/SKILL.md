@@ -47,6 +47,7 @@ Every template is a folder holding exactly two files:
 skills/haro-docx-writer/
 ├── commands/            # normative workflows (read fully before acting)
 │   ├── index.md         # /haro-docx-writer dashboard
+│   ├── quick.md         # /haro-docx-writer <file> (quick export, pick template)
 │   ├── list.md          # /haro-docx-writer --list
 │   ├── import.md        # /haro-docx-writer --import:<id>
 │   ├── update.md        # /haro-docx-writer --update:<id>
@@ -60,7 +61,10 @@ skills/haro-docx-writer/
 ├── scripts/extract_template.py # .docx -> template.yaml (used by --import)
 ├── scripts/validate_template.py# yaml-vs-docx check (used by --validate)
 ├── scripts/update_template.py  # patch yaml + push styles into .docx (used by --update)
-└── templates/config.yaml       # param defaults merged at --import time
+└── templates/
+    ├── config.yaml           # param defaults merged at --import time
+    ├── default-template.docx # basic default template (import it to start fast)
+    └── sample-input.md       # sample spec input for trial exports
 ```
 
 > **Read order (every command):** the template's `template.yaml` (resolved
@@ -72,7 +76,8 @@ skills/haro-docx-writer/
 > This file is only the router. The normative workflow for each command lives
 > in its workflow file (table below).
 >
-> 1. Match the user's command to exactly one table row (colon syntax:
+> 1. Match the user's command to exactly one table row. A bare file argument
+>    (no flag) matches the quick-export row; flags use colon syntax:
 >    `--import:<id>` — the id is glued to the flag with `:`).
 > 2. Read that workflow file **fully, before any other tool call or answer**.
 > 3. If you notice you are about to act, answer, or create anything without
@@ -84,6 +89,7 @@ skills/haro-docx-writer/
 | Command | When to use | Read first (fully, before acting) | Example |
 |---------|-------------|-----------------------------------|---------|
 | `/haro-docx-writer` (no args) | Show dashboard, pick next action | `commands/index.md` | `/haro-docx-writer` |
+| `/haro-docx-writer <file>` | Quick export: pick an existing template, render immediately | `commands/quick.md` | `/haro-docx-writer docs/sad.md` |
 | `/haro-docx-writer --list` | List all templates (id, name, description, location, created, updated) | `commands/list.md` | `/haro-docx-writer --list` |
 | `/haro-docx-writer --import:<id> <file.docx>` | Register a .docx file as a new template (asks local/global, checks duplicates, extracts yaml) | `commands/import.md` | `/haro-docx-writer --import:congty-a DieuLe.docx` |
 | `/haro-docx-writer --update:<id> <nội dung>` | Update a template's params/content per user request | `commands/update.md` | `/haro-docx-writer --update:congty-a đổi company thành CTY X` |
