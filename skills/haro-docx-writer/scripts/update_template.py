@@ -34,7 +34,14 @@ from docx import Document
 from docx.shared import Cm, Pt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from template_store import normalize_id, now_iso, resolve  # noqa: E402
+from template_store import (  # noqa: E402
+    fmt_unit,
+    normalize_id,
+    now_iso,
+    parse_cm,
+    parse_pt,
+    resolve,
+)
 
 STYLE_KEYS = {
     "styles.body_font", "styles.body_size",
@@ -65,31 +72,51 @@ TEXT_KEYS = {
 }
 LIST_KEYS = {"authors", "reviewers", "approvers"}
 ALLOWED = STYLE_KEYS | PAGE_KEYS | COVER_KEYS | HF_KEYS | TEXT_KEYS | LIST_KEYS
-NUMERIC_KEYS = {
+# Keys measured in points (font/spacing sizes) vs centimeters (page geometry).
+PT_KEYS = {
     "styles.body_size", "styles.h1_size", "styles.h2_size", "styles.h3_size",
     "styles.h4_size", "styles.h5_size", "styles.h6_size",
-    "styles.body_line_spacing", "styles.body_space_before", "styles.body_space_after",
+    "styles.body_space_before", "styles.body_space_after",
     "styles.heading_space_before", "styles.heading_space_after",
-    "styles.bullet_indent_cm", "styles.bullet_space_after",
+    "styles.bullet_space_after",
     "styles.code_size",
-    "page.margin_top_cm", "page.margin_bottom_cm",
-    "page.margin_left_cm", "page.margin_right_cm",
-    "page.header_distance_cm", "page.footer_distance_cm",
     "cover.title_size", "cover.solution_size", "cover.company_size", "cover.note_size",
     "header_footer.doc_name_size", "header_footer.company_size",
     "header_footer.page_size", "header_footer.solution_size",
 }
+CM_KEYS = {
+    "styles.bullet_indent_cm",
+    "page.margin_top_cm", "page.margin_bottom_cm",
+    "page.margin_left_cm", "page.margin_right_cm",
+    "page.header_distance_cm", "page.footer_distance_cm",
+}
+NUMERIC_KEYS = PT_KEYS | CM_KEYS | {"styles.body_line_spacing"}
 
 
 def _parse_value(key: str, raw: str):
     if key in LIST_KEYS:
         return [p.strip() for p in raw.split(",") if p.strip()]
-    if key in NUMERIC_KEYS:
+    if key in PT_KEYS:
+        # Stored with unit suffix for readability (vd "12pt").
         try:
-            num = float(raw)
-            return int(num) if num.is_integer() else num
+            val = parse_pt(raw, key)
+        except ValueError as e:
+            raise ValueError(str(e))
+        return fmt_unit(val, "pt")
+    if key in CM_KEYS:
+        try:
+            val = parse_cm(raw, key)
+        except ValueError as e:
+            raise ValueError(str(e))
+        return fmt_unit(val, "cm")
+    if key == "styles.body_line_spacing":
+        try:
+            num = float(str(raw).strip())
         except ValueError:
-            raise ValueError(f"LỖI: '{key}' phải là số (nhận được '{raw}').")
+            raise ValueError(f"LỖI: '{key}' phải là hệ số (vd 1.15), nhận được '{raw}'.")
+        if num <= 0:
+            raise ValueError(f"LỖI: '{key}' phải > 0 (nhận được '{raw}').")
+        return int(num) if num.is_integer() else num
     if key == "page.size":
         v = raw.strip().upper()
         if v not in ("A4", "LETTER"):
@@ -148,12 +175,9 @@ def apply_visual(docx_path: Path, styles: dict, page: dict | None = None) -> lis
         except KeyError:
             return
         size = styles.get(size_key)
-        if size:
-            try:
-                st.font.size = Pt(float(size))
-                changed.append(f"{style_name}.size={size}")
-            except Exception:
-                pass
+        if size is not None and size != "":
+            st.font.size = Pt(parse_pt(size, f"styles.{size_key}"))
+            changed.append(f"{style_name}.size={size}")
         if font:
             try:
                 st.font.name = font
@@ -166,13 +190,13 @@ def apply_visual(docx_path: Path, styles: dict, page: dict | None = None) -> lis
     try:
         npf = doc.styles["Normal"].paragraph_format
         if styles.get("body_line_spacing") is not None:
-            npf.line_spacing = float(styles["body_line_spacing"])
+            npf.line_spacing = float(str(styles["body_line_spacing"]).strip())
             changed.append(f"Normal.line_spacing={styles['body_line_spacing']}")
         if styles.get("body_space_before") is not None:
-            npf.space_before = Pt(float(styles["body_space_before"]))
+            npf.space_before = Pt(parse_pt(styles["body_space_before"], "styles.body_space_before"))
             changed.append(f"Normal.space_before={styles['body_space_before']}")
         if styles.get("body_space_after") is not None:
-            npf.space_after = Pt(float(styles["body_space_after"]))
+            npf.space_after = Pt(parse_pt(styles["body_space_after"], "styles.body_space_after"))
             changed.append(f"Normal.space_after={styles['body_space_after']}")
     except KeyError:
         pass
@@ -183,9 +207,11 @@ def apply_visual(docx_path: Path, styles: dict, page: dict | None = None) -> lis
         try:
             hpf = doc.styles[name].paragraph_format
             if styles.get("heading_space_before") is not None:
-                hpf.space_before = Pt(float(styles["heading_space_before"]))
+                hpf.space_before = Pt(parse_pt(styles["heading_space_before"],
+                                               "styles.heading_space_before"))
             if styles.get("heading_space_after") is not None:
-                hpf.space_after = Pt(float(styles["heading_space_after"]))
+                hpf.space_after = Pt(parse_pt(styles["heading_space_after"],
+                                              "styles.heading_space_after"))
         except KeyError:
             pass
     if styles.get("heading_space_before") is not None or styles.get("heading_space_after") is not None:
@@ -196,10 +222,12 @@ def apply_visual(docx_path: Path, styles: dict, page: dict | None = None) -> lis
         except KeyError:
             continue
         if styles.get("bullet_indent_cm") is not None:
-            lst.paragraph_format.left_indent = Cm(float(styles["bullet_indent_cm"]))
-            changed.append(f"{list_name}.indent={styles['bullet_indent_cm']}cm")
+            lst.paragraph_format.left_indent = Cm(parse_cm(styles["bullet_indent_cm"],
+                                                          "styles.bullet_indent_cm"))
+            changed.append(f"{list_name}.indent={styles['bullet_indent_cm']}")
         if styles.get("bullet_space_after") is not None:
-            lst.paragraph_format.space_after = Pt(float(styles["bullet_space_after"]))
+            lst.paragraph_format.space_after = Pt(parse_pt(styles["bullet_space_after"],
+                                                           "styles.bullet_space_after"))
             changed.append(f"{list_name}.space_after={styles['bullet_space_after']}")
     if "Code Block" in [s.name for s in doc.styles]:
         touch("Code Block", "code_size", code_font)
@@ -217,7 +245,7 @@ def apply_visual(docx_path: Path, styles: dict, page: dict | None = None) -> lis
                                ("header_distance", "header_distance_cm"),
                                ("footer_distance", "footer_distance_cm")):
                 if page.get(pkey) is not None:
-                    setattr(s, attr, Cm(float(page[pkey])))
+                    setattr(s, attr, Cm(parse_cm(page[pkey], f"page.{pkey}")))
         changed.append(f"page={size} {page.get('orientation', 'portrait')} "
                        f"margins={page.get('margin_top_cm')}/{page.get('margin_bottom_cm')}/"
                        f"{page.get('margin_left_cm')}/{page.get('margin_right_cm')}")

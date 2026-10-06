@@ -23,7 +23,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from extract_template import extract_visual  # noqa: E402
-from template_store import normalize_id, resolve  # noqa: E402
+from template_store import normalize_id, parse_cm, parse_pt, resolve  # noqa: E402
 
 
 def _eq_font(a: str, b: str) -> bool:
@@ -35,6 +35,23 @@ def _eq_size(a, b) -> bool:
         return abs(float(a) - float(b)) < 0.05
     except (TypeError, ValueError):
         return (a or "") == (b or "")
+
+
+def _eq_len(key: str, a, b) -> bool:
+    """Compare numerics after normalizing units (cm-keys vs pt-keys).
+
+    Bare numbers keep legacy meaning (key's own unit); suffixed strings
+    convert. Tolerance 0.05 in the canonical unit.
+    """
+    parse = parse_cm if key.endswith("_cm") else parse_pt
+    try:
+        return abs(parse(a, "yaml") - parse(b, "docx")) < 0.05
+    except (TypeError, ValueError):
+        return (a or "") == (b or "")
+
+
+def _eq_num(key: str):
+    return lambda y, d: _eq_len(key, y, d)
 
 
 def parse_args(argv=None):
@@ -106,13 +123,13 @@ def main(argv=None) -> int:
         dv = visual.get(key, "")
         if yv == "" and (dv == "" or dv is None):
             continue
-        add_cmp(f"styles.{key}", yv, dv, _eq_size)
+        add_cmp(f"styles.{key}", yv, dv, _eq_num(key))
     if visual.get("has_code_style", True):
         add_cmp("styles.code_font", styles.get("code_font", ""),
                 visual.get("code_font", ""), _eq_font)
         if styles.get("code_size") or visual.get("code_size"):
             add_cmp("styles.code_size", styles.get("code_size", ""),
-                    visual.get("code_size", ""), _eq_size)
+                    visual.get("code_size", ""), _eq_num("code_size"))
 
     page = cfg.get("page", {}) or {}
     if page or visual.get("page_size"):
@@ -127,14 +144,14 @@ def main(argv=None) -> int:
             dv = margins.get(side, "")
             if yv == "" and (dv == "" or dv is None):
                 continue
-            add_cmp(f"page.{pkey}", yv, dv, _eq_size)
+            add_cmp(f"page.{pkey}", yv, dv, _eq_num(pkey))
         for label, pkey, vkey in (("header_distance", "header_distance_cm", "page_header_distance_cm"),
                                   ("footer_distance", "footer_distance_cm", "page_footer_distance_cm")):
             yv = page.get(pkey, "")
             dv = visual.get(vkey, "")
             if yv == "" and (dv == "" or dv is None):
                 continue
-            add_cmp(f"page.{pkey}", yv, dv, _eq_size)
+            add_cmp(f"page.{pkey}", yv, dv, _eq_num(pkey))
 
     if recorded:
         add("header (có/không)", "có" if recorded.get("has_header") else "không có",

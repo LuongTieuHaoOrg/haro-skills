@@ -26,6 +26,74 @@ TEMPLATE_YAML_NAME = "template.yaml"
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9\-_]{0,40}$")
 MAX_ID_LEN = 41
 
+# Canonical units: pt for font/spacing sizes, cm for page geometry.
+# 1in = 2.54cm = 25.4mm = 72pt.
+_UNIT_TO_PT = {"pt": 1.0, "cm": 72.0 / 2.54, "mm": 72.0 / 25.4, "in": 72.0}
+_UNIT_TO_CM = {"cm": 1.0, "mm": 0.1, "in": 2.54, "pt": 2.54 / 72.0}
+_LEN_RE = re.compile(r"^\s*([+-]?(?:\d+(?:\.\d+)?|\.\d+))\s*([a-z]*)\s*$", re.I)
+
+
+def parse_length(value, unit: str = "pt", field: str = "giá trị") -> float:
+    """Parse a bare number (already in `unit`) or a 'number+unit' string.
+
+    Accepts pt/cm/mm/in anywhere and converts to `unit` ("pt" or "cm").
+    Bare numbers keep their legacy meaning. Raises ValueError (Vietnamese)
+    on bad format, unknown unit, or negative values.
+    """
+    table = _UNIT_TO_PT if unit == "pt" else _UNIT_TO_CM
+    if isinstance(value, bool):
+        raise ValueError(
+            f"LỖI: '{field}' phải là số hoặc chuỗi kèm đơn vị pt/cm/mm/in."
+        )
+    if isinstance(value, (int, float)):
+        num, factor = float(value), 1.0
+    elif isinstance(value, str):
+        m = _LEN_RE.match(value)
+        if not m:
+            raise ValueError(
+                f"LỖI: '{field}' không hiểu được ('{value}'). "
+                "Dùng số (vd 12) hoặc chuỗi kèm đơn vị (vd 12pt, 2.54cm, 25mm, 1in)."
+            )
+        num, suffix = float(m.group(1)), m.group(2).lower()
+        if suffix == "":
+            factor = 1.0
+        elif suffix in table:
+            factor = table[suffix]
+        else:
+            raise ValueError(
+                f"LỖI: đơn vị '{m.group(2)}' không hỗ trợ cho '{field}'. "
+                "Chỉ nhận pt/cm/mm/in."
+            )
+    else:
+        raise ValueError(
+            f"LỖI: '{field}' phải là số hoặc chuỗi kèm đơn vị pt/cm/mm/in."
+        )
+    result = num * factor
+    if result < 0:
+        raise ValueError(f"LỖI: '{field}' không được âm (nhận được '{value}').")
+    return result
+
+
+def parse_pt(value, field: str = "giá trị") -> float:
+    """Parse to points (font/spacing sizes)."""
+    return parse_length(value, "pt", field)
+
+
+def parse_cm(value, field: str = "giá trị") -> float:
+    """Parse to centimeters (margins/indents)."""
+    return parse_length(value, "cm", field)
+
+
+def fmt_unit(value, suffix: str) -> str:
+    """Format a canonical number back with its unit suffix for YAML output."""
+    try:
+        num = round(float(value), 2)
+    except (TypeError, ValueError):
+        return f"{value}{suffix}"
+    if float(num).is_integer():
+        return f"{int(num)}{suffix}"
+    return f"{num}{suffix}"
+
 
 def normalize_id(raw: str) -> str:
     tid = (raw or "").strip().lower().replace(" ", "-")

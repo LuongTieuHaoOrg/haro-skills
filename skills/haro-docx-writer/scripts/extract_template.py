@@ -33,6 +33,7 @@ from template_store import (
     TEMPLATE_YAML_NAME,
     copy_source_into,
     exists_in,
+    fmt_unit,
     global_root,
     local_root,
     normalize_id,
@@ -443,16 +444,20 @@ def build_template_yaml(tid: str, location: str, source: Path, name: str,
     styles = dict(base.get("styles", {}))
     if visual.get("body_font"):
         styles["body_font"] = visual["body_font"]
-    for vkey in ("body_size", "body_line_spacing", "body_space_before", "body_space_after",
+    for vkey in ("body_size", "body_space_before", "body_space_after",
                  "h1_size", "h2_size", "h3_size", "h4_size", "h5_size", "h6_size",
                  "heading_space_before", "heading_space_after",
-                 "bullet_indent_cm", "bullet_space_after"):
+                 "bullet_space_after"):
         if visual.get(vkey) is not None:
-            styles[vkey] = visual[vkey]
+            styles[vkey] = fmt_unit(visual[vkey], "pt")
+    if visual.get("body_line_spacing") is not None:
+        styles["body_line_spacing"] = visual["body_line_spacing"]
+    if visual.get("bullet_indent_cm") is not None:
+        styles["bullet_indent_cm"] = fmt_unit(visual["bullet_indent_cm"], "cm")
     if visual.get("code_font"):
         styles["code_font"] = visual["code_font"]
     if visual.get("code_size"):
-        styles["code_size"] = visual["code_size"]
+        styles["code_size"] = fmt_unit(visual["code_size"], "pt")
 
     page = dict(base.get("page", {}))
     if visual.get("page_size") in ("A4", "Letter"):
@@ -463,11 +468,11 @@ def build_template_yaml(tid: str, location: str, source: Path, name: str,
     for side, pkey in (("top", "margin_top_cm"), ("bottom", "margin_bottom_cm"),
                        ("left", "margin_left_cm"), ("right", "margin_right_cm")):
         if margins.get(side) is not None:
-            page[pkey] = margins[side]
+            page[pkey] = fmt_unit(margins[side], "cm")
     if visual.get("page_header_distance_cm") is not None:
-        page["header_distance_cm"] = visual["page_header_distance_cm"]
+        page["header_distance_cm"] = fmt_unit(visual["page_header_distance_cm"], "cm")
     if visual.get("page_footer_distance_cm") is not None:
-        page["footer_distance_cm"] = visual["page_footer_distance_cm"]
+        page["footer_distance_cm"] = fmt_unit(visual["page_footer_distance_cm"], "cm")
 
     now = now_iso()
     cfg = dict(base)
@@ -563,11 +568,11 @@ def main(argv=None) -> int:
           f"line={st.get('body_line_spacing')} space={st.get('body_space_before')}/{st.get('body_space_after')}")
     print(f"  h1-h6: {st.get('h1_size')}/{st.get('h2_size')}/{st.get('h3_size')}/"
           f"{st.get('h4_size')}/{st.get('h5_size')}/{st.get('h6_size')}")
-    print(f"  bullet: indent={st.get('bullet_indent_cm')}cm space_after={st.get('bullet_space_after')}pt")
+    print(f"  bullet: indent={st.get('bullet_indent_cm')} space_after={st.get('bullet_space_after')}")
     pg = cfg.get("page", {})
     print(f"  trang: {pg.get('size')} {pg.get('orientation')} "
           f"margins={pg.get('margin_top_cm')}/{pg.get('margin_bottom_cm')}/"
-          f"{pg.get('margin_left_cm')}/{pg.get('margin_right_cm')}cm")
+          f"{pg.get('margin_left_cm')}/{pg.get('margin_right_cm')}")
     print(f"  header: {'có' if visual.get('has_header') else 'không có'}; "
           f"footer: {'có' if visual.get('has_footer') else 'không có'}"
           + (f"; logo đã bóc: {logo_rel}" if logo_rel else ""))

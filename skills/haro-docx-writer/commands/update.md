@@ -54,6 +54,10 @@ Mappable `--set` keys for `scripts/update_template.py`:
   `header_footer.doc_name/company/page/solution_size` (export-time only —
   yaml saved, nothing pushed into the .docx).
 - Lists (`authors`, `reviewers`, `approvers`): comma-separated.
+- Units: numeric values accept bare numbers (legacy meaning) or strings with
+  units — `"15pt"`, `"2cm"`, `"25mm"`, `"1in"` (auto-converted). Examples:
+  `--set styles.h1_size="15pt"`, `--set page.margin_left_cm="25mm"`.
+  Bad units are refused with a clear error.
 - Anything outside this list (cover layout, header/footer structure,
   TOC behavior beyond levels) → explain it is fixed by `shared/docx-style.md`
   + script; offer the closest supported alternative instead of improvising.

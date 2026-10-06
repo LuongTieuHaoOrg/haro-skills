@@ -22,6 +22,11 @@
 - Fonts are forced at run level on export: every text run carries its font
   directly, so a Word template theme (`--base-template`) can never override
   headings or body text.
+- Units in YAML: bare numbers keep legacy meaning (font/spacing sizes = pt,
+  margins/indents = cm, `body_line_spacing` is a unitless factor). Strings
+  with a unit convert automatically: `"12pt"`, `"2.54cm"`, `"25mm"`, `"1in"`
+  (`1in = 2.54cm = 25.4mm = 72pt`). Unknown units or bad formats are refused
+  with a clear error — never guessed.
 
 ## 2. Alignment and spacing
 

@@ -27,8 +27,41 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 try:
     from template_store import resolve as resolve_template
-except ImportError:  # script copied standalone — template-id unavailable
+    from template_store import parse_cm, parse_pt
+except ImportError:  # script copied standalone — legacy plain-number behavior
     resolve_template = None  # type: ignore
+
+    def parse_pt(value, field="giá trị"):  # type: ignore
+        return float(value)
+
+    def parse_cm(value, field="giá trị"):  # type: ignore
+        return float(value)
+
+
+def _num(mapping: dict, key: str, default, parse, prefix: str):
+    """Read a numeric param through the unit parser; exit cleanly on bad input."""
+    try:
+        return parse(mapping.get(key, default), f"{prefix}.{key}")
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        raise SystemExit(2)
+
+
+def _cfg_pt(mapping: dict, key: str, default, prefix: str = "styles"):
+    return Pt(_num(mapping, key, default, parse_pt, prefix))
+
+
+def _cfg_cm(mapping: dict, key: str, default, prefix: str = "styles"):
+    return Cm(_num(mapping, key, default, parse_cm, prefix))
+
+
+def _cfg_float(mapping: dict, key: str, default, prefix: str = "styles") -> float:
+    try:
+        return float(str(mapping.get(key, default)).strip())
+    except (TypeError, ValueError):
+        print(f"LỖI: '{prefix}.{key}' phải là số (nhận được '{mapping.get(key)}').",
+              file=sys.stderr)
+        raise SystemExit(2)
 
 import yaml
 from docx import Document
@@ -262,16 +295,16 @@ def ensure_styles(doc: Document, cfg: dict):
     st_cfg = cfg.get("styles", {})
     body_font = st_cfg.get("body_font", BODY_FONT)
     code_font = st_cfg.get("code_font", CODE_FONT)
-    body_size = Pt(st_cfg.get("body_size", 12))
+    body_size = _cfg_pt(st_cfg, "body_size", 12)
     hcolor = _heading_hex(st_cfg)
     h_rgb = RGBColor.from_string(hcolor)
     h_sizes = {
-        "Heading 1": Pt(st_cfg.get("h1_size", 14)),
-        "Heading 2": Pt(st_cfg.get("h2_size", 13)),
-        "Heading 3": Pt(st_cfg.get("h3_size", 12)),
-        "Heading 4": Pt(st_cfg.get("h4_size", 12)),
-        "Heading 5": Pt(st_cfg.get("h5_size", 11)),
-        "Heading 6": Pt(st_cfg.get("h6_size", 11)),
+        "Heading 1": _cfg_pt(st_cfg, "h1_size", 14),
+        "Heading 2": _cfg_pt(st_cfg, "h2_size", 13),
+        "Heading 3": _cfg_pt(st_cfg, "h3_size", 12),
+        "Heading 4": _cfg_pt(st_cfg, "h4_size", 12),
+        "Heading 5": _cfg_pt(st_cfg, "h5_size", 11),
+        "Heading 6": _cfg_pt(st_cfg, "h6_size", 11),
     }
 
     normal = doc.styles["Normal"]
@@ -279,9 +312,9 @@ def ensure_styles(doc: Document, cfg: dict):
     normal.font.size = body_size
     normal.font.color.rgb = RGBColor.from_string(BLACK)
     pf = normal.paragraph_format
-    pf.line_spacing = float(st_cfg.get("body_line_spacing", 1.15))
-    pf.space_before = Pt(st_cfg.get("body_space_before", 0))
-    pf.space_after = Pt(st_cfg.get("body_space_after", 6))
+    pf.line_spacing = _cfg_float(st_cfg, "body_line_spacing", 1.15)
+    pf.space_before = _cfg_pt(st_cfg, "body_space_before", 0)
+    pf.space_after = _cfg_pt(st_cfg, "body_space_after", 6)
     pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
     for name, size in h_sizes.items():
@@ -296,16 +329,16 @@ def ensure_styles(doc: Document, cfg: dict):
         st.font.color.rgb = h_rgb
         st.font.all_caps = False
         st.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        st.paragraph_format.space_before = Pt(st_cfg.get("heading_space_before", 12))
-        st.paragraph_format.space_after = Pt(st_cfg.get("heading_space_after", 6))
+        st.paragraph_format.space_before = _cfg_pt(st_cfg, "heading_space_before", 12)
+        st.paragraph_format.space_after = _cfg_pt(st_cfg, "heading_space_after", 6)
 
     for list_name in ("List Bullet", "List Number"):
         try:
             lst = doc.styles[list_name]
         except KeyError:
             continue
-        lst.paragraph_format.left_indent = Cm(st_cfg.get("bullet_indent_cm", 0.75))
-        lst.paragraph_format.space_after = Pt(st_cfg.get("bullet_space_after", 2))
+        lst.paragraph_format.left_indent = _cfg_cm(st_cfg, "bullet_indent_cm", 0.75)
+        lst.paragraph_format.space_after = _cfg_pt(st_cfg, "bullet_space_after", 2)
         lst.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
     if "Code Block" not in doc.styles:
@@ -314,7 +347,7 @@ def ensure_styles(doc: Document, cfg: dict):
         code = doc.styles["Code Block"]
     code.base_style = doc.styles["Normal"]
     code.font.name = code_font
-    code.font.size = Pt(st_cfg.get("code_size", 11))
+    code.font.size = _cfg_pt(st_cfg, "code_size", 11)
     code.font.color.rgb = RGBColor.from_string(BLACK)
     code.paragraph_format.space_after = Pt(6)
     return code
@@ -348,15 +381,15 @@ def finalize_fonts(doc: Document, cfg: dict):
     st_cfg = cfg.get("styles", {})
     body_font = st_cfg.get("body_font", BODY_FONT)
     code_font = st_cfg.get("code_font", CODE_FONT)
-    code_size = Pt(st_cfg.get("code_size", 11))
+    code_size = _cfg_pt(st_cfg, "code_size", 11)
     hcolor = _heading_hex(st_cfg)
     h_sizes = {
-        "Heading 1": Pt(st_cfg.get("h1_size", 14)),
-        "Heading 2": Pt(st_cfg.get("h2_size", 13)),
-        "Heading 3": Pt(st_cfg.get("h3_size", 12)),
-        "Heading 4": Pt(st_cfg.get("h4_size", 12)),
-        "Heading 5": Pt(st_cfg.get("h5_size", 11)),
-        "Heading 6": Pt(st_cfg.get("h6_size", 11)),
+        "Heading 1": _cfg_pt(st_cfg, "h1_size", 14),
+        "Heading 2": _cfg_pt(st_cfg, "h2_size", 13),
+        "Heading 3": _cfg_pt(st_cfg, "h3_size", 12),
+        "Heading 4": _cfg_pt(st_cfg, "h4_size", 12),
+        "Heading 5": _cfg_pt(st_cfg, "h5_size", 11),
+        "Heading 6": _cfg_pt(st_cfg, "h6_size", 11),
     }
     for p in iter_all_paragraphs(doc):
         if p.style.name == "Code Block":
@@ -407,17 +440,17 @@ def build_cover(doc: Document, cfg: dict, base_dir: Path):
     t = doc.add_paragraph()
     t.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = t.add_run(cfg["document_title"])
-    set_run_font(r, BODY_FONT, size=Pt(cover.get("title_size", 24)), bold=True)
+    set_run_font(r, BODY_FONT, size=_cfg_pt(cover, "title_size", 24, "cover"), bold=True)
 
     s = doc.add_paragraph()
     s.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = s.add_run(cfg["solution_name"])
-    set_run_font(r, BODY_FONT, size=Pt(cover.get("solution_size", 14)))
+    set_run_font(r, BODY_FONT, size=_cfg_pt(cover, "solution_size", 14, "cover"))
 
     c = doc.add_paragraph()
     c.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = c.add_run(cfg["company_name"])
-    set_run_font(r, BODY_FONT, size=Pt(cover.get("company_size", 12)))
+    set_run_font(r, BODY_FONT, size=_cfg_pt(cover, "company_size", 12, "cover"))
 
     doc.add_paragraph()
     meta = doc.add_table(rows=1, cols=2)
@@ -436,7 +469,7 @@ def build_cover(doc: Document, cfg: dict, base_dir: Path):
     note = doc.add_paragraph()
     note.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = note.add_run("Tài liệu lưu hành nội bộ.")
-    set_run_font(r, BODY_FONT, size=Pt(cover.get("note_size", 9)), italic=True)
+    set_run_font(r, BODY_FONT, size=_cfg_pt(cover, "note_size", 9, "cover"), italic=True)
     doc.add_page_break()
 
 
@@ -505,12 +538,12 @@ def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
     for s in doc.sections:
         s.page_width = Cm(w_cm)
         s.page_height = Cm(h_cm)
-        s.top_margin = Cm(pg.get("margin_top_cm", 2.54))
-        s.bottom_margin = Cm(pg.get("margin_bottom_cm", 2.54))
-        s.left_margin = Cm(pg.get("margin_left_cm", 2.0))
-        s.right_margin = Cm(pg.get("margin_right_cm", 2.0))
-        s.header_distance = Cm(pg.get("header_distance_cm", 1.27))
-        s.footer_distance = Cm(pg.get("footer_distance_cm", 1.27))
+        s.top_margin = _cfg_cm(pg, "margin_top_cm", 2.54, "page")
+        s.bottom_margin = _cfg_cm(pg, "margin_bottom_cm", 2.54, "page")
+        s.left_margin = _cfg_cm(pg, "margin_left_cm", 2.0, "page")
+        s.right_margin = _cfg_cm(pg, "margin_right_cm", 2.0, "page")
+        s.header_distance = _cfg_cm(pg, "header_distance_cm", 1.27, "page")
+        s.footer_distance = _cfg_cm(pg, "footer_distance_cm", 1.27, "page")
 
     # Header: left logo | right 2 lines (document name / company name).
     ht = section.header.add_table(rows=1, cols=2, width=Inches(6.5))
@@ -524,10 +557,10 @@ def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
     right.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     hf = cfg.get("header_footer", {}) or {}
     r1 = right.add_run(cfg["document_name"])
-    set_run_font(r1, BODY_FONT, size=Pt(hf.get("doc_name_size", 9)), bold=True)
+    set_run_font(r1, BODY_FONT, size=_cfg_pt(hf, "doc_name_size", 9, "header_footer"), bold=True)
     right.add_run().add_break()
     r2 = right.add_run(cfg["company_name"])
-    set_run_font(r2, BODY_FONT, size=Pt(hf.get("company_size", 8)))
+    set_run_font(r2, BODY_FONT, size=_cfg_pt(hf, "company_size", 8, "header_footer"))
 
     # Footer: left page X/Y | right solution name.
     ft = section.footer.add_table(rows=1, cols=2, width=Inches(6.5))
@@ -535,11 +568,11 @@ def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
     left_p = ft.cell(0, 0).paragraphs[0]
     add_page_field(left_p)
     for run in left_p.runs:
-        set_run_font(run, BODY_FONT, size=Pt(hf.get("page_size", 8)))
+        set_run_font(run, BODY_FONT, size=_cfg_pt(hf, "page_size", 8, "header_footer"))
     right_p = ft.cell(0, 1).paragraphs[0]
     right_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     r = right_p.add_run(cfg["solution_name"])
-    set_run_font(r, BODY_FONT, size=Pt(hf.get("solution_size", 8)), italic=True)
+    set_run_font(r, BODY_FONT, size=_cfg_pt(hf, "solution_size", 8, "header_footer"), italic=True)
     return section
 
 
