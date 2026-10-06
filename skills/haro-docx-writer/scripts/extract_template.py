@@ -16,6 +16,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -171,6 +172,57 @@ def _part_text(part) -> str:
                     if text:
                         texts.append(text)
     return " | ".join(texts[:6])
+
+
+PLACEHOLDER_RE = re.compile(
+    r"\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}|\[\[\s*([A-Za-z0-9_.-]+)\s*\]\]"
+)
+
+
+def find_placeholders(doc: Document) -> dict:
+    """Scan body + tables + headers/footers for {{name}} / [[name]] tokens.
+
+    Returns {name: {"syntax": ["{{}}", "[[]]"], "count": n, "locations": [...]}}.
+    Pure detection — no meaning guessed. The agent presents these for user
+    confirmation (commands/import.md); confirmed ones go to yaml `placeholders:`.
+    """
+    found: dict = {}
+
+    def note(name: str, syntax: str, where: str):
+        e = found.setdefault(name, {"syntax": [], "count": 0, "locations": []})
+        if syntax not in e["syntax"]:
+            e["syntax"].append(syntax)
+        e["count"] += 1
+        if where not in e["locations"]:
+            e["locations"].append(where)
+
+    def scan_text(text: str, where: str):
+        for m in PLACEHOLDER_RE.finditer(text or ""):
+            name = m.group(1) or m.group(2)
+            syntax = "{{}}" if m.group(1) else "[[]]"
+            note(name, syntax, where)
+
+    for i, p in enumerate(doc.paragraphs):
+        scan_text(_para_text_br(p), f"đoạn {i + 1}")
+    for ti, table in enumerate(doc.tables):
+        for ri, row in enumerate(table.rows):
+            for ci, cell in enumerate(row.cells):
+                for p in cell.paragraphs:
+                    scan_text(_para_text_br(p), f"bảng {ti + 1} hàng {ri + 1} cột {ci + 1}")
+    for si, sec in enumerate(doc.sections):
+        try:
+            htext = _part_text(sec.header)
+        except Exception:
+            htext = ""
+        try:
+            ftext = _part_text(sec.footer)
+        except Exception:
+            ftext = ""
+        if htext:
+            scan_text(htext, f"header section {si + 1}")
+        if ftext:
+            scan_text(ftext, f"footer section {si + 1}")
+    return found
 
 
 def _header_image_blobs(doc: Document) -> list[tuple[bytes, str]]:
@@ -480,7 +532,7 @@ def merge_visual_into_cfg(cfg: dict, visual: dict) -> dict:
 
 def build_template_yaml(tid: str, location: str, source: Path, name: str,
                          description: str, visual: dict,
-                         logo_rel: str = "") -> dict:
+                         logo_rel: str = "", placeholders: dict | None = None) -> dict:
     base = load_defaults()
     cfg = merge_visual_into_cfg(dict(base), visual)
 
@@ -502,6 +554,7 @@ def build_template_yaml(tid: str, location: str, source: Path, name: str,
                 "footer_text": visual.get("footer_text", ""),
                 "has_code_style": visual.get("has_code_style", False),
                 "logo_saved": logo_rel,
+                "placeholders_found": placeholders or {},
                 "note": "Khối _extracted chỉ để --validate đối chiếu, không dùng khi render. "
                         "Mục đích mẫu và giá trị params do agent đọc content.txt rồi đề xuất, "
                         "user duyệt mới điền (xem commands/import.md).",
@@ -553,6 +606,7 @@ def main(argv=None) -> int:
     try:
         doc = Document(str(source))
         visual = extract_visual(source)
+        placeholders = find_placeholders(doc)
         paths["dir"].mkdir(parents=True, exist_ok=True)
         logo_rel = save_logo_blob(_header_image_blobs(doc), paths["dir"])
     except Exception as e:
@@ -560,7 +614,7 @@ def main(argv=None) -> int:
         return 2
     copy_source_into(source, paths["docx"])
     cfg = build_template_yaml(tid, args.location, source, args.name,
-                              args.description, visual, logo_rel)
+                              args.description, visual, logo_rel, placeholders)
     with open(paths["yaml"], "w", encoding="utf-8") as f:
         yaml.safe_dump(cfg, f, allow_unicode=True, sort_keys=False)
     content_txt = paths["dir"] / "content.txt"
@@ -584,6 +638,14 @@ def main(argv=None) -> int:
           f"footer: {'có' if visual.get('has_footer') else 'không có'}"
           + (f"; logo đã bóc: {logo_rel}" if logo_rel else ""))
     print(f"Nội dung mẫu (agent đọc để hiểu mục đích): {content_txt}")
+    if placeholders:
+        print(f"Placeholder phát hiện ({len(placeholders)}):")
+        for name, info in placeholders.items():
+            locs = ", ".join(info["locations"][:3])
+            print(f"  - {name} [{'/'.join(info['syntax'])}] x{info['count']} ({locs})")
+        print("Agent trình user xác nhận từng placeholder rồi lưu vào YAML (xem import workflow).")
+    else:
+        print("Không phát hiện placeholder {{...}} / [[...]] nào.")
     print("Tiếp theo: đọc content.txt, nêu mục đích mẫu, đề xuất thông số để user duyệt.")
     print(f"Kiểm tra lại: /haro-docx-writer --view:{tid}  |  Xuất thử: /haro-docx-writer --export:{tid} <file.md>")
     return 0

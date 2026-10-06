@@ -70,3 +70,11 @@ header_footer:
   solution_size: "8pt"
 # Mức heading đưa vào Mục lục Word (vd "1-3", "1-6").
 toc_levels: "1-6"
+# Placeholder đã xác nhận ({{tên}} / [[tên]] trong file mẫu).
+# Chỉ entry user duyệt mới ghi vào template.yaml — không tự sinh.
+# Quy tắc fill lúc export: placeholders.<tên>.value (khác rỗng) >
+# key YAML cùng tên ở top-level > --param name=value (cao nhất, không lưu).
+# placeholders:
+#   ten_du_an:
+#     description: "Tên dự án triển khai"
+#     value: ""

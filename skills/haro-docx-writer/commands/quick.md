@@ -45,7 +45,8 @@ python skills/haro-docx-writer/scripts/template_store.py --project-root . list
 ```bash
 python skills/haro-docx-writer/scripts/build_docx.py \
   --input <input> --output <out.docx> \
-  --template-id <id> --project-root .
+  --template-id <id> --project-root . \
+  [--param ten_du_an="Dự án X" ...]
 ```
 
 - Default output: `.haro-docx-writer/output/<basename>-<id>-<YYYYMMDD-HHmm>.docx`.
@@ -54,6 +55,9 @@ python skills/haro-docx-writer/scripts/build_docx.py \
 - Logo file missing → continue WITHOUT logo, note it in the summary. Never
   web-search a logo.
 - On script failure: show stderr verbatim + one-line hint, do NOT hand-roll.
+- **Missing placeholders:** the script exits 2 listing unfilled names instead
+  of rendering — same handling as `--export` step 4: ask per name, rerun with
+  `--param`, never invent values.
 
 ### 4. Verify + report (SHORT)
 

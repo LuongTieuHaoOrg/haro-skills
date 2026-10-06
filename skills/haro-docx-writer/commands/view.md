@@ -36,7 +36,11 @@ Read the resolved `template.yaml` fully and display it grouped:
    bullet indent/spacing, code, heading color.
 5. **Trang:** size/orientation, 4 margins, header/footer distances.
 6. **Cover/header-footer/TOC:** `cover.*`, `header_footer.*`, `toc_levels`.
-7. **Nội dung gốc của mẫu:** point to `.../<id>/content.txt` (machine dump
+7. **Placeholders đã xác nhận (`placeholders:`):** table
+   `tên | mô tả | giá trị hiện tại` (rỗng = điền lúc export). Kèm danh sách
+   thô phát hiện trong mẫu (`_extracted.placeholders_found`) để đối chiếu —
+   entry nào chưa chốt thì trỏ sang `--import` duyệt, không tự diễn giải.
+8. **Nội dung gốc của mẫu:** point to `.../<id>/content.txt` (machine dump
    of the docx text/tables/headers) when the user wants to see what the
    template contains. Purpose discussion belongs to `--import`, not here —
    never present guesses as facts.

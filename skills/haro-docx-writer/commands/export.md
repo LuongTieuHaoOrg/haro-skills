@@ -24,7 +24,8 @@ Renders the chosen input file to `.docx` using template `<id>`.
 
 The script resolves `--template-id` itself (local wins over global),
 loading the template's `template.yaml` as `--config` and its
-`template.docx` (styles only — content/headers stripped) as `--base-template`.
+`template.docx` as `--base-template` (body stripped; styles + header/footer
+kept — the template governs its own chrome, linked into content pages).
 Headings render H1–H6, TOC follows `toc_levels`, page geometry/cover/header
 sizes all come from the template. Missing company/solution/document
 fields → ask the user for the missing values (SHORT picker/free-text,
@@ -52,12 +53,18 @@ web-search a logo.
 ```bash
 python skills/haro-docx-writer/scripts/build_docx.py \
   --input <input> --output <out.docx> \
-  --template-id <id> --project-root .
+  --template-id <id> --project-root . \
+  [--param ten_du_an="Dự án X" ...]
 ```
 
 - Run from the project root so relative paths resolve.
 - On script failure: show stderr verbatim + one-line hint, do NOT retry with a
   different hand-rolled method.
+- **Missing placeholders:** the script exits 2 listing unfilled `{{name}}` /
+  `[[name]]` instead of rendering. Ask the user per name: map to an existing
+  yaml key or input a value — then rerun with `--param name=value`
+  (repeatable, one-shot, not saved) or save durably via
+  `/haro-docx-writer --update:<id>` first. NEVER invent values.
 
 ### 5. Verify + report (SHORT)
 

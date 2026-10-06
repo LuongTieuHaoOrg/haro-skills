@@ -138,3 +138,24 @@ inference with cited evidence); if the template is empty/generic (< 3
 meaningful text blocks, no tables, no header/footer text), the agent must
 propose 2–3 likely purposes and ask the user (purpose + needed info +
 optional sample file) — never invent a purpose.
+
+## 10. Placeholders (`{{name}}` / `[[name]]`)
+
+Token syntax (both accepted): `{{ten_du_an}}`, `[[ngay_ky]]` — name matches
+`[A-Za-z0-9_.-]+`, optional inner spaces. Detection scans body + tables +
+headers/footers at `--import` (raw list in `_extracted.placeholders_found`);
+the agent presents each for user confirmation and only confirmed entries land
+in yaml `placeholders:` (`<tên>.value` + `<tên>.description`).
+
+Fill priority at export: `--param name=value` (one-shot, not saved) >
+`placeholders.<name>.value` (non-empty) > top-level yaml scalar of the same
+name (e.g. `{{company_name}}` → `company_name`). Tokens without value stay
+intact and abort the export with the missing-name list (exit 2) — the agent
+asks the user to map/input, then reruns with `--param` or saves via `--update`.
+
+Scope notes: the template governs its own header/footer (kept, linked into
+content pages; generated chrome only when the template has none), so
+header/footer tokens persist with filled values. Tokens living only in the
+sample body disappear at export (body is replaced by rendered content).
+`Code Block` paragraphs are never scanned nor substituted (literal `{{ }}`
+in code samples).

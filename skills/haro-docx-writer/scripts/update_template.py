@@ -17,7 +17,8 @@ styles.body_line_spacing, styles.body_space_before/after,
 styles.heading_space_before/after, styles.bullet_indent_cm,
 styles.bullet_space_after, styles.code_font, styles.code_size,
 styles.heading_color, page.size/orientation/margins/distances,
-cover.*_size, header_footer.*_size, toc_levels.
+cover.*_size, header_footer.*_size, toc_levels,
+placeholders.<tên>.value | placeholders.<tên>.description (free text).
 authors/reviewers/approvers accept comma-separated lists.
 """
 from __future__ import annotations
@@ -93,6 +94,8 @@ NUMERIC_KEYS = PT_KEYS | CM_KEYS | {"styles.body_line_spacing"}
 def _parse_value(key: str, raw: str):
     if key in LIST_KEYS:
         return [p.strip() for p in raw.split(",") if p.strip()]
+    if _is_placeholder_key(key):
+        return raw  # placeholder value/description: free text verbatim
     if key in PT_KEYS:
         # Stored with unit suffix for readability (vd "12pt").
         try:
@@ -137,6 +140,17 @@ def _parse_value(key: str, raw: str):
             raise ValueError(f"LỖI: 'styles.heading_color' là hex 6 ký tự (vd 000000), nhận được '{raw}'.")
         return v.upper()
     return raw
+
+
+def _is_placeholder_key(key: str) -> bool:
+    """placeholders.<name>.value | placeholders.<name>.description only."""
+    parts = key.split(".")
+    return (
+        len(parts) >= 3
+        and parts[0] == "placeholders"
+        and parts[-1] in ("value", "description")
+        and all(p for p in parts[1:-1])
+    )
 
 
 def _get(cfg: dict, key: str):
@@ -286,8 +300,9 @@ def main(argv=None) -> int:
             return 2
         key, raw = item.split("=", 1)
         key, raw = key.strip(), raw.strip()
-        if key not in ALLOWED:
-            print(f"LỖI: key '{key}' không hỗ trợ. Key hợp lệ: {', '.join(sorted(ALLOWED))}.",
+        if key not in ALLOWED and not _is_placeholder_key(key):
+            print(f"LỖI: key '{key}' không hỗ trợ. Key hợp lệ: {', '.join(sorted(ALLOWED))} "
+                  f"+ placeholders.<tên>.value|.description.",
                   file=sys.stderr)
             return 2
         try:

@@ -88,9 +88,23 @@ content creation convenient.
 4. User approves per row (giữ/sửa/bỏ, free-text edits allowed). Apply approved
    rows via the `--update:<id>` workflow (`update_template.py --set`, or yaml
    edit + push) in the same session.
-5. Ask: `Giữ nguyên hay chỉnh sửa thông số style?` (keep / edit list).
+5. **Confirm placeholders (mandatory when the script reports any):** the
+   extract output lists detected `{{name}}` / `[[name]]` tokens with syntax,
+   count, and locations (also stored raw in `_extracted.placeholders_found`).
+   Present one table per token: `placeholder | dạng | vị trí`. The user
+   confirms each (drop coincidences — plain text that merely looks like a
+   token). For every kept token: map it to an existing yaml key
+   (e.g. `{{company_name}}` → `company_name`) or create
+   `placeholders.<tên>.value` + `placeholders.<tên>.description` (ask for
+   description + initial value, empty allowed for export-time fill) via
+   `update_template.py --set`. NOTHING is auto-registered.
+   Semantics to state once: confirmed placeholders take effect in
+   header/footer (kept from the template) and rendered content; tokens living
+   only in the sample body disappear at export (ruột mẫu bị thay bằng nội
+   dung mới) — their params stay useful for header/footer and `--param`.
+6. Ask: `Giữ nguyên hay chỉnh sửa thông số style?` (keep / edit list).
    Style edits now → apply via `--update:<id>` workflow (same session).
-6. Close with: `Xem lại: /haro-docx-writer --view:<id> | Kiểm tra: /haro-docx-writer --validate:<id> | Xuất thử: /haro-docx-writer --export:<id> <file.md>`.
+7. Close with: `Xem lại: /haro-docx-writer --view:<id> | Kiểm tra: /haro-docx-writer --validate:<id> | Xuất thử: /haro-docx-writer --export:<id> <file.md>`.
 
 ### Examples
 

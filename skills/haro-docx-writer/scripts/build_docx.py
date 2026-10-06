@@ -251,28 +251,20 @@ def set_cell_text(cell, text: str, bold=False, size=None, color: str = BLACK,
 # ---------------------------------------------------------------- styles
 
 def strip_base_template(doc: Document) -> None:
-    """Keep a base template's STYLE definitions, drop everything else.
+    """Keep a base template's STYLES + HEADERS/FOOTERS, drop body content.
 
-    Registry template.docx files are full user documents (cover, body,
-    headers). The export builds its own cover/control/TOC/body plus
-    header/footer from template.yaml, so carried-over content, headers and
-    footers must go — otherwise the output would prepend the template's old
-    pages and show its header on the new cover. Style definitions
-    (Normal, Heading 1-3, Code Block, list styles, theme) live in the
-    styles part and are untouched.
+    Registry template.docx files are full user documents. The export renders
+    fresh body content, so the template's body paragraphs/tables must go —
+    otherwise the output would prepend the template's old pages. Headers and
+    footers are KEPT: the template governs its own chrome (with {{}}/[[ ]]
+    placeholders already filled); the new body section links to them when
+    present, otherwise a header/footer is generated from template.yaml.
+    Style definitions live in the styles part and are untouched.
     """
     body_el = doc.element.body
     for child in list(body_el):
         if child.tag.endswith("}p") or child.tag.endswith("}tbl"):
             body_el.remove(child)
-    for section in doc.sections:
-        section.header.is_linked_to_previous = False
-        section.footer.is_linked_to_previous = False
-        for part in (section.header, section.footer):
-            for table in list(part.tables):
-                table._tbl.getparent().remove(table._tbl)
-            for p in part.paragraphs:
-                p.text = ""
 
 
 def _heading_hex(st_cfg: dict) -> str:
@@ -367,6 +359,88 @@ def iter_all_paragraphs(doc: Document):
                     for cell in row.cells:
                         for p in cell.paragraphs:
                             yield p
+
+
+try:
+    from extract_template import PLACEHOLDER_RE
+except ImportError:  # standalone copy — same pattern as extract_template.py
+    import re as _re
+
+    PLACEHOLDER_RE = _re.compile(
+        r"\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}|\[\[\s*([A-Za-z0-9_.-]+)\s*\]\]"
+    )
+
+
+def _token_name(m) -> str:
+    return m.group(1) or m.group(2)
+
+
+def _mapping_value(mapping: dict, name: str):
+    """Resolved value for a placeholder, or None when unfilled."""
+    if name not in mapping:
+        return None
+    v = mapping[name]
+    if v is None:
+        return None
+    if isinstance(v, str) and v.strip() == "":
+        return None
+    if isinstance(v, (list, tuple)):
+        v = ", ".join(str(x) for x in v)
+    return str(v)
+
+
+def collect_placeholders(doc: Document) -> set:
+    """All {{name}}/[[name]] tokens in body + tables + headers/footers.
+
+    Code Block paragraphs are skipped (literal {{ }} in code samples).
+    """
+    names = set()
+    for p in iter_all_paragraphs(doc):
+        try:
+            if p.style.name == "Code Block":
+                continue
+        except AttributeError:
+            pass
+        for m in PLACEHOLDER_RE.finditer(p.text or ""):
+            names.add(_token_name(m))
+    return names
+
+
+def substitute_placeholders(doc: Document, mapping: dict) -> set:
+    """Replace tokens having a non-empty mapping value. Returns replaced names.
+
+    Unmapped tokens are left intact for the caller to report. Run-aware:
+    single-run tokens keep formatting; cross-run tokens merge into the
+    first run. Code Block paragraphs are never touched.
+    """
+    replaced = set()
+    for p in iter_all_paragraphs(doc):
+        try:
+            if p.style.name == "Code Block":
+                continue
+        except AttributeError:
+            pass
+        if not PLACEHOLDER_RE.search(p.text or ""):
+            continue
+
+        def rep(m):
+            name = _token_name(m)
+            v = _mapping_value(mapping, name)
+            if v is None:
+                return m.group(0)
+            replaced.add(name)
+            return v
+
+        for run in p.runs:
+            if PLACEHOLDER_RE.search(run.text or ""):
+                run.text = PLACEHOLDER_RE.sub(rep, run.text)
+        if PLACEHOLDER_RE.search(p.text or ""):
+            # Token spans runs — merge into the first run (only if changed).
+            merged = PLACEHOLDER_RE.sub(rep, p.text)
+            if merged != p.text and p.runs:
+                p.runs[0].text = merged
+                for r in p.runs[1:]:
+                    r.text = ""
 
 
 def finalize_fonts(doc: Document, cfg: dict):
@@ -515,11 +589,33 @@ def build_toc(doc: Document, cfg: dict):
 
 # ---------------------------------------------------------------- header/footer (body section only)
 
+def _hf_has_content(part) -> bool:
+    """True when a header/footer part carries text, tables, or images."""
+    try:
+        for p in part.paragraphs:
+            if (p.text or "").strip():
+                return True
+        if list(part.tables):
+            return True
+        for el in part._element.iter():
+            tag = str(getattr(el, "tag", ""))
+            if tag.endswith("}drawing") or tag.endswith("}pict") or tag.endswith("}blip"):
+                return True
+    except Exception:
+        return False
+    return False
+
+
 def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
     # New section so cover/control/TOC stay header-free.
+    prior = list(doc.sections)
     section = doc.add_section(WD_SECTION.NEW_PAGE)
-    section.header.is_linked_to_previous = False
-    section.footer.is_linked_to_previous = False
+    # Template governs its own chrome: link when it brings header/footer,
+    # otherwise generate from template.yaml as before.
+    link_h = any(_hf_has_content(s.header) for s in prior)
+    link_f = any(_hf_has_content(s.footer) for s in prior)
+    section.header.is_linked_to_previous = link_h
+    section.footer.is_linked_to_previous = link_f
 
     # Page size + margins on every section (from the page block).
     pg = cfg.get("page", {}) or {}
@@ -541,34 +637,37 @@ def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
         s.header_distance = _cfg_cm(pg, "header_distance_cm", 1.27, "page")
         s.footer_distance = _cfg_cm(pg, "footer_distance_cm", 1.27, "page")
 
-    # Header: left logo | right 2 lines (document name / company name).
-    ht = section.header.add_table(rows=1, cols=2, width=Inches(6.5))
-    set_table_borders_none(ht)
-    logo = (cfg.get("header") or {}).get("logo_path", "") or ""
-    if logo:
-        lp = (base_dir / logo).resolve() if not Path(logo).is_absolute() else Path(logo)
-        if lp.exists():
-            ht.cell(0, 0).paragraphs[0].add_run().add_picture(str(lp), height=Cm(1.2))
-    right = ht.cell(0, 1).paragraphs[0]
-    right.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    # Header: template's own when present (linked above), else generated
+    # from template.yaml (left logo | right 2 lines).
     hf = cfg.get("header_footer", {}) or {}
-    r1 = right.add_run(cfg["document_name"])
-    set_run_font(r1, BODY_FONT, size=_cfg_pt(hf, "doc_name_size", 9, "header_footer"), bold=True)
-    right.add_run().add_break()
-    r2 = right.add_run(cfg["company_name"])
-    set_run_font(r2, BODY_FONT, size=_cfg_pt(hf, "company_size", 8, "header_footer"))
+    if not link_h:
+        ht = section.header.add_table(rows=1, cols=2, width=Inches(6.5))
+        set_table_borders_none(ht)
+        logo = (cfg.get("header") or {}).get("logo_path", "") or ""
+        if logo:
+            lp = (base_dir / logo).resolve() if not Path(logo).is_absolute() else Path(logo)
+            if lp.exists():
+                ht.cell(0, 0).paragraphs[0].add_run().add_picture(str(lp), height=Cm(1.2))
+        right = ht.cell(0, 1).paragraphs[0]
+        right.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        r1 = right.add_run(cfg["document_name"])
+        set_run_font(r1, BODY_FONT, size=_cfg_pt(hf, "doc_name_size", 9, "header_footer"), bold=True)
+        right.add_run().add_break()
+        r2 = right.add_run(cfg["company_name"])
+        set_run_font(r2, BODY_FONT, size=_cfg_pt(hf, "company_size", 8, "header_footer"))
 
-    # Footer: left page X/Y | right solution name.
-    ft = section.footer.add_table(rows=1, cols=2, width=Inches(6.5))
-    set_table_borders_none(ft)
-    left_p = ft.cell(0, 0).paragraphs[0]
-    add_page_field(left_p)
-    for run in left_p.runs:
-        set_run_font(run, BODY_FONT, size=_cfg_pt(hf, "page_size", 8, "header_footer"))
-    right_p = ft.cell(0, 1).paragraphs[0]
-    right_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    r = right_p.add_run(cfg["solution_name"])
-    set_run_font(r, BODY_FONT, size=_cfg_pt(hf, "solution_size", 8, "header_footer"), italic=True)
+    # Footer: template's own when present, else generated page X/Y + solution.
+    if not link_f:
+        ft = section.footer.add_table(rows=1, cols=2, width=Inches(6.5))
+        set_table_borders_none(ft)
+        left_p = ft.cell(0, 0).paragraphs[0]
+        add_page_field(left_p)
+        for run in left_p.runs:
+            set_run_font(run, BODY_FONT, size=_cfg_pt(hf, "page_size", 8, "header_footer"))
+        right_p = ft.cell(0, 1).paragraphs[0]
+        right_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        r = right_p.add_run(cfg["solution_name"])
+        set_run_font(r, BODY_FONT, size=_cfg_pt(hf, "solution_size", 8, "header_footer"), italic=True)
     return section
 
 
@@ -758,7 +857,35 @@ def parse_args(argv=None):
     ap.add_argument("--base-template", default="", help="base .docx style template (template.docx of a registry entry)")
     ap.add_argument("--template-id", default="", help="registry id (vd congty-a): resolves --config/--base-template automatically; local wins over global")
     ap.add_argument("--project-root", default=".", help="project root for --template-id local scope")
+    ap.add_argument("--param", action="append", default=[],
+                    help="placeholder value override name=value (repeatable, not saved to yaml)")
     return ap.parse_args(argv)
+
+
+def build_mapping(cfg: dict, cli_params: list[str] | None = None) -> dict:
+    """Values for {{name}}/[[name]] substitution.
+
+    Priority: --param overrides > placeholders.<name>.value (non-empty) >
+    top-level yaml scalar of the same name. Unlisted names stay unfilled.
+    """
+    mapping: dict = {}
+    for k, v in (cfg or {}).items():
+        if k.startswith("_"):
+            continue
+        if isinstance(v, (str, int, float)) and not isinstance(v, bool):
+            mapping[k] = v
+    for name, spec in ((cfg.get("placeholders", {}) or {}).items()):
+        val = spec.get("value", "") if isinstance(spec, dict) else spec
+        if val is None or (isinstance(val, str) and val.strip() == ""):
+            continue
+        mapping[name] = val
+    for item in cli_params or []:
+        if "=" not in item:
+            print(f"LỖI: --param phải dạng name=value (nhận được '{item}').", file=sys.stderr)
+            raise SystemExit(2)
+        k, v = item.split("=", 1)
+        mapping[k.strip()] = v.strip()
+    return mapping
 
 
 def main(argv=None) -> int:
@@ -788,6 +915,7 @@ def main(argv=None) -> int:
             args.base_template = str(hit["docx"])
     cfg = load_config(Path(args.config)) if args.config else dict(DEFAULTS)
     base_dir = Path(args.config).parent.resolve() if args.config and Path(args.config).exists() else Path.cwd()
+    mapping = build_mapping(cfg, args.param)
 
     if args.base_template:
         tpl = Path(args.base_template)
@@ -795,6 +923,7 @@ def main(argv=None) -> int:
             print(f"LỖI: không tìm thấy template '{tpl}'.", file=sys.stderr)
             return 2
         doc = Document(str(tpl))
+        substitute_placeholders(doc, mapping)
         strip_base_template(doc)
     else:
         doc = Document()
@@ -810,6 +939,20 @@ def main(argv=None) -> int:
         render_markdown(doc, text, src.parent)
     else:
         render_plain_text(doc, text)
+
+    substitute_placeholders(doc, mapping)
+    missing = sorted(
+        n for n in collect_placeholders(doc)
+        if _mapping_value(mapping, n) is None
+    )
+    if missing:
+        print("LỖI: còn placeholder chưa có giá trị nên không render:",
+              file=sys.stderr)
+        for n in missing:
+            print(f"  - {n}", file=sys.stderr)
+        print("Hỏi user để map/nhập giá trị rồi chạy lại với --param name=value "
+              "hoặc lưu vào YAML rồi chạy lại.", file=sys.stderr)
+        return 2
 
     finalize_fonts(doc, cfg)
 
