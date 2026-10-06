@@ -7,8 +7,8 @@ Usage:
     python build_docx.py --input <file.md> --output <out.docx>
                          --template-id <id> [--project-root .]
 
-Implements skills/haro-docx/shared/docx-style.md. This is the ONLY supported
-way to produce .docx in haro-docx — agents must call this script, never
+Implements skills/haro-docx-writer/shared/docx-style.md. This is the ONLY supported
+way to produce .docx in haro-docx-writer — agents must call this script, never
 hand-craft documents.
 Requires: python-docx, pyyaml. Optional: pypdf (only for .pdf input).
 
@@ -722,10 +722,10 @@ def render_plain_text(doc: Document, text: str):
 # ---------------------------------------------------------------- main
 
 def parse_args(argv=None):
-    ap = argparse.ArgumentParser(description="haro-docx enterprise .docx builder")
+    ap = argparse.ArgumentParser(description="haro-docx-writer enterprise .docx builder")
     ap.add_argument("--input", required=True, help="source .md/.txt/.pdf")
     ap.add_argument("--output", required=True, help="output .docx path")
-    ap.add_argument("--config", default="", help="config yaml (.haro-docx template.yaml or legacy config)")
+    ap.add_argument("--config", default="", help="config yaml (.haro-docx-writer template.yaml or legacy config)")
     ap.add_argument("--base-template", default="", help="base .docx style template (template.docx of a registry entry)")
     ap.add_argument("--template-id", default="", help="registry id (vd congty-a): resolves --config/--base-template automatically; local wins over global")
     ap.add_argument("--project-root", default=".", help="project root for --template-id local scope")
@@ -751,7 +751,7 @@ def main(argv=None) -> int:
             return 2
         hit = resolve_template(args.template_id, Path(args.project_root))
         if not hit:
-            print(f"LỖI: không tìm thấy mẫu '{args.template_id}'. Chạy /haro-docx --list.", file=sys.stderr)
+            print(f"LỖI: không tìm thấy mẫu '{args.template_id}'. Chạy /haro-docx-writer --list.", file=sys.stderr)
             return 2
         if not args.config and hit["yaml"].exists():
             args.config = str(hit["yaml"])

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Shared registry helpers for haro-docx templates (local + global).
+"""Shared registry helpers for haro-docx-writer templates (local + global).
 
 Layout:
-    <project>/.haro-docx/templates/<id>/template.docx + template.yaml
-    ~/.haro-docx/templates/<id>/template.docx + template.yaml
+    <project>/.haro-docx-writer/templates/<id>/template.docx + template.yaml
+    ~/.haro-docx-writer/templates/<id>/template.docx + template.yaml
 
 Resolution order: local wins over global when both exist.
 
@@ -30,7 +30,7 @@ MAX_ID_LEN = 41
 def normalize_id(raw: str) -> str:
     tid = (raw or "").strip().lower().replace(" ", "-")
     if not tid:
-        raise ValueError("LỖI: id mẫu rỗng. Ví dụ: /haro-docx --create:congty-a <file.docx>")
+        raise ValueError("LỖI: id mẫu rỗng. Ví dụ: /haro-docx-writer --create:congty-a <file.docx>")
     if len(tid) > MAX_ID_LEN or not ID_RE.match(tid):
         raise ValueError(
             f"LỖI: id '{raw}' không hợp lệ. Id gồm 2–41 ký tự: chữ thường, số, '-' hoặc '_'."
@@ -39,11 +39,11 @@ def normalize_id(raw: str) -> str:
 
 
 def local_root(project_root: Path) -> Path:
-    return Path(project_root).resolve() / ".haro-docx" / "templates"
+    return Path(project_root).resolve() / ".haro-docx-writer" / "templates"
 
 
 def global_root() -> Path:
-    return Path.home() / ".haro-docx" / "templates"
+    return Path.home() / ".haro-docx-writer" / "templates"
 
 
 def template_paths(root: Path, tid: str) -> dict:
@@ -157,7 +157,7 @@ def delete_template(tid: str, location: str, project_root: Path) -> Path:
 
 def _print_rows(rows: list[dict]) -> None:
     if not rows:
-        print("Chưa có mẫu nào. Tạo mẫu mới: /haro-docx --create:<id> <file.docx>")
+        print("Chưa có mẫu nào. Tạo mẫu mới: /haro-docx-writer --create:<id> <file.docx>")
         return
     header = f"{'id':<20} {'tên mẫu':<30} {'vị trí':<7} {'tạo lúc':<25} {'cập nhật lúc':<25}  mô tả"
     print(header)
@@ -177,7 +177,7 @@ def main(argv=None) -> int:
             pass
     import argparse
 
-    ap = argparse.ArgumentParser(description="haro-docx template registry helper")
+    ap = argparse.ArgumentParser(description="haro-docx-writer template registry helper")
     ap.add_argument("--project-root", default=".", help="project root (for local scope)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("list", help="list local + global templates")

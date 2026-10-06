@@ -1,5 +1,5 @@
-# Param defaults merged at --create time into .haro-docx/templates/<id>/template.yaml
-# (và ~/.haro-docx/templates/<id>/template.yaml cho scope global).
+# Param defaults merged at --create time into .haro-docx-writer/templates/<id>/template.yaml
+# (và ~/.haro-docx-writer/templates/<id>/template.yaml cho scope global).
 # Sửa giá trị thật trong template.yaml của từng mẫu, không sửa file này.
 company_name: "CÔNG TY TNHH MẪU VIỆT NAM"
 solution_name: "Giải pháp Quản lý Dự án HARO"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a haro-docx template entry from a user-supplied .docx file.
+"""Create a haro-docx-writer template entry from a user-supplied .docx file.
 
 Copies <source.docx> into the registry (local or global) and generates
 template.yaml whose STYLE params are extracted from the .docx (style-level
@@ -500,7 +500,7 @@ def build_template_yaml(tid: str, location: str, source: Path, name: str,
 
 
 def parse_args(argv=None):
-    ap = argparse.ArgumentParser(description="haro-docx template creator")
+    ap = argparse.ArgumentParser(description="haro-docx-writer template creator")
     ap.add_argument("--source", required=True, help="nguon .docx")
     ap.add_argument("--id", required=True, help="id mau (vd congty-a)")
     ap.add_argument("--location", required=True, choices=["local", "global"])
@@ -533,7 +533,7 @@ def main(argv=None) -> int:
     if exists_in(root, tid):
         print(
             f"LỖI: id '{tid}' đã tồn tại ở {args.location} ({root / tid}). "
-            f"Dùng /haro-docx --view:{tid} để xem hoặc --update:{tid} để sửa.",
+            f"Dùng /haro-docx-writer --view:{tid} để xem hoặc --update:{tid} để sửa.",
             file=sys.stderr,
         )
         return 3
@@ -573,7 +573,7 @@ def main(argv=None) -> int:
           + (f"; logo đã bóc: {logo_rel}" if logo_rel else ""))
     print(f"Nội dung mẫu (agent đọc để hiểu mục đích): {content_txt}")
     print("Tiếp theo: đọc content.txt, nêu mục đích mẫu, đề xuất thông số để user duyệt.")
-    print(f"Kiểm tra lại: /haro-docx --view:{tid}  |  Xuất thử: /haro-docx --export:{tid} <file.md>")
+    print(f"Kiểm tra lại: /haro-docx-writer --view:{tid}  |  Xuất thử: /haro-docx-writer --export:{tid} <file.md>")
     return 0
 
 

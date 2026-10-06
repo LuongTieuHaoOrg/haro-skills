@@ -1,24 +1,24 @@
 # Export (Haro Docx reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
-> `/haro-docx --export:<id>`. Do not act from memory: read every step first.
+> `/haro-docx-writer --export:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** template values are ground truth (resolved local-first).
 > NEVER hand-craft `.docx` — ALWAYS call `scripts/build_docx.py` with
 > `--template-id`. Reply to the user in Vietnamese with full diacritics.
 
-## Command `/haro-docx --export:<id> <file hoặc đường dẫn file>`
+## Command `/haro-docx-writer --export:<id> <file hoặc đường dẫn file>`
 
 Renders the chosen input file to `.docx` using template `<id>`.
 
 ### 1. Parse args (no guessing)
 
-- Syntax: `/haro-docx --export:<id> <input> [-o out.docx]`.
+- Syntax: `/haro-docx-writer --export:<id> <input> [-o out.docx]`.
   Id glued with `:` — e.g. `--export:congty-a docs/sad.md`.
 - `<id>` — required. Unknown id → STOP with
-  `LỖI: không tìm thấy mẫu '<id>'.` + hint `/haro-docx --list`.
+  `LỖI: không tìm thấy mẫu '<id>'.` + hint `/haro-docx-writer --list`.
 - `<input>` — required path: `.md`, `.txt`, or `.pdf`. It is the
   user-mentioned source — accept any user-mentioned file of these types.
 - `-o / --output` — optional. Default:
-  `.haro-docx/output/<basename>-<id>-<YYYYMMDD-HHmm>.docx`.
+  `.haro-docx-writer/output/<basename>-<id>-<YYYYMMDD-HHmm>.docx`.
 
 ### 2. Resolve template (ground truth, then ask)
 
@@ -29,7 +29,7 @@ Headings render H1–H6, TOC follows `toc_levels`, page geometry/cover/header
 sizes all come from the template. Missing company/solution/document
 fields → ask the user for the missing values (SHORT picker/free-text,
 allow skip → uses `(Chưa xác định)`), then apply via
-`/haro-docx --update:<id>` BEFORE exporting (never export with guessed names).
+`/haro-docx-writer --update:<id>` BEFORE exporting (never export with guessed names).
 Also surface any params still at defaults (user skipped the purpose review
 at `--create`) and offer to fill them first.
 
@@ -50,7 +50,7 @@ web-search a logo.
 ### 4. Run the generator (the only way to produce .docx)
 
 ```bash
-python skills/haro-docx/scripts/build_docx.py \
+python skills/haro-docx-writer/scripts/build_docx.py \
   --input <input> --output <out.docx> \
   --template-id <id> --project-root .
 ```
@@ -69,7 +69,7 @@ python skills/haro-docx/scripts/build_docx.py \
 ### Examples
 
 ```text
-/haro-docx --export:congty-a docs/sad.md
-/haro-docx --export:congty-a specs/auth.txt -o dist/auth-spec.docx
-/haro-docx --export:congty-a "tài liệu/yêu cầu.pdf" -o dist/yeucau.docx
+/haro-docx-writer --export:congty-a docs/sad.md
+/haro-docx-writer --export:congty-a specs/auth.txt -o dist/auth-spec.docx
+/haro-docx-writer --export:congty-a "tài liệu/yêu cầu.pdf" -o dist/yeucau.docx
 ```

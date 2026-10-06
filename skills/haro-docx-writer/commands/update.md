@@ -1,23 +1,23 @@
 # Update (Haro Docx reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
-> `/haro-docx --update:<id>`. Do not act from memory: read every step first.
+> `/haro-docx-writer --update:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** NEVER hand-edit `template.docx` binary with tricks —
 > visual changes go through `scripts/update_template.py`. NEVER interpret a
 > vague request freely. Reply to the user in Vietnamese with full diacritics.
 
-## Command `/haro-docx --update:<id> <nội dung>`
+## Command `/haro-docx-writer --update:<id> <nội dung>`
 
 Updates a template's params (yaml) and, when the request touches visual
 style, patches the `.docx` file to match.
 
 ### 1. Parse args (no guessing)
 
-- Syntax: `/haro-docx --update:<id> <nội dung>` — id glued with `:`,
+- Syntax: `/haro-docx-writer --update:<id> <nội dung>` — id glued with `:`,
   then free-text content. Example:
-  `/haro-docx --update:congty-a đổi company thành CTY X, H1 lên 15`.
+  `/haro-docx-writer --update:congty-a đổi company thành CTY X, H1 lên 15`.
 - Unknown id → STOP with `LỖI: không tìm thấy mẫu '<id>'.` + hint
-  `/haro-docx --list`. Resolve with:
-  `python skills/haro-docx/scripts/template_store.py --project-root . resolve <id>`
+  `/haro-docx-writer --list`. Resolve with:
+  `python skills/haro-docx-writer/scripts/template_store.py --project-root . resolve <id>`
   (local wins over global — show the winning scope).
 
 ### 2. Vague-content gate (mandatory — ask back, never guess)
@@ -61,7 +61,7 @@ Mappable `--set` keys for `scripts/update_template.py`:
 Run from the project root (repeatable `--set`, dot-paths):
 
 ```bash
-python skills/haro-docx/scripts/update_template.py \
+python skills/haro-docx-writer/scripts/update_template.py \
   --id <id> --project-root . \
   --set company_name="CTY X" --set styles.h1_size=15
 ```
@@ -77,14 +77,14 @@ python skills/haro-docx/scripts/update_template.py \
 ### 4. Confirm + close (SHORT, Vietnamese with diacritics)
 
 1. Show the before → after diff per key (from script output).
-2. Run `/haro-docx --validate:<id>` workflow next (or its script) and
+2. Run `/haro-docx-writer --validate:<id>` workflow next (or its script) and
    report `KHỚP/LỆCH` summary — never skip validation after an update.
 3. Close with file paths (yaml + docx).
 
 ### Examples
 
 ```text
-/haro-docx --update:congty-a đổi company_name thành CÔNG TY X, version 2.0
-/haro-docx --update:congty-a styles.h1_size=15, styles.body_font="Times New Roman"
-/haro-docx --update:congty-a đổi logo header thành assets/logo-moi.png
+/haro-docx-writer --update:congty-a đổi company_name thành CÔNG TY X, version 2.0
+/haro-docx-writer --update:congty-a styles.h1_size=15, styles.body_font="Times New Roman"
+/haro-docx-writer --update:congty-a đổi logo header thành assets/logo-moi.png
 ```

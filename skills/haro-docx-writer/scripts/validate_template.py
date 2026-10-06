@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate that a haro-docx template.yaml matches its template.docx.
+"""Validate that a haro-docx-writer template.yaml matches its template.docx.
 
 Style-level only (per user decision): compare YAML `styles/*` against the
 actual .docx styles, plus header/footer presence recorded in `_extracted`,
@@ -38,7 +38,7 @@ def _eq_size(a, b) -> bool:
 
 
 def parse_args(argv=None):
-    ap = argparse.ArgumentParser(description="haro-docx template validator")
+    ap = argparse.ArgumentParser(description="haro-docx-writer template validator")
     ap.add_argument("--id", required=True, help="id mau")
     ap.add_argument("--project-root", default=".")
     return ap.parse_args(argv)
@@ -59,7 +59,7 @@ def main(argv=None) -> int:
     hit = resolve(tid, Path(args.project_root))
     if not hit:
         print(
-            f"LỖI: không tìm thấy mẫu '{tid}'. Chạy /haro-docx --list để xem danh sách.",
+            f"LỖI: không tìm thấy mẫu '{tid}'. Chạy /haro-docx-writer --list để xem danh sách.",
             file=sys.stderr,
         )
         return 2
@@ -171,7 +171,7 @@ def main(argv=None) -> int:
     if bad:
         print(f"Có {bad} mục LỆCH. Cách sửa:")
         print(f"  - Nếu vừa sửa file .docx: cập nhật YAML cho khớp (hoặc chạy lại trích xuất rồi sửa tay).")
-        print(f"  - Nếu vừa sửa YAML: chạy /haro-docx --update:{tid} <nội dung> để đẩy style vào file mẫu.")
+        print(f"  - Nếu vừa sửa YAML: chạy /haro-docx-writer --update:{tid} <nội dung> để đẩy style vào file mẫu.")
         return 1
     print("Tất cả khớp. Mẫu sẵn sàng để xuất.")
     return 0

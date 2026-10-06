@@ -1,24 +1,24 @@
 # View (Haro Docx reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
-> `/haro-docx --view:<id>`. Do not act from memory: read every step first.
+> `/haro-docx-writer --view:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** this command is read-only — never create, edit, or
 > delete anything. Reply to the user in Vietnamese with full diacritics.
 
-## Command `/haro-docx --view:<id>`
+## Command `/haro-docx-writer --view:<id>`
 
 Shows a template's configuration for review: file paths + full params.
 
 ### 1. Parse args (no guessing)
 
-- Syntax: `/haro-docx --view:<id>` — id glued with `:`. Extra tokens →
+- Syntax: `/haro-docx-writer --view:<id>` — id glued with `:`. Extra tokens →
   warn and ignore.
 - Unknown id → STOP with `LỖI: không tìm thấy mẫu '<id>'.` + hint
-  `/haro-docx --list`.
+  `/haro-docx-writer --list`.
 
 ### 2. Resolve (local wins over global)
 
 ```bash
-python skills/haro-docx/scripts/template_store.py --project-root . resolve <id>
+python skills/haro-docx-writer/scripts/template_store.py --project-root . resolve <id>
 ```
 
 Show exactly: `id`, `vị trí` (local/global), `đường dẫn file yaml`,
@@ -43,10 +43,10 @@ Read the resolved `template.yaml` fully and display it grouped:
 
 Never truncate silently — if long, keep the grouping and summarize lists.
 Do not interpret or validate here; for mismatch checks point to
-`/haro-docx --validate:<id>`, for changes to `/haro-docx --update:<id>`.
+`/haro-docx-writer --validate:<id>`, for changes to `/haro-docx-writer --update:<id>`.
 
 ### Example
 
 ```text
-/haro-docx --view:congty-a
+/haro-docx-writer --view:congty-a
 ```

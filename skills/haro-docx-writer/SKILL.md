@@ -1,16 +1,16 @@
 ---
-name: haro-docx
-description: Render enterprise-standard .docx from markdown/text/pdf using named templates (cover page, revision history, auto TOC, styled header/footer, page numbers). Use this skill whenever the user mentions xuat docx, xuất docx, file Word, trinh ky, trình ký, nop specs, nộp specs/BRD/PRD/SAD/FSD, in an, in ấn, company template, mau docx, mẫu docx, or needs a Word file — even if they don't say the word docx. Run /haro-docx with no args to pick an action. Before acting on any command, read its commands/*.md file fully — never act from memory.
+name: haro-docx-writer
+description: Render enterprise-standard .docx from markdown/text/pdf using named templates (cover page, revision history, auto TOC, styled header/footer, page numbers). Use this skill whenever the user mentions xuat docx, xuất docx, file Word, trinh ky, trình ký, nop specs, nộp specs/BRD/PRD/SAD/FSD, in an, in ấn, company template, mau docx, mẫu docx, or needs a Word file — even if they don't say the word docx. Run /haro-docx-writer with no args to pick an action. Before acting on any command, read its commands/*.md file fully — never act from memory.
 ---
 
-# Haro Docx — Enterprise DOCX Export Skill (template registry)
+# Haro Docx Writer — Enterprise DOCX Export Skill (template registry)
 
 ## 1. Overview
 
-`haro-docx` turns user-provided sources (**markdown / text / pdf**) into a
+`haro-docx-writer` turns user-provided sources (**markdown / text / pdf**) into a
 company-standard `.docx` for technical specs, rendered through a **named
 template** (`<id>`). It is a standalone skill like `haro-docs` / `haro-crew`,
-invoked via `/haro-docx ...`.
+invoked via `/haro-docx-writer ...`.
 
 Enterprise layout (the "why": a sign-off document must identify itself on
 every page and carry its own audit trail):
@@ -28,32 +28,32 @@ every page and carry its own audit trail):
   in a monospace shaded style. Single ink only: Times New Roman, black
   (`000000`) — see `shared/docx-style.md`.
 
-## 2. Workspace `.haro-docx/` + global `~/.haro-docx/`
+## 2. Workspace `.haro-docx-writer/` + global `~/.haro-docx-writer/`
 
 Every template is a folder holding exactly two files:
 
 ```text
-<project>/.haro-docx/templates/<id>/
+<project>/.haro-docx-writer/templates/<id>/
 ├── template.docx   # the style source (copied verbatim from the user's .docx)
 └── template.yaml   # meta (id/name/description/created_at/updated_at)
                     # + params (company/solution/document/header/styles...)
 
-~/.haro-docx/templates/<id>/        # same layout, global scope
+~/.haro-docx-writer/templates/<id>/        # same layout, global scope
 ├── template.docx
 └── template.yaml
 
-.haro-docx/output/                 # generated .docx files (git-ignored recommended)
+.haro-docx-writer/output/                 # generated .docx files (git-ignored recommended)
 
-skills/haro-docx/
+skills/haro-docx-writer/
 ├── commands/            # normative workflows (read fully before acting)
-│   ├── index.md         # /haro-docx dashboard
-│   ├── list.md          # /haro-docx --list
-│   ├── create.md        # /haro-docx --create:<id>
-│   ├── update.md        # /haro-docx --update:<id>
-│   ├── delete.md        # /haro-docx --delete:<id>
-│   ├── view.md          # /haro-docx --view:<id>
-│   ├── validate.md      # /haro-docx --validate:<id>
-│   └── export.md        # /haro-docx --export:<id>
+│   ├── index.md         # /haro-docx-writer dashboard
+│   ├── list.md          # /haro-docx-writer --list
+│   ├── create.md        # /haro-docx-writer --create:<id>
+│   ├── update.md        # /haro-docx-writer --update:<id>
+│   ├── delete.md        # /haro-docx-writer --delete:<id>
+│   ├── view.md          # /haro-docx-writer --view:<id>
+│   ├── validate.md      # /haro-docx-writer --validate:<id>
+│   └── export.md        # /haro-docx-writer --export:<id>
 ├── shared/docx-style.md # the visual standard (normative)
 ├── scripts/build_docx.py       # the ONLY exporter — never hand-craft .docx
 ├── scripts/template_store.py   # registry helpers (list/resolve/delete)
@@ -83,14 +83,14 @@ skills/haro-docx/
 
 | Command | When to use | Read first (fully, before acting) | Example |
 |---------|-------------|-----------------------------------|---------|
-| `/haro-docx` (no args) | Show dashboard, pick next action | `commands/index.md` | `/haro-docx` |
-| `/haro-docx --list` | List all templates (id, name, description, location, created, updated) | `commands/list.md` | `/haro-docx --list` |
-| `/haro-docx --create:<id> <file.docx>` | Register a .docx file as a new template (asks local/global, checks duplicates, extracts yaml) | `commands/create.md` | `/haro-docx --create:congty-a DieuLe.docx` |
-| `/haro-docx --update:<id> <nội dung>` | Update a template's params/content per user request | `commands/update.md` | `/haro-docx --update:congty-a đổi company thành CTY X` |
-| `/haro-docx --delete:<id>` | Delete a template (asks confirm) | `commands/delete.md` | `/haro-docx --delete:congty-a` |
-| `/haro-docx --view:<id>` | Show a template's yaml + .docx paths and full config | `commands/view.md` | `/haro-docx --view:congty-a` |
-| `/haro-docx --validate:<id>` | Check yaml-vs-docx match (style-level) | `commands/validate.md` | `/haro-docx --validate:congty-a` |
-| `/haro-docx --export:<id> <input>` | Render md/txt/pdf to enterprise .docx with template `<id>` | `commands/export.md` + `shared/docx-style.md` | `/haro-docx --export:congty-a docs/sad.md` |
+| `/haro-docx-writer` (no args) | Show dashboard, pick next action | `commands/index.md` | `/haro-docx-writer` |
+| `/haro-docx-writer --list` | List all templates (id, name, description, location, created, updated) | `commands/list.md` | `/haro-docx-writer --list` |
+| `/haro-docx-writer --create:<id> <file.docx>` | Register a .docx file as a new template (asks local/global, checks duplicates, extracts yaml) | `commands/create.md` | `/haro-docx-writer --create:congty-a DieuLe.docx` |
+| `/haro-docx-writer --update:<id> <nội dung>` | Update a template's params/content per user request | `commands/update.md` | `/haro-docx-writer --update:congty-a đổi company thành CTY X` |
+| `/haro-docx-writer --delete:<id>` | Delete a template (asks confirm) | `commands/delete.md` | `/haro-docx-writer --delete:congty-a` |
+| `/haro-docx-writer --view:<id>` | Show a template's yaml + .docx paths and full config | `commands/view.md` | `/haro-docx-writer --view:congty-a` |
+| `/haro-docx-writer --validate:<id>` | Check yaml-vs-docx match (style-level) | `commands/validate.md` | `/haro-docx-writer --validate:congty-a` |
+| `/haro-docx-writer --export:<id> <input>` | Render md/txt/pdf to enterprise .docx with template `<id>` | `commands/export.md` + `shared/docx-style.md` | `/haro-docx-writer --export:congty-a docs/sad.md` |
 
 ## 3. Hard rules
 

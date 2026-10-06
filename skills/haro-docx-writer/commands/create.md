@@ -1,17 +1,17 @@
 # Create (Haro Docx reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
-> `/haro-docx --create:<id>`. Do not act from memory: read every step first.
+> `/haro-docx-writer --create:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** NEVER hand-craft `template.yaml` — the generator script
 > creates it. NEVER overwrite an existing id silently. Reply to the user in
 > Vietnamese with full diacritics.
 
-## Command `/haro-docx --create:<id> <file.docx hoặc đường dẫn>`
+## Command `/haro-docx-writer --create:<id> <file.docx hoặc đường dẫn>`
 
 Registers a user-supplied `.docx` file as a new named template.
 
 ### 1. Parse args (no guessing)
 
-- Syntax: `/haro-docx --create:<id> <path>` — the id is glued to the flag
+- Syntax: `/haro-docx-writer --create:<id> <path>` — the id is glued to the flag
   with `:` (no space). Example: `--create:congty-a DieuLe.docx`.
 - `<id>`: lowercase, 2–41 chars, `[a-z0-9-_]` (spaces become `-`).
   Invalid id → STOP with the rule + one valid example. Never auto-rename.
@@ -23,8 +23,8 @@ Registers a user-supplied `.docx` file as a new named template.
 
 Single picker call (picker tool when available, otherwise numbered list):
 
-- `local` — `<project>/.haro-docx/templates/<id>/` (dùng riêng cho dự án).
-- `global` — `~/.haro-docx/templates/<id>/` (dùng chung mọi dự án).
+- `local` — `<project>/.haro-docx-writer/templates/<id>/` (dùng riêng cho dự án).
+- `global` — `~/.haro-docx-writer/templates/<id>/` (dùng chung mọi dự án).
 
 Also ask `tên mẫu` (free-text, default = id) and `mô tả` (free-text,
 allow skip → `""`).
@@ -35,8 +35,8 @@ The generator script enforces this, but check first to give the friendly
 message: if `<id>` already exists in the chosen scope → STOP with:
 
 ```text
-Id '<id>' đã tồn tại ở <local|global>. Dùng /haro-docx --view:<id> để xem
-hoặc /haro-docx --update:<id> <nội dung> để sửa — không ghi đè.
+Id '<id>' đã tồn tại ở <local|global>. Dùng /haro-docx-writer --view:<id> để xem
+hoặc /haro-docx-writer --update:<id> <nội dung> để sửa — không ghi đè.
 ```
 
 If it exists only in the OTHER scope → warn one line
@@ -48,7 +48,7 @@ before continuing. Resolution order is local-first.
 Run from the project root:
 
 ```bash
-python skills/haro-docx/scripts/extract_template.py \
+python skills/haro-docx-writer/scripts/extract_template.py \
   --source <path> --id <id> --location <local|global> \
   --project-root . --name "<tên mẫu>" --description "<mô tả>"
 ```
@@ -91,11 +91,11 @@ content creation convenient.
    edit + push) in the same session.
 5. Ask: `Giữ nguyên hay chỉnh sửa thông số style?` (keep / edit list).
    Style edits now → apply via `--update:<id>` workflow (same session).
-6. Close with: `Xem lại: /haro-docx --view:<id> | Kiểm tra: /haro-docx --validate:<id> | Xuất thử: /haro-docx --export:<id> <file.md>`.
+6. Close with: `Xem lại: /haro-docx-writer --view:<id> | Kiểm tra: /haro-docx-writer --validate:<id> | Xuất thử: /haro-docx-writer --export:<id> <file.md>`.
 
 ### Examples
 
 ```text
-/haro-docx --create:congty-a DieuLe-CongTyA.docx
-/haro-docx --create:nhadaut-x "tai lieu/mau-trinhky.docx"
+/haro-docx-writer --create:congty-a DieuLe-CongTyA.docx
+/haro-docx-writer --create:nhadaut-x "tai lieu/mau-trinhky.docx"
 ```

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Apply YAML param changes to a haro-docx template (yaml + .docx styles).
+"""Apply YAML param changes to a haro-docx-writer template (yaml + .docx styles).
 
-Typical flow for `/haro-docx --update:<id> <nội dung>`: the agent edits
+Typical flow for `/haro-docx-writer --update:<id> <nội dung>`: the agent edits
 template.yaml (or passes --set key=value here), then this script pushes
 style-level keys into template.docx via python-docx and bumps updated_at.
 
@@ -226,7 +226,7 @@ def apply_visual(docx_path: Path, styles: dict, page: dict | None = None) -> lis
 
 
 def parse_args(argv=None):
-    ap = argparse.ArgumentParser(description="haro-docx template updater")
+    ap = argparse.ArgumentParser(description="haro-docx-writer template updater")
     ap.add_argument("--id", required=True)
     ap.add_argument("--project-root", default=".")
     ap.add_argument("--set", action="append", default=[], help="key=value (dot-path)")
@@ -297,7 +297,7 @@ def main(argv=None) -> int:
             print(f"  - {p}")
     print(f"YAML: {hit['yaml']}")
     print(f"DOCX: {hit['docx']}")
-    print(f"Kiểm tra: /haro-docx --validate:{tid}")
+    print(f"Kiểm tra: /haro-docx-writer --validate:{tid}")
     return 0
 
 
