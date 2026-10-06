@@ -219,7 +219,7 @@ def dump_content(doc: Document, source_name: str, logo_rel: str = "",
 
     Plain facts only (texts, tables, headers/footers, image list) — no
     guessing, no confidence scores. Purpose inference happens in the
-    agent workflow (commands/create.md), not here.
+    agent workflow (commands/import.md), not here.
     """
     lines = [f"# Nội dung file mẫu: {source_name}",
              "# (dump máy để agent đọc hiểu mục đích — không phải gợi ý giá trị)",
@@ -492,7 +492,7 @@ def build_template_yaml(tid: str, location: str, source: Path, name: str,
                 "logo_saved": logo_rel,
                 "note": "Khối _extracted chỉ để --validate đối chiếu, không dùng khi render. "
                         "Mục đích mẫu và giá trị params do agent đọc content.txt rồi đề xuất, "
-                        "user duyệt mới điền (xem commands/create.md).",
+                        "user duyệt mới điền (xem commands/import.md).",
             },
         }
     )

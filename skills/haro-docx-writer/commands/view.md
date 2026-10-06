@@ -38,7 +38,7 @@ Read the resolved `template.yaml` fully and display it grouped:
 6. **Cover/header-footer/TOC:** `cover.*`, `header_footer.*`, `toc_levels`.
 7. **Nội dung gốc của mẫu:** point to `.../<id>/content.txt` (machine dump
    of the docx text/tables/headers) when the user wants to see what the
-   template contains. Purpose discussion belongs to `--create`, not here —
+   template contains. Purpose discussion belongs to `--import`, not here —
    never present guesses as facts.
 
 Never truncate silently — if long, keep the grouping and summarize lists.

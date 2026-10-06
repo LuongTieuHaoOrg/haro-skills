@@ -22,13 +22,13 @@ page numbers). Templates live in `.haro-docx-writer/templates/<id>/` (local) and
 3. **Light status (one check only):** run
    `python skills/haro-docx-writer/scripts/template_store.py --project-root . list`
    and summarize in one line: `Có N mẫu local, M mẫu global` (or
-   `Chưa có mẫu nào — hãy --create mẫu đầu tiên`). No other file checks.
+   `Chưa có mẫu nào — hãy --import mẫu đầu tiên`). No other file checks.
 4. **Action picker:** single picker call (picker tool when available, otherwise
-   numbered list) with `--list`, `--create:<id>`, `--update:<id>`,
+   numbered list) with `--list`, `--import:<id>`, `--update:<id>`,
    `--delete:<id>`, `--view:<id>`, `--validate:<id>`, `--export:<id>`,
    `stop` and a one-line Vietnamese "when to use" for each. When no templates
-   exist, pre-suggest `--create:<id>`. Once picked, follow MANDATORY ROUTING
+   exist, pre-suggest `--import:<id>`. Once picked, follow MANDATORY ROUTING
    in `SKILL.md`.
 5. **Fallback (unknown token):** prefix with
-   `Lệnh 'foo' không hợp lệ. Các lệnh hợp lệ: --list, --create:<id>, --update:<id>, --delete:<id>, --view:<id>, --validate:<id>, --export:<id>.`
+   `Lệnh 'foo' không hợp lệ. Các lệnh hợp lệ: --list, --import:<id>, --update:<id>, --delete:<id>, --view:<id>, --validate:<id>, --export:<id>.`
    Suggest the closest match. Case-insensitive, trim whitespace.

@@ -31,7 +31,7 @@ fields → ask the user for the missing values (SHORT picker/free-text,
 allow skip → uses `(Chưa xác định)`), then apply via
 `/haro-docx-writer --update:<id>` BEFORE exporting (never export with guessed names).
 Also surface any params still at defaults (user skipped the purpose review
-at `--create`) and offer to fill them first.
+at `--import`) and offer to fill them first.
 
 Logo: `header.logo_path` — if the file doesn't exist, continue WITHOUT logo
 (leave the left header cell empty) and note it in the final summary. Never
@@ -45,7 +45,7 @@ web-search a logo.
   `PDF này không trích xuất được chữ (file scan/ảnh). Hãy cung cấp bản .md/.txt.`
 - Anything else (`.docx`, `.xlsx`, ...) → refuse with supported-type message:
   `Định dạng chưa hỗ trợ. Hãy dùng .md / .txt / .pdf.`
-  A `.docx` the user wants as STYLE is a `--create:<id>` source, not an input.
+  A `.docx` the user wants as STYLE is a `--import:<id>` source, not an input.
 
 ### 4. Run the generator (the only way to produce .docx)
 

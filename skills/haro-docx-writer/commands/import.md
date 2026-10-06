@@ -1,18 +1,18 @@
-# Create (Haro Docx reference)
+# Import (Haro Docx reference)
 > **STOP — READ THIS FILE FULLY BEFORE ACTING.** Normative workflow for
-> `/haro-docx-writer --create:<id>`. Do not act from memory: read every step first.
+> `/haro-docx-writer --import:<id>`. Do not act from memory: read every step first.
 > **Ground rules:** NEVER hand-craft `template.yaml` — the generator script
 > creates it. NEVER overwrite an existing id silently. Reply to the user in
 > Vietnamese with full diacritics.
 
-## Command `/haro-docx-writer --create:<id> <file.docx hoặc đường dẫn>`
+## Command `/haro-docx-writer --import:<id> <file.docx hoặc đường dẫn>`
 
 Registers a user-supplied `.docx` file as a new named template.
 
 ### 1. Parse args (no guessing)
 
-- Syntax: `/haro-docx-writer --create:<id> <path>` — the id is glued to the flag
-  with `:` (no space). Example: `--create:congty-a DieuLe.docx`.
+- Syntax: `/haro-docx-writer --import:<id> <path>` — the id is glued to the flag
+  with `:` (no space). Example: `--import:congty-a DieuLe.docx`.
 - `<id>`: lowercase, 2–41 chars, `[a-z0-9-_]` (spaces become `-`).
   Invalid id → STOP with the rule + one valid example. Never auto-rename.
 - `<path>`: required, must exist, must end in `.docx`. Missing/unreadable/
@@ -96,6 +96,6 @@ content creation convenient.
 ### Examples
 
 ```text
-/haro-docx-writer --create:congty-a DieuLe-CongTyA.docx
-/haro-docx-writer --create:nhadaut-x "tai lieu/mau-trinhky.docx"
+/haro-docx-writer --import:congty-a DieuLe-CongTyA.docx
+/haro-docx-writer --import:nhadaut-x "tai lieu/mau-trinhky.docx"
 ```

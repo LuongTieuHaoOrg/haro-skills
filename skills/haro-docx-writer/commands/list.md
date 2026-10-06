@@ -35,7 +35,7 @@ Render one table with exactly these columns:
 
 - `vị trí lưu` shows `local` or `global` only.
 - Empty registry → print `Chưa có mẫu nào.` + one line:
-  `Tạo mẫu đầu tiên: /haro-docx-writer --create:<id> <file.docx>`.
+  `Tạo mẫu đầu tiên: /haro-docx-writer --import:<id> <file.docx>`.
 - 6 lines max after the table: totals (`N mẫu local, M mẫu global`) +
   next-action hint (`Xem chi tiết: /haro-docx-writer --view:<id>`).
 

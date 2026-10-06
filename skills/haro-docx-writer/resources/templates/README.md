@@ -13,6 +13,6 @@ Manage templates with:
 
 ```text
 /haro-docx-writer --list
-/haro-docx-writer --create:<id> <file.docx>
+/haro-docx-writer --import:<id> <file.docx>
 /haro-docx-writer --export:<id> <file.md>
 ```

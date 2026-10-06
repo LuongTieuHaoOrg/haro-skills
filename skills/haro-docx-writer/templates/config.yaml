@@ -1,4 +1,4 @@
-# Param defaults merged at --create time into .haro-docx-writer/templates/<id>/template.yaml
+# Param defaults merged at --import time into .haro-docx-writer/templates/<id>/template.yaml
 # (và ~/.haro-docx-writer/templates/<id>/template.yaml cho scope global).
 # Sửa giá trị thật trong template.yaml của từng mẫu, không sửa file này.
 company_name: "CÔNG TY TNHH MẪU VIỆT NAM"
@@ -16,7 +16,7 @@ approvers:
   - "Lê Văn C — Phê duyệt"
 header:
   # Đường dẫn logo (png/jpg), tương đối từ thư mục mẫu. Để trống "" = không logo.
-  # Khi --create bóc được ảnh từ file mẫu, ảnh nằm ở assets/ trong thư mục mẫu.
+  # Khi --import bóc được ảnh từ file mẫu, ảnh nằm ở assets/ trong thư mục mẫu.
   logo_path: ""
 styles:
   # Chuẩn mặc định: Times New Roman + đen duy nhất (000000).

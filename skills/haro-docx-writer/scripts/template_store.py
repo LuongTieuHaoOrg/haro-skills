@@ -30,7 +30,7 @@ MAX_ID_LEN = 41
 def normalize_id(raw: str) -> str:
     tid = (raw or "").strip().lower().replace(" ", "-")
     if not tid:
-        raise ValueError("LỖI: id mẫu rỗng. Ví dụ: /haro-docx-writer --create:congty-a <file.docx>")
+        raise ValueError("LỖI: id mẫu rỗng. Ví dụ: /haro-docx-writer --import:congty-a <file.docx>")
     if len(tid) > MAX_ID_LEN or not ID_RE.match(tid):
         raise ValueError(
             f"LỖI: id '{raw}' không hợp lệ. Id gồm 2–41 ký tự: chữ thường, số, '-' hoặc '_'."
@@ -157,7 +157,7 @@ def delete_template(tid: str, location: str, project_root: Path) -> Path:
 
 def _print_rows(rows: list[dict]) -> None:
     if not rows:
-        print("Chưa có mẫu nào. Tạo mẫu mới: /haro-docx-writer --create:<id> <file.docx>")
+        print("Chưa có mẫu nào. Tạo mẫu mới: /haro-docx-writer --import:<id> <file.docx>")
         return
     header = f"{'id':<20} {'tên mẫu':<30} {'vị trí':<7} {'tạo lúc':<25} {'cập nhật lúc':<25}  mô tả"
     print(header)

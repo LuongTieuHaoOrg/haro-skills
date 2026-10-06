@@ -48,7 +48,7 @@ skills/haro-docx-writer/
 ├── commands/            # normative workflows (read fully before acting)
 │   ├── index.md         # /haro-docx-writer dashboard
 │   ├── list.md          # /haro-docx-writer --list
-│   ├── create.md        # /haro-docx-writer --create:<id>
+│   ├── import.md        # /haro-docx-writer --import:<id>
 │   ├── update.md        # /haro-docx-writer --update:<id>
 │   ├── delete.md        # /haro-docx-writer --delete:<id>
 │   ├── view.md          # /haro-docx-writer --view:<id>
@@ -57,10 +57,10 @@ skills/haro-docx-writer/
 ├── shared/docx-style.md # the visual standard (normative)
 ├── scripts/build_docx.py       # the ONLY exporter — never hand-craft .docx
 ├── scripts/template_store.py   # registry helpers (list/resolve/delete)
-├── scripts/extract_template.py # .docx -> template.yaml (used by --create)
+├── scripts/extract_template.py # .docx -> template.yaml (used by --import)
 ├── scripts/validate_template.py# yaml-vs-docx check (used by --validate)
 ├── scripts/update_template.py  # patch yaml + push styles into .docx (used by --update)
-└── templates/config.yaml       # param defaults merged at --create time
+└── templates/config.yaml       # param defaults merged at --import time
 ```
 
 > **Read order (every command):** the template's `template.yaml` (resolved
@@ -73,7 +73,7 @@ skills/haro-docx-writer/
 > in its workflow file (table below).
 >
 > 1. Match the user's command to exactly one table row (colon syntax:
->    `--create:<id>` — the id is glued to the flag with `:`).
+>    `--import:<id>` — the id is glued to the flag with `:`).
 > 2. Read that workflow file **fully, before any other tool call or answer**.
 > 3. If you notice you are about to act, answer, or create anything without
 >    the workflow open, **STOP and read it first**. The workflow always wins
@@ -85,7 +85,7 @@ skills/haro-docx-writer/
 |---------|-------------|-----------------------------------|---------|
 | `/haro-docx-writer` (no args) | Show dashboard, pick next action | `commands/index.md` | `/haro-docx-writer` |
 | `/haro-docx-writer --list` | List all templates (id, name, description, location, created, updated) | `commands/list.md` | `/haro-docx-writer --list` |
-| `/haro-docx-writer --create:<id> <file.docx>` | Register a .docx file as a new template (asks local/global, checks duplicates, extracts yaml) | `commands/create.md` | `/haro-docx-writer --create:congty-a DieuLe.docx` |
+| `/haro-docx-writer --import:<id> <file.docx>` | Register a .docx file as a new template (asks local/global, checks duplicates, extracts yaml) | `commands/import.md` | `/haro-docx-writer --import:congty-a DieuLe.docx` |
 | `/haro-docx-writer --update:<id> <nội dung>` | Update a template's params/content per user request | `commands/update.md` | `/haro-docx-writer --update:congty-a đổi company thành CTY X` |
 | `/haro-docx-writer --delete:<id>` | Delete a template (asks confirm) | `commands/delete.md` | `/haro-docx-writer --delete:congty-a` |
 | `/haro-docx-writer --view:<id>` | Show a template's yaml + .docx paths and full config | `commands/view.md` | `/haro-docx-writer --view:congty-a` |
@@ -101,7 +101,7 @@ skills/haro-docx-writer/
 - NEVER invent company/solution/document names or template ids. Ids match
   `[a-z0-9][a-z0-9-_]{0,40}` (lowercase, 2–41 chars). Resolution order is
   **local first, global second** — never guess which scope; `--list` shows it.
-- Colon syntax is normative: `--create:<id>`, `--update:<id>`,
+- Colon syntax is normative: `--import:<id>`, `--update:<id>`,
   `--delete:<id>`, `--view:<id>`, `--validate:<id>`, `--export:<id>`.
   The id is glued to the flag with `:` (no space).
 - `--update` with vague content (`làm đẹp hơn`, `sửa giúp anh`, empty):
@@ -112,7 +112,7 @@ skills/haro-docx-writer/
 - Input formats: `.md` and `.txt` are native. `.pdf` is best-effort text
   extraction (needs `pypdf` installed); scanned/image PDFs are refused with a
   clear message. A `.docx` is NEVER an export input — it is a template
-  source for `--create`.
+  source for `--import`.
 - Language rules:
   - Skill instructions and code comments are in **English**.
   - Everything the user sees — chat replies, generated document content,

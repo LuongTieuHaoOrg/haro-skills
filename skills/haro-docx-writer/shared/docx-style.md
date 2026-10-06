@@ -119,7 +119,7 @@ user to approve — the script never guesses purpose or values.
 | `_extracted.has_footer` / `footer_text` | Any section footer text |
 | `_extracted.logo_saved` | `assets/logo.<ext>` bóc từ ảnh header (rỗng nếu không có ảnh) |
 | `header.logo_path` | Fact: `assets/logo.<ext>` extracted from the first header image (empty when no image); validate checks file existence only. Whether to USE it is a user-approved param, not a guess |
-| `content.txt` | Not a param — raw dump (paragraphs with sizes, tables, header/footer text, image list) for the agent's purpose reading in `commands/create.md` §5 |
+| `content.txt` | Not a param — raw dump (paragraphs with sizes, tables, header/footer text, image list) for the agent's purpose reading in `commands/import.md` §5 |
 
 Style-level means: style definitions are compared, individual text runs are
 ignored (a single odd run never counts as LỆCH). A docx attribute that was
