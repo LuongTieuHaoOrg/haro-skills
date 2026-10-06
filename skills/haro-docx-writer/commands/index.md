@@ -26,12 +26,13 @@ page numbers). Templates live in `.haro-docx-writer/templates/<id>/` (local) and
    `Chưa có mẫu nào — hãy --import mẫu đầu tiên`). No other file checks.
 4. **Action picker:** single picker call (picker tool when available, otherwise
    numbered list) with `--list`, `--import:<id>`, `--update:<id>`,
+   `--sync-docx:<id>`, `--sync-yaml:<id>`,
    `--delete:<id>`, `--view:<id>`, `--validate:<id>`, `--export:<id>`,
    `quick <file>` (quick-export, runs `commands/quick.md`), `stop` and a
    one-line "when to use" for each. When no templates
    exist, pre-suggest `--import:<id>`. Once picked, follow MANDATORY ROUTING
    in `SKILL.md`.
 5. **Fallback (unknown `--flag` only):** prefix with
-   `Lệnh 'foo' không hợp lệ. Các lệnh hợp lệ: --list, --import:<id>, --update:<id>, --delete:<id>, --view:<id>, --validate:<id>, --export:<id>.`
+   `Lệnh 'foo' không hợp lệ. Các lệnh hợp lệ: --list, --import:<id>, --update:<id>, --sync-docx:<id>, --sync-yaml:<id>, --delete:<id>, --view:<id>, --validate:<id>, --export:<id>.`
    Suggest the closest match. Case-insensitive, trim whitespace. A bare file
    path is NOT invalid — it routes to `commands/quick.md`.

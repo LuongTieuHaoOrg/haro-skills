@@ -434,11 +434,14 @@ def load_defaults() -> dict:
     return {}
 
 
-def build_template_yaml(tid: str, location: str, source: Path, name: str,
-                         description: str, visual: dict,
-                         logo_rel: str = "") -> dict:
-    base = load_defaults()
-    styles = dict(base.get("styles", {}))
+def merge_visual_into_cfg(cfg: dict, visual: dict) -> dict:
+    """Overwrite cfg's styles/page blocks from extracted docx visuals.
+
+    Shared by --import (build_template_yaml) and --sync-yaml (sync_yaml.py).
+    Identity params, meta, cover/header_footer/toc_levels are untouched —
+    the YAML owns those; the .docx owns styles/page.
+    """
+    styles = dict(cfg.get("styles", {}))
     if visual.get("body_font"):
         styles["body_font"] = visual["body_font"]
     for vkey in ("body_size", "body_space_before", "body_space_after",
@@ -455,8 +458,9 @@ def build_template_yaml(tid: str, location: str, source: Path, name: str,
         styles["code_font"] = visual["code_font"]
     if visual.get("code_size"):
         styles["code_size"] = fmt_unit(visual["code_size"], "pt")
+    cfg["styles"] = styles
 
-    page = dict(base.get("page", {}))
+    page = dict(cfg.get("page", {}))
     if visual.get("page_size") in ("A4", "Letter"):
         page["size"] = visual["page_size"]
     if visual.get("page_orientation") in ("portrait", "landscape"):
@@ -470,9 +474,17 @@ def build_template_yaml(tid: str, location: str, source: Path, name: str,
         page["header_distance_cm"] = fmt_unit(visual["page_header_distance_cm"], "cm")
     if visual.get("page_footer_distance_cm") is not None:
         page["footer_distance_cm"] = fmt_unit(visual["page_footer_distance_cm"], "cm")
+    cfg["page"] = page
+    return cfg
+
+
+def build_template_yaml(tid: str, location: str, source: Path, name: str,
+                         description: str, visual: dict,
+                         logo_rel: str = "") -> dict:
+    base = load_defaults()
+    cfg = merge_visual_into_cfg(dict(base), visual)
 
     now = now_iso()
-    cfg = dict(base)
     cfg.update(
         {
             "id": tid,
@@ -482,8 +494,6 @@ def build_template_yaml(tid: str, location: str, source: Path, name: str,
             "created_at": now,
             "updated_at": now,
             "source_file": source.name,
-            "styles": styles,
-            "page": page,
             "_extracted": {
                 "has_header": visual.get("has_header", False),
                 "header_text": visual.get("header_text", ""),
