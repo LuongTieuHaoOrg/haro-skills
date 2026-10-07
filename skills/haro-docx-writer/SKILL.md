@@ -9,8 +9,7 @@ description: Render enterprise-standard .docx from markdown/text/pdf using named
 
 `haro-docx-writer` turns user-provided sources (**markdown / text / pdf**) into a
 company-standard `.docx` for technical specs, rendered through a **named
-template** (`<id>`). It is a standalone skill like `haro-docs` / `haro-crew`,
-invoked via `/haro-docx-writer ...`.
+template** (`<id>`), invoked via `/haro-docx-writer ...`.
 
 Enterprise layout (the "why": a sign-off document must identify itself on
 every page and carry its own audit trail):
