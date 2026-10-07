@@ -19,7 +19,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
-from typing import Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import yaml
 from docx import Document
@@ -226,7 +226,7 @@ def find_placeholders(doc: Document) -> dict:
     return found
 
 
-def _header_image_blobs(doc: Document) -> list[tuple[bytes, str]]:
+def _header_image_blobs(doc: Document) -> List[Tuple[bytes, str]]:
     """Collect (blob, content_type) images from all section headers."""
     blobs = []
     seen = set()
@@ -250,7 +250,7 @@ def _header_image_blobs(doc: Document) -> list[tuple[bytes, str]]:
     return blobs
 
 
-def save_logo_blob(blobs: list[tuple[bytes, str]], dest_dir: Path) -> str:
+def save_logo_blob(blobs: List[Tuple[bytes, str]], dest_dir: Path) -> str:
     """Save the first header image under <template-dir>/assets/. Returns rel path or ''."""
     if not blobs:
         return ""

@@ -19,29 +19,31 @@ import datetime
 import re
 import sys
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-# Declared once so both import branches assign to a single callable type
-# (avoids a union type that strict checkers reject at _cfg_pt/_cfg_cm).
-parse_pt: Callable[[Any, str], float]
-parse_cm: Callable[[Any, str], float]
 try:
     from template_store import resolve as resolve_template
-    from template_store import parse_cm as _ts_parse_cm
-    from template_store import parse_pt as _ts_parse_pt
-
-    parse_pt = _ts_parse_pt
-    parse_cm = _ts_parse_cm
-except ImportError:  # script copied standalone — legacy plain-number behavior
+except ImportError:  # script copied standalone
     resolve_template = None  # type: ignore
 
-    def parse_pt(value, field="giá trị"):  # type: ignore
-        return float(value)
 
-    def parse_cm(value, field="giá trị"):  # type: ignore
+def parse_pt(value, field="giá trị"):
+    """Parse to points; single definition (no union) for strict checkers."""
+    try:
+        from template_store import parse_pt as _impl
+    except ImportError:  # standalone copy — legacy plain-number behavior
         return float(value)
+    return _impl(value, field)
+
+
+def parse_cm(value, field="giá trị"):
+    """Parse to centimeters; single definition (no union) for strict checkers."""
+    try:
+        from template_store import parse_cm as _impl
+    except ImportError:  # standalone copy — legacy plain-number behavior
+        return float(value)
+    return _impl(value, field)
 
 
 def _num(mapping: dict, key: str, default, parse, prefix: str):
@@ -695,7 +697,7 @@ def read_text_tolerant(path: Path) -> str:
         "Hãy lưu lại dạng UTF-8.")
 
 
-def read_source(path: Path) -> tuple[str, str]:
+def read_source(path: Path) -> Tuple[str, str]:
     ext = path.suffix.lower()
     if ext in (".md", ".markdown", ".txt", ".text"):
         return ext, read_text_tolerant(path)
@@ -718,7 +720,7 @@ def read_source(path: Path) -> tuple[str, str]:
 
 # ---------------------------------------------------------------- markdown / plain-text rendering
 
-def _add_md_table(doc: Document, rows: list[list[str]]):
+def _add_md_table(doc: Document, rows: List[List[str]]):
     if not rows:
         return
     tbl = doc.add_table(rows=1, cols=len(rows[0]))
@@ -733,7 +735,7 @@ def _add_md_table(doc: Document, rows: list[list[str]]):
 def render_markdown(doc: Document, text: str, src_dir: Path):
     lines = text.splitlines()
     i = 0
-    table_buf: list[list[str]] = []
+    table_buf: List[List[str]] = []
     fig_no = [0]  # mutable counter for "Hình N" captions
 
     def flush_table():
@@ -767,7 +769,7 @@ def render_markdown(doc: Document, text: str, src_dir: Path):
         set_run_font(run, BODY_FONT, size=Pt(11), italic=True)
 
     in_code = False
-    code_buf: list[str] = []
+    code_buf: List[str] = []
     while i < len(lines):
         line = lines[i]
         stripped = line.strip()
@@ -872,7 +874,7 @@ def parse_args(argv=None):
     return ap.parse_args(argv)
 
 
-def build_mapping(cfg: dict, cli_params: Optional[list[str]] = None) -> dict:
+def build_mapping(cfg: dict, cli_params: Optional[List[str]] = None) -> dict:
     """Values for {{name}}/[[name]] substitution.
 
     Priority: --param overrides > placeholders.<name>.value (non-empty) >

@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from typing import List, Tuple
 
 import yaml
 
@@ -94,7 +95,7 @@ def main(argv=None) -> int:
         print(f"LỖI: không đọc được file mẫu ({e}).", file=sys.stderr)
         return 2
 
-    rows: list[tuple[str, str, str, bool]] = []
+    rows: List[Tuple[str, str, str, bool]] = []
 
     def add(label: str, yaml_val, docx_val, ok: bool):
         rows.append((label, str(yaml_val), str(docx_val), ok))

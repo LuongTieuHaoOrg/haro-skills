@@ -26,7 +26,7 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import yaml
 from docx import Document
@@ -174,10 +174,10 @@ def _set(cfg: dict, key: str, value) -> None:
     cur[parts[-1]] = value
 
 
-def apply_visual(docx_path: Path, styles: dict, page: Optional[dict] = None) -> list[str]:
+def apply_visual(docx_path: Path, styles: dict, page: Optional[dict] = None) -> List[str]:
     """Push style-level params into the .docx file. Returns changed labels."""
     doc = Document(str(docx_path))
-    changed: list[str] = []
+    changed: List[str] = []
     body_font = styles.get("body_font", "")
     code_font = styles.get("code_font", "")
 
@@ -294,7 +294,7 @@ def main(argv=None) -> int:
     with open(hit["yaml"], encoding="utf-8") as f:
         cfg = yaml.safe_load(f) or {}
 
-    diffs: list[str] = []
+    diffs: List[str] = []
     for item in args.set:
         if "=" not in item:
             print(f"LỖI: --set phải dạng key=value (nhận được '{item}').", file=sys.stderr)
@@ -319,7 +319,7 @@ def main(argv=None) -> int:
     with open(hit["yaml"], "w", encoding="utf-8") as f:
         yaml.safe_dump(cfg, f, allow_unicode=True, sort_keys=False)
 
-    pushed: list[str] = []
+    pushed: List[str] = []
     if not args.no_apply_visual and hit["docx"].exists():
         try:
             pushed = apply_visual(hit["docx"], cfg.get("styles", {}) or {},

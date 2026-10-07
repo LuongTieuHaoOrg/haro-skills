@@ -14,7 +14,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional
 
 import yaml
 
@@ -140,7 +140,7 @@ def resolve(tid: str, project_root: Path) -> Optional[dict]:
     return None
 
 
-def resolve_all(tid: str, project_root: Path) -> list[dict]:
+def resolve_all(tid: str, project_root: Path) -> List[dict]:
     """Return every scope holding tid (for duplicate warnings)."""
     tid = normalize_id(tid)
     out = []
@@ -162,9 +162,9 @@ def read_meta(yaml_path: Path) -> dict:
         return {}
 
 
-def list_all(project_root: Path) -> list[dict]:
+def list_all(project_root: Path) -> List[dict]:
     """Scan local + global registries. Sorted by id, local first on ties."""
-    rows: list[dict] = []
+    rows: List[dict] = []
     for loc, root in (("local", local_root(project_root)), ("global", global_root())):
         if not root.exists():
             continue
@@ -221,7 +221,7 @@ def delete_template(tid: str, location: str, project_root: Path) -> Path:
     return target
 
 
-def _print_rows(rows: list[dict]) -> None:
+def _print_rows(rows: List[dict]) -> None:
     if not rows:
         print("Chưa có mẫu nào. Tạo mẫu mới: /haro-docx-writer --import:<id> <file.docx>")
         return
