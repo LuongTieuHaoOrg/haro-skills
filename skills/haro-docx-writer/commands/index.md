@@ -12,13 +12,13 @@
 `haro-docx-writer` renders markdown/text/pdf sources into enterprise-standard `.docx`
 through named templates (cover page, revision history, TOC, header/footer,
 page numbers). Templates live in `.haro-docx-writer/templates/<id>/` (local) and
-`~/.haro-docx-writer/templates/<id>/` (global). Full concept: `SKILL.md` §1–2.
+`~/.haro-docx-writer/templates/<id>/` (global). Full concept: `../docs/overview.md` + `../docs/workspace.md`.
 
 1. **Introduce (chat, 3–4 lines)** — what the
    skill does + the single rule that matters: every template has an id; every
    command's workflow lives in its own file; generated files go to
    `.haro-docx-writer/output/`.
-2. **List commands:** render the Command index table from `SKILL.md`. Do not
+2. **List commands:** render the Command index table from `../docs/commands-reference.md`. Do not
    duplicate it here.
 3. **Light status (one check only):** run
    `python skills/haro-docx-writer/scripts/template_store.py --project-root . list`

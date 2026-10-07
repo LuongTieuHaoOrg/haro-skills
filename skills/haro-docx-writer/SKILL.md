@@ -1,129 +1,37 @@
 ---
 name: haro-docx-writer
-description: Render enterprise-standard .docx from markdown/text/pdf using named templates (cover page, revision history, auto TOC, styled header/footer, page numbers). Use this skill whenever the user mentions xuat docx, xuất docx, file Word, trinh ky, trình ký, nop specs, nộp specs/BRD/PRD/SAD/FSD, in an, in ấn, company template, mau docx, mẫu docx, or needs a Word file — even if they don't say the word docx. Run /haro-docx-writer with no args to pick an action. Before acting on any command, read its commands/*.md file fully — never act from memory.
+description: Export content to Word (.docx) from markdown, text, or PDF sources using named reusable templates with a local and global registry. Templates carry document identity, styles, page layout, header/footer, and fillable placeholders; commands cover the full lifecycle: import/list/view/validate/update/delete templates, two-way yaml-docx sync, and render output by template id or quick-pick.
 ---
 
-# Haro Docx Writer — Enterprise DOCX Export Skill (template registry)
+# Haro Docx Writer
 
-## 1. Overview
+Export markdown/text/pdf to `.docx` through a named template (`<id>`),
+invoked via `/haro-docx-writer ...`. Each template pairs a YAML config
+(identity, styles, page, placeholders) with its `.docx` source; local
+registry wins over global. Placeholders fill at render; yaml-docx sync
+runs both directions manually.
 
-`haro-docx-writer` turns user-provided sources (**markdown / text / pdf**) into a
-company-standard `.docx` for technical specs, rendered through a **named
-template** (`<id>`), invoked via `/haro-docx-writer ...`.
+Details live in `docs/` — read on demand: `docs/overview.md` (concepts),
+`docs/workspace.md` (registry + file layout), `docs/commands-reference.md`
+(full command table), `docs/rules.md` (normative rules).
 
-Enterprise layout (the "why": a sign-off document must identify itself on
-every page and carry its own audit trail):
-
-- **Cover page:** document title, company, solution, version, date, author.
-- **Control pages:** revision history table plus responsibility table
-  (author / reviewer / approver).
-- **TOC page:** Word auto-TOC field — the user presses "Update Field" on
-  first open.
-- **Header (every content page):** left = logo image; right = 2 lines
-  (line 1 = document name in bold, line 2 = company name).
-- **Footer (every content page):** left = page number field (`Trang X / Y`);
-  right = solution name.
-- **Body:** Heading 1–3, justified text, bulleted lists, tables, code blocks
-  in a monospace shaded style. Single ink only: Times New Roman, black
-  (`000000`) — see `shared/docx-style.md`.
-
-## 2. Workspace `.haro-docx-writer/` + global `~/.haro-docx-writer/`
-
-Every template is a folder holding exactly two files:
-
-```text
-<project>/.haro-docx-writer/templates/<id>/
-├── template.docx   # the style source (copied verbatim from the user's .docx)
-└── template.yaml   # meta (id/name/description/created_at/updated_at)
-                    # + params (company/solution/document/header/styles...)
-
-~/.haro-docx-writer/templates/<id>/        # same layout, global scope
-├── template.docx
-└── template.yaml
-
-.haro-docx-writer/output/                 # generated .docx files (git-ignored recommended)
-
-skills/haro-docx-writer/
-├── commands/            # normative workflows (read fully before acting)
-│   ├── index.md         # /haro-docx-writer dashboard
-│   ├── quick.md         # /haro-docx-writer <file> (quick export, pick template)
-│   ├── list.md          # /haro-docx-writer --list
-│   ├── import.md        # /haro-docx-writer --import:<id>
-│   ├── update.md        # /haro-docx-writer --update:<id>
-│   ├── sync-docx.md     # /haro-docx-writer --sync-docx:<id> (yaml -> docx)
-│   ├── sync-yaml.md     # /haro-docx-writer --sync-yaml:<id> (docx -> yaml)
-│   ├── delete.md        # /haro-docx-writer --delete:<id>
-│   ├── view.md          # /haro-docx-writer --view:<id>
-│   ├── validate.md      # /haro-docx-writer --validate:<id>
-│   └── export.md        # /haro-docx-writer --export:<id>
-├── shared/docx-style.md # the visual standard (normative)
-├── scripts/build_docx.py       # the ONLY exporter — never hand-craft .docx
-├── scripts/template_store.py   # registry helpers (list/resolve/delete)
-├── scripts/extract_template.py # .docx -> template.yaml (used by --import)
-├── scripts/validate_template.py# yaml-vs-docx check (used by --validate)
-├── scripts/update_template.py  # patch yaml + push styles into .docx (used by --update/--sync-docx)
-├── scripts/sync_yaml.py        # re-extract docx styles into yaml (used by --sync-yaml)
-└── templates/
-    ├── config.yaml           # param defaults merged at --import time
-    ├── default-template.docx # basic default template (import it to start fast)
-    └── sample-input.md       # sample spec input for trial exports
-```
-
-> **Read order (every command):** the template's `template.yaml` (resolved
-> local-first) → `shared/docx-style.md` → the command's workflow file.
-> Template values are ground truth over guessed names.
-
-> ## MANDATORY ROUTING — READ BEFORE ACTING (no exceptions)
+> ## MANDATORY ROUTING
 >
-> This file is only the router. The normative workflow for each command lives
-> in its workflow file (table below).
->
-> 1. Match the user's command to exactly one table row. A bare file argument
->    (no flag) matches the quick-export row; flags use colon syntax:
->    `--import:<id>` — the id is glued to the flag with `:`).
-> 2. Read that workflow file **fully, before any other tool call or answer**.
-> 3. If you notice you are about to act, answer, or create anything without
->    the workflow open, **STOP and read it first**. The workflow always wins
->    over memory.
+> 1. Match the command to exactly one row below (bare file = quick row;
+>    flags glue the id with `:`, e.g. `--import:<id>`).
+> 2. Read that workflow file fully before any other tool call or answer.
+> 3. Acting without the workflow open → STOP and read it first.
 
-## Command index
-
-| Command | When to use | Read first (fully, before acting) | Example |
-|---------|-------------|-----------------------------------|---------|
-| `/haro-docx-writer` (no args) | Show dashboard, pick next action | `commands/index.md` | `/haro-docx-writer` |
-| `/haro-docx-writer <file>` | Quick export: pick an existing template, render immediately | `commands/quick.md` | `/haro-docx-writer docs/sad.md` |
-| `/haro-docx-writer --list` | List all templates (id, name, description, location, created, updated) | `commands/list.md` | `/haro-docx-writer --list` |
-| `/haro-docx-writer --import:<id> <file.docx>` | Register a .docx file as a new template (asks local/global, checks duplicates, extracts yaml) | `commands/import.md` | `/haro-docx-writer --import:congty-a DieuLe.docx` |
-| `/haro-docx-writer --update[:<id>]` | Guide a template update: pick template (if no id), pick yaml or docx, edit/route to manual sync | `commands/update.md` | `/haro-docx-writer --update:congty-a` |
-| `/haro-docx-writer --sync-docx:<id>` | Push yaml config into template.docx (after hand-editing yaml) | `commands/sync-docx.md` | `/haro-docx-writer --sync-docx:congty-a` |
-| `/haro-docx-writer --sync-yaml:<id>` | Pull template.docx styles into yaml, docx wins, no backup (after hand-editing docx) | `commands/sync-yaml.md` | `/haro-docx-writer --sync-yaml:congty-a` |
-| `/haro-docx-writer --delete:<id>` | Delete a template (asks confirm) | `commands/delete.md` | `/haro-docx-writer --delete:congty-a` |
-| `/haro-docx-writer --view:<id>` | Show a template's yaml + .docx paths and full config | `commands/view.md` | `/haro-docx-writer --view:congty-a` |
-| `/haro-docx-writer --validate:<id>` | Check yaml-vs-docx match (style-level) | `commands/validate.md` | `/haro-docx-writer --validate:congty-a` |
-| `/haro-docx-writer --export:<id> <input>` | Render md/txt/pdf to enterprise .docx with template `<id>` | `commands/export.md` + `shared/docx-style.md` | `/haro-docx-writer --export:congty-a docs/sad.md` |
-
-## 3. Hard rules
-
-- NEVER build `.docx` by hand or with another ad-hoc script. Export ALWAYS
-  calls `scripts/build_docx.py`; visual patches ALWAYS call
-  `scripts/update_template.py`. If a script cannot do something, extend the
-  script — don't work around it.
-- NEVER invent company/solution/document names or template ids. Ids match
-  `[a-z0-9][a-z0-9-_]{0,40}` (lowercase, 2–41 chars). Resolution order is
-  **local first, global second** — never guess which scope; `--list` shows it.
-- Colon syntax is normative: `--import:<id>`, `--update:<id>`,
-  `--sync-docx:<id>`, `--sync-yaml:<id>`,
-  `--delete:<id>`, `--view:<id>`, `--validate:<id>`, `--export:<id>`.
-  The id is glued to the flag with `:` (no space).
-- `--update` YAML branch with vague content (`làm đẹp hơn`, `sửa giúp anh`,
-  empty): ask back with concrete options — never interpret freely.
-  `--update` never syncs by itself; sync is always a manual user call.
-- `--validate` is style-level only (styles + header/footer presence +
-  logo-file existence). Run-level oddities are ignored to avoid false
-  positives — see `shared/docx-style.md` §9.
-- Input formats: `.md` and `.txt` are native. `.pdf` is best-effort text
-  extraction (needs `pypdf` installed); scanned/image PDFs are refused with a
-  clear message. A `.docx` is NEVER an export input — it is a template
-  source for `--import`.
-- The skill formats source content, never translates it: code, endpoints,
-  and parameters stay in their original language.
+| Command | Read first |
+|---------|------------|
+| `/haro-docx-writer` (no args) | `commands/index.md` |
+| `/haro-docx-writer <file>` | `commands/quick.md` |
+| `/haro-docx-writer --list` | `commands/list.md` |
+| `/haro-docx-writer --import:<id> <file.docx>` | `commands/import.md` |
+| `/haro-docx-writer --update[:<id>]` | `commands/update.md` |
+| `/haro-docx-writer --sync-docx:<id>` | `commands/sync-docx.md` |
+| `/haro-docx-writer --sync-yaml:<id>` | `commands/sync-yaml.md` |
+| `/haro-docx-writer --delete:<id>` | `commands/delete.md` |
+| `/haro-docx-writer --view:<id>` | `commands/view.md` |
+| `/haro-docx-writer --validate:<id>` | `commands/validate.md` |
+| `/haro-docx-writer --export:<id> <input>` | `commands/export.md` |
