@@ -52,8 +52,6 @@ python skills/haro-docx-writer/scripts/build_docx.py \
 - Default output: `.haro-docx-writer/output/<basename>-<id>-<YYYYMMDD-HHmm>.docx`.
 - Missing company/solution/document fields → ask the user (SHORT picker/free-text,
   allow skip → `(Chưa xác định)`), apply via `--update:<id>` BEFORE exporting.
-- Logo file missing → continue WITHOUT logo, note it in the summary. Never
-  web-search a logo.
 - On script failure: show stderr verbatim + one-line hint, do NOT hand-roll.
 - **Missing placeholders:** the script exits 2 listing unfilled names instead
   of rendering — same handling as `--export` step 4: ask per name, rerun with
@@ -62,9 +60,8 @@ python skills/haro-docx-writer/scripts/build_docx.py \
 ### 4. Verify + report (SHORT)
 
 1. Confirm the output file exists and opens (size > 0).
-2. Report 5 lines max: output path, input source, template `<id>` + scope
-   (local/global) the user picked, reminder:
-   `Mở file → chuột phải vào Mục lục → Update Field để hiện menu danh mục.`
+2. Report 4 lines max: output path, input source, template `<id>` + scope
+   (local/global) the user picked, placeholders filled (names or `không có`).
 
 ### Example
 

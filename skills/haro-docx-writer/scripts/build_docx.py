@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Build an enterprise-standard .docx from markdown/text/pdf (+ optional base template).
+"""Render user content (markdown/text/pdf) into a template's .docx.
+
+The template governs pages, styles, and chrome — this script only renders
+fresh body content into it (stripping the template's sample body first),
+fills {{name}}/[[name]] placeholders, and applies the yaml page block.
+Implements skills/haro-docx-writer/shared/docx-style.md. This is the ONLY
+supported way to produce .docx in haro-docx-writer — agents must call this
+script, never hand-craft documents.
+Requires: python-docx, pyyaml. Optional: pypdf (only for .pdf input).
 
 Usage:
     python build_docx.py --input <file.md|txt|pdf> --output <out.docx>
-                         --config <config.yaml> [--base-template <tpl.docx>]
-    python build_docx.py --input <file.md> --output <out.docx>
-                         --template-id <id> [--project-root .]
-
-Implements skills/haro-docx-writer/shared/docx-style.md. This is the ONLY supported
-way to produce .docx in haro-docx-writer — agents must call this script, never
-hand-craft documents.
-Requires: python-docx, pyyaml. Optional: pypdf (only for .pdf input).
+                         [--config <template.yaml>] [--base-template <tpl.docx>]
+                         [--template-id <id> --project-root .] [--param k=v ...]
 """
 from __future__ import annotations
 
@@ -79,19 +81,14 @@ def _cfg_float(mapping: dict, key: str, default, prefix: str = "styles") -> floa
 
 import yaml
 from docx import Document
-from docx.enum.section import WD_SECTION
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import qn
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from docx.shared import Cm, Inches, Pt, RGBColor
 
-# Single-ink standard: every run is black; the only fills allowed are the
-# light-grey table-header background and the code-block shading.
-BLACK = "000000"
-TABLE_HEAD_BG = "D9D9D9"
-CODE_BG = "F2F2F2"
-BODY_FONT = "Times New Roman"
-CODE_FONT = "Consolas"
+HYPERLINK_BLUE = RGBColor(0x05, 0x63, 0xC1)
+QUOTE_FALLBACK_INDENT = Cm(1.0)
 
 # ---------------------------------------------------------------- config
 
@@ -106,11 +103,9 @@ DEFAULTS = {
     "authors": [],
     "reviewers": [],
     "approvers": [],
-    "header": {"logo_path": ""},
     "styles": {
-        "body_font": BODY_FONT,
-        "heading_color": BLACK,
-        "code_font": CODE_FONT,
+        "body_font": "Times New Roman",
+        "code_font": "Consolas",
         "body_size": 12,
         "h1_size": 14,
         "h2_size": 13,
@@ -137,19 +132,7 @@ DEFAULTS = {
         "header_distance_cm": 1.27,
         "footer_distance_cm": 1.27,
     },
-    "cover": {
-        "title_size": 24,
-        "solution_size": 14,
-        "company_size": 12,
-        "note_size": 9,
-    },
-    "header_footer": {
-        "doc_name_size": 9,
-        "company_size": 8,
-        "page_size": 8,
-        "solution_size": 8,
-    },
-    "toc_levels": "1-6",
+    "figure_caption": "Figure {n}: {alt}",
 }
 
 
@@ -168,102 +151,6 @@ def load_config(path: Path) -> dict:
     if not cfg.get("document_title"):
         cfg["document_title"] = cfg.get("document_name", DEFAULTS["document_name"])
     return cfg
-
-
-# ---------------------------------------------------------------- low-level xml helpers
-
-def _fld_char(run, val: str):
-    fld = OxmlElement("w:fldChar")
-    fld.set(qn("w:fldCharType"), val)
-    run._r.append(fld)
-
-
-def _instr(run, text: str):
-    inst = OxmlElement("w:instrText")
-    inst.set(qn("xml:space"), "preserve")
-    inst.text = text
-    run._r.append(inst)
-
-
-def add_toc_field(paragraph, levels: str = "1-6"):
-    r = paragraph.add_run()
-    _fld_char(r, "begin")
-    r = paragraph.add_run()
-    _instr(r, f'TOC \\o "{levels}" \\h \\z \\u')
-    r = paragraph.add_run()
-    _fld_char(r, "separate")
-    r = paragraph.add_run("Mục lục sẽ hiển thị khi mở bằng Word (chuột phải → Update Field).")
-    r = paragraph.add_run()
-    _fld_char(r, "end")
-
-
-def add_page_field(paragraph, prefix: str = "Trang ", suffix: str = ""):
-    if prefix:
-        paragraph.add_run(prefix)
-    r = paragraph.add_run()
-    _fld_char(r, "begin")
-    r = paragraph.add_run()
-    _instr(r, "PAGE")
-    r = paragraph.add_run()
-    _fld_char(r, "end")
-    paragraph.add_run(" / ")
-    r = paragraph.add_run()
-    _fld_char(r, "begin")
-    r = paragraph.add_run()
-    _instr(r, "NUMPAGES")
-    r = paragraph.add_run()
-    _fld_char(r, "end")
-    if suffix:
-        paragraph.add_run(suffix)
-
-
-def set_cell_shading(cell, fill: str):
-    tcPr = cell._tc.get_or_add_tcPr()
-    shd = OxmlElement("w:shd")
-    shd.set(qn("w:val"), "clear")
-    shd.set(qn("w:fill"), fill)
-    tcPr.append(shd)
-
-
-def set_table_borders_none(table):
-    tblPr = table._tbl.tblPr
-    borders = OxmlElement("w:tblBorders")
-    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
-        el = OxmlElement(f"w:{edge}")
-        el.set(qn("w:val"), "nil")
-        borders.append(el)
-    tblPr.append(borders)
-
-
-def set_run_font(run, name: str, size=None, bold=None, italic=None, color: str = BLACK):
-    """Force the font at run level so a --base-template theme can never override it."""
-    run.font.name = name
-    # Also set eastAsia + cs slots (Word falls back to them for some glyphs).
-    rPr = run._r.get_or_add_rPr()
-    rFonts = rPr.find(qn("w:rFonts"))
-    if rFonts is None:
-        rFonts = OxmlElement("w:rFonts")
-        rPr.append(rFonts)
-    for slot in ("w:ascii", "w:hAnsi", "w:cs"):
-        rFonts.set(qn(slot), name)
-    if size is not None:
-        run.font.size = size
-    if bold is not None:
-        run.bold = bold
-    if italic is not None:
-        run.italic = italic
-    run.font.color.rgb = RGBColor.from_string(color)
-
-
-def set_cell_text(cell, text: str, bold=False, size=None, color: str = BLACK,
-                  align=None, italic=False, font: str = BODY_FONT):
-    cell.text = ""
-    p = cell.paragraphs[0]
-    if align is not None:
-        p.alignment = align
-    run = p.add_run(text)
-    set_run_font(run, font, size=size, bold=bold, italic=italic, color=color)
-    return p
 
 
 # ---------------------------------------------------------------- styles
@@ -285,77 +172,19 @@ def strip_base_template(doc: Document) -> None:
             body_el.remove(child)
 
 
-def _heading_hex(st_cfg: dict) -> str:
-    """Validated heading color hex (falls back to BLACK on bad input)."""
-    raw = str(st_cfg.get("heading_color", BLACK)).strip().lstrip("#")
-    if len(raw) == 6:
-        try:
-            RGBColor.from_string(raw)
-            return raw.upper()
-        except (ValueError, AttributeError, TypeError):
-            pass
-    return BLACK
+def ensure_code_style(doc: Document, cfg: dict):
+    """Create the Code Block style ONLY if the template lacks it.
 
-
-def ensure_styles(doc: Document, cfg: dict):
-    st_cfg = cfg.get("styles", {})
-    body_font = st_cfg.get("body_font", BODY_FONT)
-    code_font = st_cfg.get("code_font", CODE_FONT)
-    body_size = _cfg_pt(st_cfg, "body_size", 12)
-    hcolor = _heading_hex(st_cfg)
-    h_rgb = RGBColor.from_string(hcolor)
-    h_sizes = {
-        "Heading 1": _cfg_pt(st_cfg, "h1_size", 14),
-        "Heading 2": _cfg_pt(st_cfg, "h2_size", 13),
-        "Heading 3": _cfg_pt(st_cfg, "h3_size", 12),
-        "Heading 4": _cfg_pt(st_cfg, "h4_size", 12),
-        "Heading 5": _cfg_pt(st_cfg, "h5_size", 11),
-        "Heading 6": _cfg_pt(st_cfg, "h6_size", 11),
-    }
-
-    normal = doc.styles["Normal"]
-    normal.font.name = body_font
-    normal.font.size = body_size
-    normal.font.color.rgb = RGBColor.from_string(BLACK)
-    pf = normal.paragraph_format
-    pf.line_spacing = _cfg_float(st_cfg, "body_line_spacing", 1.15)
-    pf.space_before = _cfg_pt(st_cfg, "body_space_before", 0)
-    pf.space_after = _cfg_pt(st_cfg, "body_space_after", 6)
-    pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-
-    for name, size in h_sizes.items():
-        try:
-            st = doc.styles[name]
-        except KeyError:
-            continue
-        st.font.name = body_font
-        st.font.size = size
-        st.font.bold = True
-        st.font.italic = False
-        st.font.color.rgb = h_rgb
-        st.font.all_caps = False
-        st.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        st.paragraph_format.space_before = _cfg_pt(st_cfg, "heading_space_before", 12)
-        st.paragraph_format.space_after = _cfg_pt(st_cfg, "heading_space_after", 6)
-
-    for list_name in ("List Bullet", "List Number"):
-        try:
-            lst = doc.styles[list_name]
-        except KeyError:
-            continue
-        lst.paragraph_format.left_indent = _cfg_cm(st_cfg, "bullet_indent_cm", 0.75)
-        lst.paragraph_format.space_after = _cfg_pt(st_cfg, "bullet_space_after", 2)
-        lst.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
-
-    if "Code Block" not in doc.styles:
-        code = doc.styles.add_style("Code Block", 1)  # paragraph style
-    else:
-        code = doc.styles["Code Block"]
+    The template governs all formatting — nothing is forced. This fallback
+    definition (from yaml code_*) exists solely so fenced code has a style
+    to use when the template provides none.
+    """
+    if "Code Block" in doc.styles:
+        return doc.styles["Code Block"]
+    st_cfg = cfg.get("styles", {}) or {}
+    code = doc.styles.add_style("Code Block", 1)  # paragraph style
     code.base_style = doc.styles["Normal"]
-    code.font.name = code_font
     code.font.size = _cfg_pt(st_cfg, "code_size", 11)
-    code.font.color.rgb = RGBColor.from_string(BLACK)
-    code.paragraph_format.space_after = Pt(6)
     return code
 
 
@@ -461,181 +290,26 @@ def substitute_placeholders(doc: Document, mapping: dict) -> set:
                     r.text = ""
 
 
-def finalize_fonts(doc: Document, cfg: dict):
-    """Run-level font forcing: Times New Roman + black everywhere, Consolas
-    for code. Neutralises any --base-template theme fonts. Sizes, bold and
-    italic set during the build are preserved — only the family and the
-    colour are forced."""
-    st_cfg = cfg.get("styles", {})
-    body_font = st_cfg.get("body_font", BODY_FONT)
-    code_font = st_cfg.get("code_font", CODE_FONT)
-    code_size = _cfg_pt(st_cfg, "code_size", 11)
-    hcolor = _heading_hex(st_cfg)
-    h_sizes = {
-        "Heading 1": _cfg_pt(st_cfg, "h1_size", 14),
-        "Heading 2": _cfg_pt(st_cfg, "h2_size", 13),
-        "Heading 3": _cfg_pt(st_cfg, "h3_size", 12),
-        "Heading 4": _cfg_pt(st_cfg, "h4_size", 12),
-        "Heading 5": _cfg_pt(st_cfg, "h5_size", 11),
-        "Heading 6": _cfg_pt(st_cfg, "h6_size", 11),
-    }
-    for p in iter_all_paragraphs(doc):
-        if p.style.name == "Code Block":
-            for run in p.runs:
-                set_run_font(run, code_font, size=code_size, color=BLACK)
-        elif p.style.name in h_sizes:
-            for run in p.runs:
-                set_run_font(run, body_font, size=h_sizes[p.style.name],
-                             bold=True, italic=run.italic, color=hcolor)
-        else:
-            for run in p.runs:
-                set_run_font(run, body_font,
-                             size=run.font.size, bold=run.bold, italic=run.italic,
-                             color=BLACK)
-
-
-def add_heading_left(doc: Document, text: str, level: int):
-    """Body headings are always explicitly left-aligned (cover stays centered)."""
-    h = doc.add_heading(text, level=level)
-    h.alignment = WD_ALIGN_PARAGRAPH.LEFT
+def add_heading_left(doc: Document, text: str, level: int, code_font: str = ""):
+    """Body headings use the template's Heading styles untouched (inline parsed)."""
+    h = doc.add_heading(level=level)
+    add_spans(h, parse_inline(text), code_font)
     return h
 
 
-def shade_paragraph(paragraph, fill: str):
-    pPr = paragraph._p.get_or_add_pPr()
-    shd = OxmlElement("w:shd")
-    shd.set(qn("w:val"), "clear")
-    shd.set(qn("w:fill"), fill)
-    pPr.append(shd)
+# ---------------------------------------------------------------- front matter (removed)
+
+# Cover / control / TOC auto-pages and generated header/footer were removed:
+# the template governs its own pages and chrome. Its headers/footers are kept
+# (placeholders filled); page geometry still comes from the yaml page block.
 
 
-# ---------------------------------------------------------------- front matter
+# ---------------------------------------------------------------- page geometry
 
-def build_cover(doc: Document, cfg: dict, base_dir: Path):
-    cover = cfg.get("cover", {}) or {}
-    logo = (cfg.get("header") or {}).get("logo_path", "") or ""
-    if logo:
-        lp = (base_dir / logo).resolve() if not Path(logo).is_absolute() else Path(logo)
-        if lp.exists():
-            p = doc.add_paragraph()
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p.add_run().add_picture(str(lp), width=Cm(4))
-        # Missing logo: silently skip (export.md tells the agent to note it).
-
-    for _ in range(2):
-        doc.add_paragraph()
-
-    t = doc.add_paragraph()
-    t.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = t.add_run(cfg["document_title"])
-    set_run_font(r, BODY_FONT, size=_cfg_pt(cover, "title_size", 24, "cover"), bold=True)
-
-    s = doc.add_paragraph()
-    s.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = s.add_run(cfg["solution_name"])
-    set_run_font(r, BODY_FONT, size=_cfg_pt(cover, "solution_size", 14, "cover"))
-
-    c = doc.add_paragraph()
-    c.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = c.add_run(cfg["company_name"])
-    set_run_font(r, BODY_FONT, size=_cfg_pt(cover, "company_size", 12, "cover"))
-
-    doc.add_paragraph()
-    meta = doc.add_table(rows=1, cols=2)
-    meta.style = "Table Grid"
-    rows = [
-        ("Phiên bản", str(cfg.get("version", ""))),
-        ("Ngày", str(cfg.get("date", ""))),
-        ("Tác giả", ", ".join(cfg.get("authors", [])) or "—"),
-        ("Trạng thái", str(cfg.get("status", ""))),
-    ]
-    for k, v in rows:
-        cells = meta.add_row().cells
-        set_cell_text(cells[0], k, bold=True)
-        set_cell_text(cells[1], v)
-
-    note = doc.add_paragraph()
-    note.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = note.add_run("Tài liệu lưu hành nội bộ.")
-    set_run_font(r, BODY_FONT, size=_cfg_pt(cover, "note_size", 9, "cover"), italic=True)
-    doc.add_page_break()
-
-
-def _styled_header_row(cells, texts):
-    """Header row: bold black on the single light-grey fill. No other colours."""
-    for cell, text in zip(cells, texts):
-        set_cell_text(cell, text, bold=True, color=BLACK)
-        set_cell_shading(cell, TABLE_HEAD_BG)
-
-
-def build_control_pages(doc: Document, cfg: dict):
-    add_heading_left(doc, "Lịch sử thay đổi", level=1)
-    tbl = doc.add_table(rows=1, cols=4)
-    tbl.style = "Table Grid"
-    _styled_header_row(tbl.rows[0].cells, ["Phiên bản", "Ngày", "Nội dung", "Người sửa"])
-    first_author = (cfg.get("authors") or ["—"])[0]
-    row = tbl.add_row().cells
-    row[0].text = str(cfg.get("version", "1.0"))
-    row[1].text = str(cfg.get("date", ""))
-    row[2].text = "Danh mục ban đầu"
-    row[3].text = first_author
-
-    doc.add_paragraph()
-    add_heading_left(doc, "Người phụ trách", level=1)
-    tbl2 = doc.add_table(rows=1, cols=3)
-    tbl2.style = "Table Grid"
-    _styled_header_row(tbl2.rows[0].cells, ["Vai trò", "Họ tên", "Chữ ký"])
-    for role, people in (("Biên soạn", cfg.get("authors", [])),
-                         ("Kiểm tra", cfg.get("reviewers", [])),
-                         ("Phê duyệt", cfg.get("approvers", []))):
-        names = ", ".join(people) if people else "—"
-        cells = tbl2.add_row().cells
-        cells[0].text = role
-        cells[1].text = names
-        cells[2].text = ""
-    doc.add_page_break()
-
-
-def build_toc(doc: Document, cfg: dict):
-    add_heading_left(doc, "Mục lục", level=1)
-    add_toc_field(doc.add_paragraph(), levels=str(cfg.get("toc_levels", "1-6")))
-    hint = doc.add_paragraph()
-    r = hint.add_run("Mở file → chuột phải vào dòng trên → Update Field để hiện menu danh mục.")
-    set_run_font(r, BODY_FONT, size=Pt(9), italic=True)
-    doc.add_page_break()
-
-
-# ---------------------------------------------------------------- header/footer (body section only)
-
-def _hf_has_content(part) -> bool:
-    """True when a header/footer part carries text, tables, or images."""
-    try:
-        for p in part.paragraphs:
-            if (p.text or "").strip():
-                return True
-        if list(part.tables):
-            return True
-        for el in part._element.iter():
-            tag = str(getattr(el, "tag", ""))
-            if tag.endswith("}drawing") or tag.endswith("}pict") or tag.endswith("}blip"):
-                return True
-    except Exception:
-        return False
-    return False
-
-
-def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
-    # New section so cover/control/TOC stay header-free.
-    prior = list(doc.sections)
-    section = doc.add_section(WD_SECTION.NEW_PAGE)
-    # Template governs its own chrome: link when it brings header/footer,
-    # otherwise generate from template.yaml as before.
-    link_h = any(_hf_has_content(s.header) for s in prior)
-    link_f = any(_hf_has_content(s.footer) for s in prior)
-    section.header.is_linked_to_previous = link_h
-    section.footer.is_linked_to_previous = link_f
-
-    # Page size + margins on every section (from the page block).
+def apply_page_geometry(doc: Document, cfg: dict) -> None:
+    """Apply the yaml page block (size/orientation/margins/distances) to every
+    existing section. Headers/footers are the template's own — never generated.
+    """
     pg = cfg.get("page", {}) or {}
     size = str(pg.get("size", "A4")).upper()
     orientation = str(pg.get("orientation", "portrait")).lower()
@@ -654,39 +328,6 @@ def setup_body_section(doc: Document, cfg: dict, base_dir: Path):
         s.right_margin = _cfg_cm(pg, "margin_right_cm", 2.0, "page")
         s.header_distance = _cfg_cm(pg, "header_distance_cm", 1.27, "page")
         s.footer_distance = _cfg_cm(pg, "footer_distance_cm", 1.27, "page")
-
-    # Header: template's own when present (linked above), else generated
-    # from template.yaml (left logo | right 2 lines).
-    hf = cfg.get("header_footer", {}) or {}
-    if not link_h:
-        ht = section.header.add_table(rows=1, cols=2, width=Inches(6.5))
-        set_table_borders_none(ht)
-        logo = (cfg.get("header") or {}).get("logo_path", "") or ""
-        if logo:
-            lp = (base_dir / logo).resolve() if not Path(logo).is_absolute() else Path(logo)
-            if lp.exists():
-                ht.cell(0, 0).paragraphs[0].add_run().add_picture(str(lp), height=Cm(1.2))
-        right = ht.cell(0, 1).paragraphs[0]
-        right.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        r1 = right.add_run(cfg["document_name"])
-        set_run_font(r1, BODY_FONT, size=_cfg_pt(hf, "doc_name_size", 9, "header_footer"), bold=True)
-        right.add_run().add_break()
-        r2 = right.add_run(cfg["company_name"])
-        set_run_font(r2, BODY_FONT, size=_cfg_pt(hf, "company_size", 8, "header_footer"))
-
-    # Footer: template's own when present, else generated page X/Y + solution.
-    if not link_f:
-        ft = section.footer.add_table(rows=1, cols=2, width=Inches(6.5))
-        set_table_borders_none(ft)
-        left_p = ft.cell(0, 0).paragraphs[0]
-        add_page_field(left_p)
-        for run in left_p.runs:
-            set_run_font(run, BODY_FONT, size=_cfg_pt(hf, "page_size", 8, "header_footer"))
-        right_p = ft.cell(0, 1).paragraphs[0]
-        right_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        r = right_p.add_run(cfg["solution_name"])
-        set_run_font(r, BODY_FONT, size=_cfg_pt(hf, "solution_size", 8, "header_footer"), italic=True)
-    return section
 
 
 # ---------------------------------------------------------------- input reading
@@ -726,35 +367,197 @@ def read_source(path: Path) -> Tuple[str, str]:
 
 # ---------------------------------------------------------------- markdown / plain-text rendering
 
-def _add_md_table(doc: Document, rows: List[List[str]]):
+def _add_md_table(doc: Document, rows: List[List[str]], code_font: str = ""):
     if not rows:
         return
     tbl = doc.add_table(rows=1, cols=len(rows[0]))
-    tbl.style = "Table Grid"
-    _styled_header_row(tbl.rows[0].cells, rows[0])
+    try:
+        tbl.style = "Table Grid"
+    except KeyError:
+        pass
+    for cell, text in zip(tbl.rows[0].cells, rows[0]):
+        cell.text = ""
+        add_spans(cell.paragraphs[0], parse_inline(text), code_font)
     for row in rows[1:]:
         cells = tbl.add_row().cells
         for i in range(len(rows[0])):
-            cells[i].text = row[i] if i < len(row) else ""
+            cells[i].text = ""
+            add_spans(cells[i].paragraphs[0],
+                      parse_inline(row[i] if i < len(row) else ""), code_font)
 
 
-def render_markdown(doc: Document, text: str, src_dir: Path):
+def caption_style_name(doc: Document) -> str:
+    """Caption style of the template, else Normal. Never forced."""
+    return "Caption" if "Caption" in doc.styles else "Normal"
+
+
+# ---------------------------------------------------------------- inline markdown
+
+_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
+_ESCAPABLE = "\\`*_~[]"
+
+
+def parse_inline(text: str):
+    """Split markdown inline markup into (text, flags, url) spans.
+
+    Flags subset of {"bold", "italic", "code", "strike"}; url set for links.
+    Nesting (bold containing code/italic/link), backslash escapes, and
+    unclosed markers (kept literal) are handled.
+    """
+    spans: List[Tuple[str, frozenset, Optional[str]]] = []
+
+    def emit(t: str, flags, url):
+        if t:
+            spans.append((t, flags, url))
+
+    def rec(s: str, flags, url):
+        i, n = 0, len(s)
+        buf: List[str] = []
+
+        def flush():
+            emit("".join(buf), flags, url)
+            buf.clear()
+
+        while i < n:
+            if s[i] == "\\" and i + 1 < n and s[i + 1] in _ESCAPABLE:
+                buf.append(s[i + 1])
+                i += 2
+                continue
+            if s.startswith("**", i):
+                j = s.find("**", i + 2)
+                if j == -1:
+                    buf.append("**")
+                    i += 2
+                    continue
+                flush()
+                rec(s[i + 2:j], flags | {"bold"}, url)
+                i = j + 2
+                continue
+            if s.startswith("~~", i):
+                j = s.find("~~", i + 2)
+                if j == -1:
+                    buf.append("~~")
+                    i += 2
+                    continue
+                flush()
+                rec(s[i + 2:j], flags | {"strike"}, url)
+                i = j + 2
+                continue
+            if s[i] == "*":
+                j = s.find("*", i + 1)
+                if j == -1:
+                    buf.append("*")
+                    i += 1
+                    continue
+                flush()
+                rec(s[i + 1:j], flags | {"italic"}, url)
+                i = j + 1
+                continue
+            if s[i] == "`":
+                j = s.find("`", i + 1)
+                if j == -1:
+                    buf.append("`")
+                    i += 1
+                    continue
+                flush()
+                emit(s[i + 1:j], flags | {"code"}, url)
+                i = j + 1
+                continue
+            if s[i] == "[":
+                lm = _LINK_RE.match(s[i:])
+                if not lm:
+                    buf.append("[")
+                    i += 1
+                    continue
+                flush()
+                rec(lm.group(1), flags, lm.group(2))
+                i += len(lm.group(0))
+                continue
+            buf.append(s[i])
+            i += 1
+        flush()
+
+    rec(text, frozenset(), None)
+    return spans
+
+
+def _add_hyperlink_run(paragraph, url: str, text: str, flags) -> None:
+    """Clickable hyperlink run; Hyperlink char style first, else blue+underline."""
+    run = paragraph.add_run(text)
+    if "bold" in flags:
+        run.bold = True
+    if "italic" in flags:
+        run.italic = True
+    try:
+        run.style = "Hyperlink"
+    except (KeyError, ValueError):
+        run.font.color.rgb = HYPERLINK_BLUE
+        run.font.underline = True
+    try:
+        r_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
+    except Exception:
+        return  # keep the plain run when relating fails
+    r_el = run._r
+    r_el.getparent().remove(r_el)
+    hlink = OxmlElement("w:hyperlink")
+    hlink.set(qn("r:id"), r_id)
+    hlink.append(r_el)
+    paragraph._p.append(hlink)
+
+
+def add_spans(paragraph, spans, code_font: str = "") -> None:
+    """Append parsed inline spans as runs. Values stay literal (no re-parse)."""
+    for text, flags, url in spans:
+        if url:
+            _add_hyperlink_run(paragraph, url, text, flags)
+            continue
+        run = paragraph.add_run(text)
+        if "bold" in flags:
+            run.bold = True
+        if "italic" in flags:
+            run.italic = True
+        if "strike" in flags:
+            run.font.strike = True
+        if "code" in flags and code_font:
+            run.font.name = code_font
+
+
+def add_rich_paragraph(doc: Document, text: str, style=None, code_font: str = ""):
+    """Paragraph with inline markdown parsed; style from the template."""
+    p = doc.add_paragraph(style=style) if style else doc.add_paragraph()
+    add_spans(p, parse_inline(text), code_font)
+    return p
+
+
+def quote_style_name(doc: Document):
+    """Quote-ish style of the template, else None (caller indents instead)."""
+    for name in ("Quote", "Block Text", "Intense Quote"):
+        if name in doc.styles:
+            return name
+    return None
+
+
+def render_markdown(doc: Document, text: str, src_dir: Path, caption_format: str,
+                    code_font: str = ""):
     lines = text.splitlines()
     i = 0
     table_buf: List[List[str]] = []
-    fig_no = [0]  # mutable counter for "Hình N" captions
+    fig_no = [0]
+    quote_style = quote_style_name(doc)
 
     def flush_table():
         nonlocal table_buf
         if table_buf:
             # Drop the md separator row (|---|---|).
             data = [r for r in table_buf if not all(re.fullmatch(r":?-{2,}:?", c.strip()) for c in r)]
-            _add_md_table(doc, data)
+            _add_md_table(doc, data, code_font)
             table_buf = []
 
     def add_figure(src: str, alt: str):
-        """Centered figure + italic caption below. Image files must live in
-        assets/ (or any resolvable path) — never base64 embeds."""
+        """Centered figure + caption below (template's Caption style).
+        Image files must live in assets/ (or any resolvable path) —
+        never base64 embeds."""
+        cap_style = caption_style_name(doc)
         ip = (src_dir / src).resolve() if not Path(src).is_absolute() else Path(src)
         if ip.exists():
             try:
@@ -762,17 +565,16 @@ def render_markdown(doc: Document, text: str, src_dir: Path):
                 pic_p = doc.add_paragraph()
                 pic_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 pic_p.add_run().add_picture(str(ip), width=Inches(5.5))
-                cap = doc.add_paragraph()
+                cap = doc.add_paragraph(style=cap_style)
                 cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                run = cap.add_run(f"Hình {fig_no[0]}: {alt or ip.name}")
-                set_run_font(run, BODY_FONT, size=Pt(11), italic=True)
+                add_spans(cap, parse_inline(caption_format.format(n=fig_no[0], alt=alt or ip.name)),
+                          code_font)
                 return
             except Exception:
                 pass
-        p = doc.add_paragraph()
+        p = doc.add_paragraph(style=cap_style)
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        run = p.add_run(f"[Hình minh hoạ: {alt or src}]")
-        set_run_font(run, BODY_FONT, size=Pt(11), italic=True)
+        add_spans(p, parse_inline(f"[{alt or src}]"), code_font)
 
     in_code = False
     code_buf: List[str] = []
@@ -783,7 +585,6 @@ def render_markdown(doc: Document, text: str, src_dir: Path):
         if stripped.startswith("```"):
             if in_code:
                 p = doc.add_paragraph("\n".join(code_buf), style="Code Block")
-                shade_paragraph(p, CODE_BG)
                 code_buf = []
                 in_code = False
             else:
@@ -810,8 +611,21 @@ def render_markdown(doc: Document, text: str, src_dir: Path):
         if m:
             flush_table()
             level = min(len(m.group(1)), 6)
-            add_heading_left(doc, m.group(2).strip(), level=level)
+            add_heading_left(doc, m.group(2).strip(), level=level, code_font=code_font)
             i += 1
+            continue
+        if stripped.startswith(">"):
+            flush_table()
+            qlines = []
+            while i < len(lines) and lines[i].strip().startswith(">"):
+                qlines.append(re.sub(r"^>\s?", "", lines[i].strip()))
+                i += 1
+            if quote_style:
+                qp = doc.add_paragraph(style=quote_style)
+            else:
+                qp = doc.add_paragraph()
+                qp.paragraph_format.left_indent = QUOTE_FALLBACK_INDENT
+            add_spans(qp, parse_inline(" ".join(qlines)), code_font)
             continue
         if re.match(r"^(\|.*\|)\s*$", stripped) and "|" in stripped:
             cells = [c.strip() for c in stripped.strip().strip("|").split("|")]
@@ -821,11 +635,13 @@ def render_markdown(doc: Document, text: str, src_dir: Path):
         else:
             flush_table()
         if re.match(r"^([-*])\s+", stripped):
-            doc.add_paragraph(re.sub(r"^[-*]\s+", "", stripped), style="List Bullet")
+            add_rich_paragraph(doc, re.sub(r"^[-*]\s+", "", stripped),
+                               style="List Bullet", code_font=code_font)
             i += 1
             continue
         if re.match(r"^\d+[.)]\s+", stripped):
-            doc.add_paragraph(re.sub(r"^\d+[.)]\s+", "", stripped), style="List Number")
+            add_rich_paragraph(doc, re.sub(r"^\d+[.)]\s+", "", stripped),
+                               style="List Number", code_font=code_font)
             i += 1
             continue
         img = re.match(r"^!\[(.*?)\]\((.*?)\)\s*$", stripped)
@@ -834,12 +650,11 @@ def render_markdown(doc: Document, text: str, src_dir: Path):
             add_figure(img.group(2), img.group(1))
             i += 1
             continue
-        doc.add_paragraph(stripped)
+        add_rich_paragraph(doc, stripped, code_font=code_font)
         i += 1
     flush_table()
     if in_code:  # Unclosed fence — still emit it.
         p = doc.add_paragraph("\n".join(code_buf), style="Code Block")
-        shade_paragraph(p, CODE_BG)
 
 
 def render_plain_text(doc: Document, text: str):
@@ -932,8 +747,8 @@ def main(argv=None) -> int:
         if not args.base_template and hit["docx"].exists():
             args.base_template = str(hit["docx"])
     cfg = load_config(Path(args.config)) if args.config else dict(DEFAULTS)
-    base_dir = Path(args.config).parent.resolve() if args.config and Path(args.config).exists() else Path.cwd()
     mapping = build_mapping(cfg, args.param)
+    caption_format = str(cfg.get("figure_caption", "Figure {n}: {alt}"))
 
     if args.base_template:
         tpl = Path(args.base_template)
@@ -946,15 +761,13 @@ def main(argv=None) -> int:
     else:
         doc = Document()
 
-    ensure_styles(doc, cfg)
-    build_cover(doc, cfg, base_dir)
-    build_control_pages(doc, cfg)
-    build_toc(doc, cfg)
-    setup_body_section(doc, cfg, base_dir)
+    ensure_code_style(doc, cfg)
+    apply_page_geometry(doc, cfg)
 
     ext, text = read_source(src)
+    code_font = str((cfg.get("styles", {}) or {}).get("code_font", ""))
     if ext in (".md", ".markdown"):
-        render_markdown(doc, text, src.parent)
+        render_markdown(doc, text, src.parent, caption_format, code_font)
     else:
         render_plain_text(doc, text)
 
@@ -972,15 +785,12 @@ def main(argv=None) -> int:
               "hoặc lưu vào YAML rồi chạy lại.", file=sys.stderr)
         return 2
 
-    finalize_fonts(doc, cfg)
-
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
     if out.suffix.lower() != ".docx":
         out = out.with_suffix(".docx")
     doc.save(str(out))
-    print(f"Xong: {out} (từ {src.name}, cấu hình {'dự án' if args.config else 'mặc định'})")
-    print("Lưu ý: mở file -> chuột phải vào Mục lục -> Update Field.")
+    print(f"Xong: {out} (từ {src.name}, mẫu {'dự án' if args.config else 'mặc định'})")
     return 0
 
 

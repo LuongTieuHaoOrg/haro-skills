@@ -159,18 +159,6 @@ def main(argv=None) -> int:
             "có" if visual.get("header_has_image") else "không có",
             bool(recorded.get("header_has_image")) == bool(visual.get("header_has_image")))
 
-    logo = ((cfg.get("header") or {}).get("logo_path") or "").strip()
-    if logo:
-        base = hit["yaml"].parent
-        lp = Path(logo) if Path(logo).is_absolute() else (base / logo)
-        if not lp.exists():
-            # project-root relative fallback
-            alt = Path(args.project_root) / logo
-            ok = alt.exists()
-            rows.append(("header.logo_path (file tồn tại)", logo, "không tìm thấy", ok))
-        else:
-            rows.append(("header.logo_path (file tồn tại)", logo, "tồn tại", True))
-
     print(f"Kết quả kiểm tra mẫu '{tid}' ({hit['location']}):")
     print(f"  YAML: {hit['yaml']}")
     print(f"  DOCX: {hit['docx']}")

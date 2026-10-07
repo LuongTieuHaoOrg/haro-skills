@@ -30,7 +30,7 @@ npx skills add https://github.com/LuongTieuHaoOrg/haro-skills.git --skill haro-c
 
 ## Haro Docx Writer
 
-Render enterprise-standard .docx for technical specs from markdown/text/pdf via named templates (`--list/--create/--update/--delete/--view/--validate/--export:<id>`); local + global registry.
+Render .docx from markdown/text/pdf through named templates (template governs pages, styles, header/footer; placeholders fill at render); local + global registry.
 
 Path: `skills/haro-docx-writer/`
 

@@ -78,27 +78,24 @@ branch is picked.
 
 - Text/meta: `name`, `description`, `company_name`, `solution_name`,
   `document_name`, `document_title`, `version`, `date`, `status`,
-  `header.logo_path`, `toc_levels` (`1-N`, e.g. `1-6`).
+  `figure_caption` (`{n}`/`{alt}` pattern).
 - Styles: `styles.body_font`, `styles.body_size`, `styles.h1_size` …
   `styles.h6_size`, `styles.body_line_spacing`, `styles.body_space_before`,
   `styles.body_space_after`, `styles.heading_space_before`,
   `styles.heading_space_after`, `styles.bullet_indent_cm`,
-  `styles.bullet_space_after`, `styles.code_font`, `styles.code_size`,
-  `styles.heading_color` (hex, e.g. `000000`).
+  `styles.bullet_space_after`, `styles.code_font`, `styles.code_size`.
 - Page: `page.size` (`A4`/`Letter`), `page.orientation`
   (`portrait`/`landscape`), `page.margin_top/bottom/left/right_cm`,
   `page.header/footer_distance_cm`.
-- Cover/header-footer sizes: `cover.title/solution/company/note_size`,
-  `header_footer.doc_name/company/page/solution_size` (export-time only —
-  yaml saved, nothing pushed into the .docx).
+- Placeholders: `placeholders.<tên>.value` / `.description` (free text).
 - Lists (`authors`, `reviewers`, `approvers`): comma-separated.
 - Units: numeric values accept bare numbers (legacy meaning) or strings with
   units — `"15pt"`, `"2cm"`, `"25mm"`, `"1in"` (auto-converted). Examples:
   `--set styles.h1_size="15pt"`, `--set page.margin_left_cm="25mm"`.
   Bad units are refused with a clear error.
-- Anything outside this list (cover layout, header/footer structure,
-  TOC behavior beyond levels) → explain it is fixed by `shared/docx-style.md`
-  + script; offer the closest supported alternative instead of improvising.
+- Anything outside this list → explain it is fixed by the template itself
+  (styles, header/footer, page structure come from the `.docx`); offer the
+  closest supported alternative instead of improvising.
 
 ```bash
 python skills/haro-docx-writer/scripts/update_template.py \

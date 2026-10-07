@@ -9,10 +9,11 @@
 
 ## Index — Introduce + List Commands + Suggest
 
-`haro-docx-writer` renders markdown/text/pdf sources into enterprise-standard `.docx`
-through named templates (cover page, revision history, TOC, header/footer,
-page numbers). Templates live in `.haro-docx-writer/templates/<id>/` (local) and
-`~/.haro-docx-writer/templates/<id>/` (global). Full concept: `../docs/overview.md` + `../docs/workspace.md`.
+`haro-docx-writer` renders markdown/text/pdf sources into `.docx` through
+named templates. The template governs pages, styles, and header/footer;
+placeholders fill at render. Templates live in `.haro-docx-writer/templates/<id>/`
+(local) and `~/.haro-docx-writer/templates/<id>/` (global). Full concept:
+`../docs/overview.md` + `../docs/workspace.md`.
 
 1. **Introduce (chat, 3–4 lines)** — what the
    skill does + the single rule that matters: every template has an id; every

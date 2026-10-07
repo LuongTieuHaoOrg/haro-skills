@@ -12,4 +12,4 @@
 | `/haro-docx-writer --delete:<id>` | Delete a template (asks confirm) | `../commands/delete.md` | `/haro-docx-writer --delete:congty-a` |
 | `/haro-docx-writer --view:<id>` | Show a template's yaml + .docx paths and full config | `../commands/view.md` | `/haro-docx-writer --view:congty-a` |
 | `/haro-docx-writer --validate:<id>` | Check yaml-vs-docx match (style-level) | `../commands/validate.md` | `/haro-docx-writer --validate:congty-a` |
-| `/haro-docx-writer --export:<id> <input>` | Render md/txt/pdf to enterprise .docx with template `<id>` | `../commands/export.md` + `../shared/docx-style.md` | `/haro-docx-writer --export:congty-a docs/sad.md` |
+| `/haro-docx-writer --export:<id> <input>` | Render md/txt/pdf to .docx with template `<id>` | `../commands/export.md` + `../shared/docx-style.md` | `/haro-docx-writer --export:congty-a docs/sad.md` |

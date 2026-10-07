@@ -26,11 +26,10 @@ python skills/haro-docx-writer/scripts/validate_template.py --id <id> --project-
 ```
 
 - Scope: `styles.*` (fonts, H1–H6 sizes, line/paragraph spacing, bullet
-  indent/spacing, code, heading color is yaml-only) + `page.*` (size,
-  orientation, 4 margins, header/footer distances) + header/footer presence
-  recorded in `_extracted` + `header.logo_path` file existence (including
-  `assets/logo.*` inside the template folder). Run-level oddities are ignored
-  by design (no false positives) — see `shared/docx-style.md` §9.
+  indent/spacing, code) + `page.*` (size, orientation, 4 margins,
+  header/footer distances) + header/footer presence recorded in `_extracted`.
+  Run-level oddities are ignored
+  by design (no false positives) — see `shared/docx-style.md` §4.
 - Exit 0 = all match; exit 1 = mismatches (normal case, not an error);
   exit 2 = broken template (missing yaml/docx/unreadable) — relay stderr.
 

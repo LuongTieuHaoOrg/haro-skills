@@ -18,15 +18,10 @@ reviewers:
   - "Trần Thị B — Kiểm tra"
 approvers:
   - "Lê Văn C — Phê duyệt"
-header:
-  # Đường dẫn logo (png/jpg), tương đối từ thư mục mẫu. Để trống "" = không logo.
-  # Khi --import bóc được ảnh từ file mẫu, ảnh nằm ở assets/ trong thư mục mẫu.
-  logo_path: ""
 styles:
-  # Chuẩn mặc định: Times New Roman + đen duy nhất (000000).
-  # H1 14pt / H2 13pt / H3 12pt / H4 12pt / H5 11pt / H6 11pt (đậm) / body 12pt / code Consolas 11pt.
+  # Font/màu/cỡ lấy từ styles của file mẫu. Không ép gì lúc export —
+  # template quyết định; khối này để xem + validate + sync-docx.
   body_font: "Times New Roman"
-  heading_color: "000000"
   code_font: "Consolas"
   body_size: "12pt"
   h1_size: "14pt"
@@ -56,20 +51,8 @@ page:
   margin_right_cm: "2cm"
   header_distance_cm: "1.27cm"
   footer_distance_cm: "1.27cm"
-cover:
-  # Cỡ chữ các dòng trang bìa.
-  title_size: "24pt"
-  solution_size: "14pt"
-  company_size: "12pt"
-  note_size: "9pt"
-header_footer:
-  # Cỡ chữ header/footer trang nội dung.
-  doc_name_size: "9pt"
-  company_size: "8pt"
-  page_size: "8pt"
-  solution_size: "8pt"
-# Mức heading đưa vào Mục lục Word (vd "1-3", "1-6").
-toc_levels: "1-6"
+# Caption hình: {n} = số thứ tự, {alt} = mô tả ảnh.
+figure_caption: "Figure {n}: {alt}"
 # Placeholder đã xác nhận ({{tên}} / [[tên]] trong file mẫu).
 # Chỉ entry user duyệt mới ghi vào template.yaml — không tự sinh.
 # Quy tắc fill lúc export: placeholders.<tên>.value (khác rỗng) >

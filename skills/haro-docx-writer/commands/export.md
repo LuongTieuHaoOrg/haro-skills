@@ -26,17 +26,14 @@ The script resolves `--template-id` itself (local wins over global),
 loading the template's `template.yaml` as `--config` and its
 `template.docx` as `--base-template` (body stripped; styles + header/footer
 kept — the template governs its own chrome, linked into content pages).
-Headings render H1–H6, TOC follows `toc_levels`, page geometry/cover/header
-sizes all come from the template. Missing company/solution/document
+Headings render H1–H6 with the template's styles; page geometry comes from
+the template's `page` block; figure captions follow `figure_caption`.
+Missing company/solution/document
 fields → ask the user for the missing values (SHORT picker/free-text,
 allow skip → uses `(Chưa xác định)`), then apply via
 `/haro-docx-writer --update:<id>` BEFORE exporting (never export with guessed names).
 Also surface any params still at defaults (user skipped the purpose review
 at `--import`) and offer to fill them first.
-
-Logo: `header.logo_path` — if the file doesn't exist, continue WITHOUT logo
-(leave the left header cell empty) and note it in the final summary. Never
-web-search a logo.
 
 ### 3. Validate input by extension
 
@@ -69,9 +66,8 @@ python skills/haro-docx-writer/scripts/build_docx.py \
 ### 5. Verify + report (SHORT)
 
 1. Confirm the output file exists and opens (size > 0).
-2. Report 5 lines max: output path, input source, template `<id>` + scope
-   (local/global), reminder:
-   `Mở file → chuột phải vào Mục lục → Update Field để hiện menu danh mục.`
+2. Report 4 lines max: output path, input source, template `<id>` + scope
+   (local/global), placeholders filled (names or `không có`).
 
 ### Examples
 

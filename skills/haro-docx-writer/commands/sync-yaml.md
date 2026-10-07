@@ -28,8 +28,8 @@ python skills/haro-docx-writer/scripts/sync_yaml.py \
 ```
 
 - Overwrites ONLY `styles` + `page` (+ `_extracted` facts, `content.txt`,
-  logo re-extract). Identity params, meta, `cover`/`header_footer`/
-  `toc_levels` are YAML-owned and stay untouched.
+  logo re-extract). Identity params, meta, `figure_caption`, `placeholders`
+  are YAML-owned and stay untouched.
 - NO backup file is made — say so explicitly before running when the yaml
   holds values not present in the docx (check via `--validate:<id>` first
   if unsure).

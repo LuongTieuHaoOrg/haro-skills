@@ -11,13 +11,12 @@ Usage:
         [--no-apply-visual]
 
 --set accepts dot-paths: name, description, company_name, solution_name,
-document_name, document_title, version, date, status, header.logo_path,
+document_name, document_title, version, date, status, figure_caption,
 styles.body_font, styles.body_size, styles.h1_size ... styles.h6_size,
 styles.body_line_spacing, styles.body_space_before/after,
 styles.heading_space_before/after, styles.bullet_indent_cm,
 styles.bullet_space_after, styles.code_font, styles.code_size,
-styles.heading_color, page.size/orientation/margins/distances,
-cover.*_size, header_footer.*_size, toc_levels,
+page.size/orientation/margins/distances,
 placeholders.<tên>.value | placeholders.<tên>.description (free text).
 authors/reviewers/approvers accept comma-separated lists.
 """
@@ -49,7 +48,7 @@ STYLE_KEYS = {
     "styles.body_line_spacing", "styles.body_space_before", "styles.body_space_after",
     "styles.heading_space_before", "styles.heading_space_after",
     "styles.bullet_indent_cm", "styles.bullet_space_after",
-    "styles.code_font", "styles.code_size", "styles.heading_color",
+    "styles.code_font", "styles.code_size",
 }
 PAGE_KEYS = {
     "page.size", "page.orientation",
@@ -57,20 +56,12 @@ PAGE_KEYS = {
     "page.margin_left_cm", "page.margin_right_cm",
     "page.header_distance_cm", "page.footer_distance_cm",
 }
-COVER_KEYS = {
-    "cover.title_size", "cover.solution_size", "cover.company_size", "cover.note_size",
-}
-HF_KEYS = {
-    "header_footer.doc_name_size", "header_footer.company_size",
-    "header_footer.page_size", "header_footer.solution_size",
-}
 TEXT_KEYS = {
     "name", "description", "company_name", "solution_name", "document_name",
-    "document_title", "version", "date", "status", "header.logo_path",
-    "toc_levels",
+    "document_title", "version", "date", "status", "figure_caption",
 }
 LIST_KEYS = {"authors", "reviewers", "approvers"}
-ALLOWED = STYLE_KEYS | PAGE_KEYS | COVER_KEYS | HF_KEYS | TEXT_KEYS | LIST_KEYS
+ALLOWED = STYLE_KEYS | PAGE_KEYS | TEXT_KEYS | LIST_KEYS
 # Keys measured in points (font/spacing sizes) vs centimeters (page geometry).
 PT_KEYS = {
     "styles.body_size", "styles.h1_size", "styles.h2_size", "styles.h3_size",
@@ -79,9 +70,6 @@ PT_KEYS = {
     "styles.heading_space_before", "styles.heading_space_after",
     "styles.bullet_space_after",
     "styles.code_size",
-    "cover.title_size", "cover.solution_size", "cover.company_size", "cover.note_size",
-    "header_footer.doc_name_size", "header_footer.company_size",
-    "header_footer.page_size", "header_footer.solution_size",
 }
 CM_KEYS = {
     "styles.bullet_indent_cm",
