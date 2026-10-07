@@ -46,21 +46,27 @@ def parse_cm(value, field="giá trị"):
     return _impl(value, field)
 
 
-def _num(mapping: dict, key: str, default, parse, prefix: str):
-    """Read a numeric param through the unit parser; exit cleanly on bad input."""
+def _num(mapping: dict, key: str, default, unit: str, prefix: str):
+    """Read a numeric param through the unit parser; exit cleanly on bad input.
+
+    Takes a unit tag instead of a callable so strict checkers never see a
+    function passed as a value.
+    """
     try:
-        return parse(mapping.get(key, default), f"{prefix}.{key}")
+        if unit == "cm":
+            return parse_cm(mapping.get(key, default), f"{prefix}.{key}")
+        return parse_pt(mapping.get(key, default), f"{prefix}.{key}")
     except ValueError as e:
         print(str(e), file=sys.stderr)
         raise SystemExit(2)
 
 
 def _cfg_pt(mapping: dict, key: str, default, prefix: str = "styles"):
-    return Pt(_num(mapping, key, default, parse_pt, prefix))
+    return Pt(_num(mapping, key, default, "pt", prefix))
 
 
 def _cfg_cm(mapping: dict, key: str, default, prefix: str = "styles"):
-    return Cm(_num(mapping, key, default, parse_cm, prefix))
+    return Cm(_num(mapping, key, default, "cm", prefix))
 
 
 def _cfg_float(mapping: dict, key: str, default, prefix: str = "styles") -> float:

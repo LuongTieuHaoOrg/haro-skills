@@ -49,10 +49,6 @@ def _eq_len(key: str, a, b) -> bool:
         return (a or "") == (b or "")
 
 
-def _eq_num(key: str):
-    return lambda y, d: _eq_len(key, y, d)
-
-
 def parse_args(argv=None):
     ap = argparse.ArgumentParser(description="haro-docx-writer template validator")
     ap.add_argument("--id", required=True, help="id mau")
@@ -122,13 +118,13 @@ def main(argv=None) -> int:
         dv = visual.get(key, "")
         if yv == "" and (dv == "" or dv is None):
             continue
-        add_cmp(f"styles.{key}", yv, dv, _eq_num(key))
+        add_cmp(f"styles.{key}", yv, dv, lambda y, d, _k=key: _eq_len(_k, y, d))
     if visual.get("has_code_style", True):
         add_cmp("styles.code_font", styles.get("code_font", ""),
                 visual.get("code_font", ""), _eq_font)
         if styles.get("code_size") or visual.get("code_size"):
             add_cmp("styles.code_size", styles.get("code_size", ""),
-                    visual.get("code_size", ""), _eq_num("code_size"))
+                    visual.get("code_size", ""), lambda y, d: _eq_len("code_size", y, d))
 
     page = cfg.get("page", {}) or {}
     if page or visual.get("page_size"):
@@ -143,14 +139,14 @@ def main(argv=None) -> int:
             dv = margins.get(side, "")
             if yv == "" and (dv == "" or dv is None):
                 continue
-            add_cmp(f"page.{pkey}", yv, dv, _eq_num(pkey))
+            add_cmp(f"page.{pkey}", yv, dv, lambda y, d, _k=pkey: _eq_len(_k, y, d))
         for label, pkey, vkey in (("header_distance", "header_distance_cm", "page_header_distance_cm"),
                                   ("footer_distance", "footer_distance_cm", "page_footer_distance_cm")):
             yv = page.get(pkey, "")
             dv = visual.get(vkey, "")
             if yv == "" and (dv == "" or dv is None):
                 continue
-            add_cmp(f"page.{pkey}", yv, dv, _eq_num(pkey))
+            add_cmp(f"page.{pkey}", yv, dv, lambda y, d, _k=pkey: _eq_len(_k, y, d))
 
     if recorded:
         add("header (có/không)", "có" if recorded.get("has_header") else "không có",
