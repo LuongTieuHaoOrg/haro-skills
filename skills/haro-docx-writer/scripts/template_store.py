@@ -21,7 +21,7 @@ import yaml
 TEMPLATE_DOCX_NAME = "template.docx"
 TEMPLATE_YAML_NAME = "template.yaml"
 
-ID_RE = re.compile(r"^[a-z0-9][a-z0-9\-_]{0,40}$")
+ID_RE = re.compile(r"^[a-z0-9][a-z0-9\-_]{1,40}$")
 MAX_ID_LEN = 41
 
 # Canonical units: pt for font/spacing sizes, cm for page geometry.

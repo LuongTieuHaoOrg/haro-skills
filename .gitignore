@@ -23,7 +23,9 @@ __pycache__/
 .haro-crew/
 .haro-docs/
 .haro-docx/
+.haro-docx-writer/
 
 # Local temp / verify artifacts
+.temp/
 *.tmp
 *.log
