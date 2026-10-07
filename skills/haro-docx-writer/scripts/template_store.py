@@ -14,6 +14,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
+from typing import Optional
 
 import yaml
 
@@ -125,7 +126,7 @@ def exists_in(root: Path, tid: str) -> bool:
     return p["yaml"].exists() or p["docx"].exists()
 
 
-def resolve(tid: str, project_root: Path) -> dict | None:
+def resolve(tid: str, project_root: Path) -> Optional[dict]:
     """Return the winning entry for tid (local first, then global), or None."""
     tid = normalize_id(tid)
     lr = local_root(project_root)

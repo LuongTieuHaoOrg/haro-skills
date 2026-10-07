@@ -19,6 +19,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
+from typing import Optional, Union
 
 import yaml
 from docx import Document
@@ -51,7 +52,7 @@ CONTENT_TYPE_EXT = {
 }
 
 
-def _num(value) -> float | int | None:
+def _num(value) -> Optional[Union[float, int]]:
     """Normalize a Pt/cm number: int when whole, else rounded."""
     if value is None:
         return None
@@ -62,7 +63,7 @@ def _num(value) -> float | int | None:
     return int(num) if float(num).is_integer() else num
 
 
-def _pt(length) -> float | int | None:
+def _pt(length) -> Optional[Union[float, int]]:
     if length is None:
         return None
     try:
@@ -71,7 +72,7 @@ def _pt(length) -> float | int | None:
         return None
 
 
-def _cm(length) -> float | int | None:
+def _cm(length) -> Optional[Union[float, int]]:
     if length is None:
         return None
     try:
@@ -80,7 +81,7 @@ def _cm(length) -> float | int | None:
         return None
 
 
-def _line_spacing(pf) -> float | None:
+def _line_spacing(pf) -> Optional[float]:
     """Return scalar line-spacing factor, or None for exact/at-least rules."""
     try:
         ls = pf.line_spacing
@@ -532,7 +533,7 @@ def merge_visual_into_cfg(cfg: dict, visual: dict) -> dict:
 
 def build_template_yaml(tid: str, location: str, source: Path, name: str,
                          description: str, visual: dict,
-                         logo_rel: str = "", placeholders: dict | None = None) -> dict:
+                         logo_rel: str = "", placeholders: Optional[dict] = None) -> dict:
     base = load_defaults()
     cfg = merge_visual_into_cfg(dict(base), visual)
 

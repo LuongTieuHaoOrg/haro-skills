@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from typing import Optional
 
 import yaml
 from docx import Document
@@ -173,7 +174,7 @@ def _set(cfg: dict, key: str, value) -> None:
     cur[parts[-1]] = value
 
 
-def apply_visual(docx_path: Path, styles: dict, page: dict | None = None) -> list[str]:
+def apply_visual(docx_path: Path, styles: dict, page: Optional[dict] = None) -> list[str]:
     """Push style-level params into the .docx file. Returns changed labels."""
     doc = Document(str(docx_path))
     changed: list[str] = []
