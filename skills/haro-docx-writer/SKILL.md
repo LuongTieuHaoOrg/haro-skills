@@ -1,6 +1,6 @@
 ---
 name: haro-docx-writer
-description: Export content to Word (.docx) from markdown, text, or PDF sources using named reusable templates with a local and global registry. Templates carry document identity, styles, page layout, header/footer, and fillable placeholders; commands cover the full lifecycle: import/list/view/validate/update/delete templates, two-way yaml-docx sync, and render output by template id or quick-pick.
+description: "Export content to Word (.docx) from markdown, text, or PDF sources using named reusable templates with a local and global registry. Templates carry document identity, styles, page layout, header/footer, and fillable placeholders; commands cover the full lifecycle: import/list/view/validate/update/delete templates, two-way yaml-docx sync, and render output by template id or quick-pick."
 ---
 
 # Haro Docx Writer
